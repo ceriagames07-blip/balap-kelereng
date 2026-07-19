@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Human Runner Real VRM Anime V6</title>
+  <title>Human Runner Real VRM Anime V8 Corrected</title>
   <style>
     :root{
       --bg:#080b14;
@@ -768,8 +768,8 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER REAL VRM V6</span></h1>
-      <p>Lima avatar anime VRM asli dengan skinned mesh, tekstur kulit, rambut, pakaian, wajah, skeleton, pilihan pemain, dan gerakan lari halus.</p>
+      <h1>HUMAN <span>RUNNER REAL VRM V8</span></h1>
+      <p>Avatar anime VRM dengan langkah maju yang benar, ayunan tangan pelari, pakaian futuristik, wajah lebih jelas, warna kulit, dan bayangan kontak.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
@@ -809,7 +809,7 @@
     <button id="resetBtn" type="button" class="control-btn primary">RESET LOMBA</button>
     <button id="cameraBtn" type="button" class="control-btn">KAMERA: FOLLOW</button>
     <button id="laneBtn" type="button" class="control-btn">BATAS JALUR: ON</button>
-    <div class="hint">Analog diperhalus • lepas analog kiri/kanan untuk kembali stabil ke jalur terdekat</div>
+    <div class="hint">Analog stabil • langkah kaki dan tangan diselaraskan dengan arah finish • karakter kembali halus ke jalur terdekat</div>
   </section>
 
 
@@ -874,6 +874,10 @@ const TRACK = {
 };
 
 const PLAYER_LANE_INDEX = 2;
+
+const AVATAR_FORWARD_YAW = Math.PI;
+const RUN_FORWARD_Z = -1;
+const MAX_FRAME_DELTA = 1 / 30;
 
 const MALE_MODEL = {
   primary:
@@ -1630,7 +1634,7 @@ function renderCharacterSelector() {
           <span>Control <b>${Math.round(preset.handling * 100)}</b></span>
         </div>
         <div class="vrm-source-note">
-          Real VRoid skinned avatar
+          VRM • outfit • face details • contact shadow
         </div>
       `;
 
@@ -1787,7 +1791,7 @@ function tintAvatarMaterials(
         if (material.color) {
           material.color.lerp(
             hairColor,
-            0.38
+            0.72
           );
         }
       } else if (
@@ -1798,7 +1802,7 @@ function tintAvatarMaterials(
         if (material.color) {
           material.color.lerp(
             skinColor,
-            0.14
+            0.58
           );
         }
       } else if (
@@ -1817,10 +1821,12 @@ function tintAvatarMaterials(
             .toLowerCase()
             .includes('eye')
         ) {
-          material.color.lerp(
-            accentColor,
-            0.20
-          );
+          material.color
+            .multiplyScalar(0.36)
+            .lerp(
+              accentColor,
+              0.46
+            );
         }
       }
 
@@ -1843,8 +1849,10 @@ function normalizeVrm(
     vrm.scene
   );
 
+  // Setelah normalisasi VRM, avatar diarahkan ke -Z.
+  // Garis finish juga berada di arah -Z, jadi karakter tidak berlari mundur.
   vrm.scene.rotation.y =
-    Math.PI;
+    AVATAR_FORWARD_YAW;
 
   vrm.scene.scale.setScalar(1);
   vrm.scene.position.set(0, 0, 0);
@@ -2204,6 +2212,664 @@ function createAccentAccessories(
   });
 }
 
+
+function createContactShadow(
+  racer
+) {
+  const canvas =
+    document.createElement('canvas');
+
+  canvas.width = 256;
+  canvas.height = 256;
+
+  const context =
+    canvas.getContext('2d');
+
+  const gradient =
+    context.createRadialGradient(
+      128,
+      128,
+      8,
+      128,
+      128,
+      118
+    );
+
+  gradient.addColorStop(
+    0,
+    'rgba(0,0,0,.48)'
+  );
+
+  gradient.addColorStop(
+    0.46,
+    'rgba(0,0,0,.26)'
+  );
+
+  gradient.addColorStop(
+    1,
+    'rgba(0,0,0,0)'
+  );
+
+  context.fillStyle =
+    gradient;
+
+  context.fillRect(
+    0,
+    0,
+    256,
+    256
+  );
+
+  const texture =
+    new THREE.CanvasTexture(
+      canvas
+    );
+
+  const shadow =
+    new THREE.Mesh(
+      new THREE.PlaneGeometry(
+        0.92,
+        0.56
+      ),
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        depthWrite: false,
+        opacity:
+          racer.isPlayer
+            ? 0.74
+            : 0.58
+      })
+    );
+
+  shadow.rotation.x =
+    -Math.PI / 2;
+
+  shadow.position.set(
+    0,
+    0.012,
+    0.02
+  );
+
+  shadow.renderOrder = 1;
+  racer.root.add(shadow);
+  racer.contactShadow = shadow;
+}
+
+function createFaceDetails(
+  racer
+) {
+  const head =
+    racer.bones.head;
+
+  if (!head) return;
+
+  const skin =
+    new THREE.MeshStandardMaterial({
+      color:
+        racer.preset.skinCss,
+      roughness: 0.76,
+      metalness: 0.01
+    });
+
+  const eyeWhite =
+    new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.58,
+      metalness: 0.01
+    });
+
+  const iris =
+    new THREE.MeshStandardMaterial({
+      color:
+        racer.preset.accent,
+      emissive:
+        racer.preset.accent,
+      emissiveIntensity:
+        racer.isPlayer
+          ? 0.16
+          : 0.07,
+      roughness: 0.34,
+      metalness: 0.02
+    });
+
+  const pupil =
+    new THREE.MeshStandardMaterial({
+      color: 0x10151d,
+      roughness: 0.44,
+      metalness: 0
+    });
+
+  const lip =
+    new THREE.MeshStandardMaterial({
+      color: 0xc65f6d,
+      roughness: 0.76,
+      metalness: 0
+    });
+
+  const brow =
+    new THREE.MeshStandardMaterial({
+      color:
+        racer.preset.hairCss,
+      roughness: 0.84,
+      metalness: 0
+    });
+
+  const face =
+    new THREE.Group();
+
+  // VRM local face points to +Z before the scene-level 180 degree rotation.
+  face.position.set(
+    0,
+    0.018,
+    0.083
+  );
+
+  [-1, 1].forEach(side => {
+    const white =
+      new THREE.Mesh(
+        new THREE.SphereGeometry(
+          0.025,
+          18,
+          14
+        ),
+        eyeWhite
+      );
+
+    white.position.set(
+      side * 0.034,
+      0.018,
+      0.011
+    );
+
+    white.scale.set(
+      1.20,
+      0.68,
+      0.34
+    );
+
+    face.add(white);
+
+    const coloredIris =
+      new THREE.Mesh(
+        new THREE.SphereGeometry(
+          0.011,
+          16,
+          12
+        ),
+        iris
+      );
+
+    coloredIris.position.set(
+      side * 0.034,
+      0.017,
+      0.020
+    );
+
+    coloredIris.scale.z =
+      0.42;
+
+    face.add(coloredIris);
+
+    const darkPupil =
+      new THREE.Mesh(
+        new THREE.SphereGeometry(
+          0.005,
+          12,
+          10
+        ),
+        pupil
+      );
+
+    darkPupil.position.set(
+      side * 0.034,
+      0.017,
+      0.025
+    );
+
+    darkPupil.scale.z =
+      0.38;
+
+    face.add(darkPupil);
+
+    const eyebrow =
+      new THREE.Mesh(
+        new THREE.CapsuleGeometry(
+          0.0025,
+          0.026,
+          4,
+          8
+        ),
+        brow
+      );
+
+    eyebrow.rotation.z =
+      Math.PI / 2 +
+      (
+        side < 0
+          ? -0.10
+          : 0.10
+      );
+
+    eyebrow.position.set(
+      side * 0.034,
+      0.052,
+      0.010
+    );
+
+    face.add(eyebrow);
+  });
+
+  const nose =
+    new THREE.Mesh(
+      new THREE.ConeGeometry(
+        0.007,
+        0.022,
+        10
+      ),
+      skin
+    );
+
+  nose.rotation.x =
+    Math.PI / 2;
+
+  nose.position.set(
+    0,
+    -0.001,
+    0.022
+  );
+
+  face.add(nose);
+
+  const mouth =
+    new THREE.Mesh(
+      new THREE.TorusGeometry(
+        0.014,
+        0.0028,
+        8,
+        18,
+        Math.PI
+      ),
+      lip
+    );
+
+  mouth.rotation.z =
+    Math.PI;
+
+  mouth.position.set(
+    0,
+    -0.027,
+    0.019
+  );
+
+  face.add(mouth);
+
+  head.add(face);
+  racer.faceDetails = face;
+}
+
+function createOutfit(
+  racer
+) {
+  const accent =
+    new THREE.MeshStandardMaterial({
+      color:
+        racer.preset.accent,
+      emissive:
+        racer.preset.accent,
+      emissiveIntensity:
+        racer.isPlayer
+          ? 0.92
+          : 0.36,
+      roughness: 0.24,
+      metalness: 0.28
+    });
+
+  const darkSuit =
+    new THREE.MeshStandardMaterial({
+      color:
+        racer.preset.suitDarkCss,
+      roughness: 0.34,
+      metalness: 0.32
+    });
+
+  const midSuit =
+    new THREE.MeshStandardMaterial({
+      color:
+        new THREE.Color(
+          racer.preset.accent
+        ).multiplyScalar(0.28),
+      roughness: 0.38,
+      metalness: 0.30
+    });
+
+  const boot =
+    new THREE.MeshStandardMaterial({
+      color: 0x101821,
+      roughness: 0.38,
+      metalness: 0.40
+    });
+
+  const chest =
+    racer.bones.upperChest ||
+    racer.bones.chest;
+
+  if (chest) {
+    const vest =
+      new THREE.Mesh(
+        new THREE.CapsuleGeometry(
+          0.145,
+          0.25,
+          10,
+          20
+        ),
+        darkSuit
+      );
+
+    vest.position.set(
+      0,
+      -0.035,
+      0.005
+    );
+
+    vest.scale.set(
+      1.18,
+      1.12,
+      0.68
+    );
+
+    vest.castShadow = true;
+    chest.add(vest);
+
+    const chestCore =
+      new THREE.Mesh(
+        new THREE.TorusGeometry(
+          0.076,
+          0.012,
+          10,
+          28
+        ),
+        accent
+      );
+
+    chestCore.rotation.x =
+      Math.PI / 2;
+
+    chestCore.position.set(
+      0,
+      -0.025,
+      0.105
+    );
+
+    chest.add(chestCore);
+
+    const leftLine =
+      new THREE.Mesh(
+        new THREE.CapsuleGeometry(
+          0.010,
+          0.18,
+          6,
+          12
+        ),
+        accent
+      );
+
+    leftLine.position.set(
+      -0.060,
+      -0.025,
+      0.100
+    );
+
+    leftLine.rotation.z =
+      -0.12;
+
+    chest.add(leftLine);
+
+    const rightLine =
+      leftLine.clone();
+
+    rightLine.position.x =
+      0.060;
+
+    rightLine.rotation.z =
+      0.12;
+
+    chest.add(rightLine);
+  }
+
+  const hips =
+    racer.bones.hips;
+
+  if (hips) {
+    const belt =
+      new THREE.Mesh(
+        new THREE.TorusGeometry(
+          0.145,
+          0.025,
+          10,
+          30
+        ),
+        accent
+      );
+
+    belt.rotation.x =
+      Math.PI / 2;
+
+    belt.position.y =
+      0.015;
+
+    hips.add(belt);
+
+    const waistArmor =
+      new THREE.Mesh(
+        new THREE.SphereGeometry(
+          0.145,
+          24,
+          18
+        ),
+        darkSuit
+      );
+
+    waistArmor.scale.set(
+      1.15,
+      0.54,
+      0.86
+    );
+
+    waistArmor.position.y =
+      -0.015;
+
+    hips.add(waistArmor);
+  }
+
+  function addLegOutfit(
+    upperLeg,
+    lowerLeg,
+    foot,
+    side
+  ) {
+    if (upperLeg) {
+      const thigh =
+        new THREE.Mesh(
+          new THREE.CapsuleGeometry(
+            0.075,
+            0.26,
+            9,
+            18
+          ),
+          midSuit
+        );
+
+      thigh.position.y =
+        -0.19;
+
+      thigh.scale.set(
+        0.96,
+        1.05,
+        0.88
+      );
+
+      thigh.castShadow = true;
+      upperLeg.add(thigh);
+
+      const stripe =
+        new THREE.Mesh(
+          new THREE.CapsuleGeometry(
+            0.009,
+            0.20,
+            5,
+            10
+          ),
+          accent
+        );
+
+      stripe.position.set(
+        side * 0.043,
+        -0.19,
+        0.066
+      );
+
+      upperLeg.add(stripe);
+    }
+
+    if (lowerLeg) {
+      const shin =
+        new THREE.Mesh(
+          new THREE.CapsuleGeometry(
+            0.060,
+            0.24,
+            9,
+            18
+          ),
+          darkSuit
+        );
+
+      shin.position.y =
+        -0.18;
+
+      shin.scale.set(
+        0.94,
+        1.05,
+        0.88
+      );
+
+      shin.castShadow = true;
+      lowerLeg.add(shin);
+
+      const kneeLight =
+        new THREE.Mesh(
+          new THREE.TorusGeometry(
+            0.055,
+            0.010,
+            8,
+            20
+          ),
+          accent
+        );
+
+      kneeLight.rotation.x =
+        Math.PI / 2;
+
+      lowerLeg.add(kneeLight);
+    }
+
+    if (foot) {
+      const shoe =
+        new THREE.Mesh(
+          new THREE.BoxGeometry(
+            0.13,
+            0.08,
+            0.26
+          ),
+          boot
+        );
+
+      shoe.position.set(
+        0,
+        -0.035,
+        0.070
+      );
+
+      shoe.castShadow = true;
+      foot.add(shoe);
+
+      const shoeGlow =
+        new THREE.Mesh(
+          new THREE.BoxGeometry(
+            0.09,
+            0.015,
+            0.20
+          ),
+          accent
+        );
+
+      shoeGlow.position.set(
+        0,
+        -0.078,
+        0.075
+      );
+
+      foot.add(shoeGlow);
+    }
+  }
+
+  addLegOutfit(
+    racer.bones.leftUpperLeg,
+    racer.bones.leftLowerLeg,
+    racer.bones.leftFoot,
+    -1
+  );
+
+  addLegOutfit(
+    racer.bones.rightUpperLeg,
+    racer.bones.rightLowerLeg,
+    racer.bones.rightFoot,
+    1
+  );
+
+  [
+    racer.bones.leftHand,
+    racer.bones.rightHand
+  ].forEach(hand => {
+    if (!hand) return;
+
+    const wristBand =
+      new THREE.Mesh(
+        new THREE.TorusGeometry(
+          0.043,
+          0.010,
+          8,
+          20
+        ),
+        accent
+      );
+
+    wristBand.rotation.x =
+      Math.PI / 2;
+
+    hand.add(wristBand);
+  });
+}
+
+function lockForwardDirection(
+  racer,
+  dt
+) {
+  if (!racer) return;
+
+  // Root 0 rad means VRM scene (already rotated by PI)
+  // faces the finish at negative Z.
+  racer.root.rotation.y =
+    dampAngle(
+      racer.root.rotation.y,
+      racer.isPlayer
+        ? racer.root.rotation.y
+        : 0,
+      14,
+      dt
+    );
+}
+
 async function createRacer(
   preset,
   laneIndex,
@@ -2287,6 +2953,9 @@ async function createRacer(
     finished: false
   };
 
+  createContactShadow(racer);
+  createFaceDetails(racer);
+  createOutfit(racer);
   createSpoon(racer);
   createAccentAccessories(
     racer
@@ -2414,13 +3083,15 @@ async function loadAllRacers() {
   }
 }
 
+
 function poseBone(
   racer,
   name,
   x,
   y,
   z,
-  smoothing
+  smoothing,
+  order = 'XYZ'
 ) {
   const bone =
     racer.bones[name];
@@ -2440,7 +3111,7 @@ function poseBone(
           x,
           y,
           z,
-          'XYZ'
+          order
         )
       );
 
@@ -2452,9 +3123,14 @@ function poseBone(
 
   bone.quaternion.slerp(
     targetQuaternion,
-    smoothing
+    THREE.MathUtils.clamp(
+      smoothing,
+      0,
+      1
+    )
   );
 }
+
 
 function setIdlePose(
   racer,
@@ -2463,73 +3139,106 @@ function setIdlePose(
 ) {
   const breath =
     Math.sin(
-      elapsed * 2 +
+      elapsed * 1.85 +
+      racer.laneIndex * 0.72
+    );
+
+  const weightShift =
+    Math.sin(
+      elapsed * 0.72 +
       racer.laneIndex
     );
 
   poseBone(
     racer,
     'hips',
-    0,
-    0,
-    breath * 0.010,
+    -0.015,
+    weightShift * 0.012,
+    weightShift * 0.010,
     smoothing
   );
 
   poseBone(
     racer,
     'spine',
-    -0.025 +
-    breath * 0.006,
+    -0.020 +
+    breath * 0.007,
     0,
-    0,
+    -weightShift * 0.006,
     smoothing
   );
 
   poseBone(
     racer,
     'chest',
-    0.012,
+    0.018 +
+    breath * 0.006,
     0,
-    0,
+    weightShift * 0.005,
     smoothing
   );
 
   poseBone(
     racer,
     'head',
-    0.020,
+    0.018,
     Math.sin(
-      elapsed * 0.55 +
+      elapsed * 0.52 +
       racer.laneIndex
-    ) * 0.018,
-    0,
+    ) * 0.020,
+    -weightShift * 0.004,
     smoothing
+  );
+
+  // Turunkan lengan dari T-pose.
+  // Rotasi Z adalah pose dasar, rotasi X hanya memberi ayunan kecil.
+  poseBone(
+    racer,
+    'leftShoulder',
+    0,
+    0,
+    0.055,
+    smoothing,
+    'ZXY'
+  );
+
+  poseBone(
+    racer,
+    'rightShoulder',
+    0,
+    0,
+    -0.055,
+    smoothing,
+    'ZXY'
   );
 
   poseBone(
     racer,
     'leftUpperArm',
-    0.12,
+    0.055 +
+    breath * 0.006,
     0,
-    0.11,
-    smoothing
+    1.18,
+    smoothing,
+    'ZXY'
   );
 
   poseBone(
     racer,
     'rightUpperArm',
-    0.12,
+    0.055 +
+    breath * 0.006,
     0,
-    -0.11,
-    smoothing
+    -1.18,
+    smoothing,
+    'ZXY'
   );
 
   poseBone(
     racer,
     'leftLowerArm',
-    0.40,
-    0,
+    0.22,
+    -0.025,
     0,
     smoothing
   );
@@ -2537,29 +3246,127 @@ function setIdlePose(
   poseBone(
     racer,
     'rightLowerArm',
-    0.40,
+    0.22,
+    0.025,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'leftHand',
+    0.02,
+    0,
+    -0.03,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'rightHand',
+    0.02,
+    0,
+    0.03,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'leftUpperLeg',
+    -0.018,
+    0,
+    0.012,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'rightUpperLeg',
+    -0.018,
+    0,
+    -0.012,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'leftLowerLeg',
+    -0.035,
     0,
     0,
     smoothing
   );
 
-  [
-    'leftUpperLeg',
-    'rightUpperLeg',
-    'leftLowerLeg',
+  poseBone(
+    racer,
     'rightLowerLeg',
+    -0.035,
+    0,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
     'leftFoot',
-    'rightFoot'
-  ].forEach(name => {
-    poseBone(
-      racer,
-      name,
+    0.025,
+    0,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'rightFoot',
+    0.025,
+    0,
+    0,
+    smoothing
+  );
+
+  racer.root.position.y =
+    Math.max(
       0,
-      0,
-      0,
-      smoothing
+      breath * 0.004
     );
-  });
+
+  if (racer.contactShadow) {
+    const shadowScale =
+      1 -
+      verticalBounce * 2.4;
+
+    racer.contactShadow.scale.set(
+      THREE.MathUtils.clamp(
+        shadowScale,
+        0.82,
+        1
+      ),
+      THREE.MathUtils.clamp(
+        shadowScale,
+        0.82,
+        1
+      ),
+      1
+    );
+
+    racer.contactShadow.material.opacity =
+      racer.isPlayer
+        ? 0.72 - verticalBounce * 2.2
+        : 0.56 - verticalBounce * 1.8;
+  }
+
+  if (racer.contactShadow) {
+    racer.contactShadow.scale.set(
+      1,
+      1,
+      1
+    );
+
+    racer.contactShadow.material.opacity =
+      racer.isPlayer
+        ? 0.72
+        : 0.56;
+  }
 
   if (racer.spoon) {
     racer.spoon.rotation.set(
@@ -2578,6 +3385,7 @@ function setIdlePose(
   }
 }
 
+
 function animateRun(
   racer,
   elapsed,
@@ -2587,27 +3395,17 @@ function animateRun(
   const phase =
     racer.runPhase;
 
+  // Reverse phase so the visible lead leg matches forward movement to -Z.
   const stride =
-    Math.sin(phase);
+    -Math.sin(phase);
 
   const opposite =
-    Math.sin(
-      phase +
-      Math.PI
-    );
+    -stride;
 
   const doubleStep =
     Math.sin(
       phase * 2
     );
-
-  const legAmplitude =
-    0.52 +
-    speedRatio * 0.38;
-
-  const armAmplitude =
-    0.44 +
-    speedRatio * 0.31;
 
   const leftRecovery =
     Math.max(
@@ -2618,67 +3416,193 @@ function animateRun(
   const rightRecovery =
     Math.max(
       0,
-      -opposite
+      stride
     );
+
+  const leftContact =
+    Math.max(
+      0,
+      stride
+    );
+
+  const rightContact =
+    Math.max(
+      0,
+      -stride
+    );
+
+  const legAmplitude =
+    0.48 +
+    speedRatio * 0.38;
+
+  const armAmplitude =
+    0.43 +
+    speedRatio * 0.34;
 
   const smoothing =
     1 -
     Math.exp(
-      -20 *
-      Math.max(dt, 0.001)
+      -15 *
+      Math.max(
+        dt,
+        0.001
+      )
+    );
+
+  const verticalBounce =
+    Math.abs(doubleStep) *
+    (
+      0.012 +
+      speedRatio * 0.024
+    );
+
+  const lateralWeight =
+    stride *
+    (
+      0.008 +
+      speedRatio * 0.010
     );
 
   racer.root.position.y =
-    Math.abs(doubleStep) *
-    (
-      0.018 +
-      speedRatio * 0.026
-    );
+    verticalBounce;
 
   poseBone(
     racer,
     'hips',
-    -0.025 +
-    doubleStep * 0.018,
-    -stride * 0.032,
-    stride * 0.018,
+    -0.035 +
+    doubleStep * 0.015,
+    -stride * 0.030,
+    lateralWeight,
     smoothing
   );
 
   poseBone(
     racer,
     'spine',
-    -0.080 -
-    speedRatio * 0.045,
-    stride * 0.027,
-    -stride * 0.012,
+    -0.075 -
+    speedRatio * 0.040,
+    stride * 0.026,
+    -lateralWeight * 0.72,
     smoothing
   );
 
   poseBone(
     racer,
     'chest',
-    -0.025,
-    -stride * 0.020,
-    stride * 0.010,
+    -0.012,
+    -stride * 0.022,
+    lateralWeight * 0.52,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'neck',
+    0.035,
+    stride * 0.006,
+    -lateralWeight * 0.25,
     smoothing
   );
 
   poseBone(
     racer,
     'head',
-    0.060,
-    stride * 0.012,
-    stride * 0.008,
+    0.045,
+    -stride * 0.010,
+    -lateralWeight * 0.30,
+    smoothing
+  );
+
+  // Bahu turun dan rileks.
+  poseBone(
+    racer,
+    'leftShoulder',
+    -stride * 0.055,
+    0,
+    0.065,
+    smoothing,
+    'ZXY'
+  );
+
+  poseBone(
+    racer,
+    'rightShoulder',
+    stride * 0.055,
+    0,
+    -0.065,
+    smoothing,
+    'ZXY'
+  );
+
+  // Lengan diturunkan ±1.12 rad dari T-pose,
+  // lalu diayunkan ke depan/belakang lewat sumbu X.
+  poseBone(
+    racer,
+    'leftUpperArm',
+    -stride * armAmplitude,
+    -0.045,
+    1.16,
+    smoothing,
+    'ZXY'
+  );
+
+  poseBone(
+    racer,
+    'rightUpperArm',
+    stride * armAmplitude,
+    0.045,
+    -1.16,
+    smoothing,
+    'ZXY'
+  );
+
+  poseBone(
+    racer,
+    'leftLowerArm',
+    1.02 +
+    leftContact * 0.12 +
+    leftRecovery * 0.08,
+    -0.035,
+    0,
     smoothing
   );
 
   poseBone(
     racer,
+    'rightLowerArm',
+    1.02 +
+    rightContact * 0.12 +
+    rightRecovery * 0.08,
+    0.035,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'leftHand',
+    0.02,
+    0,
+    -0.04,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'rightHand',
+    0.02,
+    0,
+    0.04,
+    smoothing
+  );
+
+  // Paha maju/mundur mengikuti arah lari ke -Z.
+  poseBone(
+    racer,
     'leftUpperLeg',
     stride * legAmplitude,
     0,
-    0.012,
+    0.015,
     smoothing
   );
 
@@ -2687,17 +3611,19 @@ function animateRun(
     'rightUpperLeg',
     opposite * legAmplitude,
     0,
-    -0.012,
+    -0.015,
     smoothing
   );
 
+  // Lutut menekuk saat kaki berada di fase recovery.
   poseBone(
     racer,
     'leftLowerLeg',
-    -leftRecovery *
+    -0.055 -
+    leftRecovery *
     (
-      0.88 +
-      speedRatio * 0.30
+      0.94 +
+      speedRatio * 0.36
     ),
     0,
     0,
@@ -2707,25 +3633,24 @@ function animateRun(
   poseBone(
     racer,
     'rightLowerLeg',
-    -rightRecovery *
+    -0.055 -
+    rightRecovery *
     (
-      0.88 +
-      speedRatio * 0.30
+      0.94 +
+      speedRatio * 0.36
     ),
     0,
     0,
     smoothing
   );
 
+  // Telapak kaki lebih rata saat kontak dan terangkat ketika recovery.
   poseBone(
     racer,
     'leftFoot',
-    0.11 -
-    Math.max(
-      0,
-      stride
-    ) * 0.25 +
-    leftRecovery * 0.10,
+    0.08 -
+    leftContact * 0.22 +
+    leftRecovery * 0.14,
     0,
     0,
     smoothing
@@ -2734,12 +3659,9 @@ function animateRun(
   poseBone(
     racer,
     'rightFoot',
-    0.11 -
-    Math.max(
-      0,
-      opposite
-    ) * 0.25 +
-    rightRecovery * 0.10,
+    0.08 -
+    rightContact * 0.22 +
+    rightRecovery * 0.14,
     0,
     0,
     smoothing
@@ -2747,30 +3669,8 @@ function animateRun(
 
   poseBone(
     racer,
-    'leftUpperArm',
-    -stride * armAmplitude,
-    0,
-    0.10,
-    smoothing
-  );
-
-  poseBone(
-    racer,
-    'rightUpperArm',
-    stride * armAmplitude,
-    0,
-    -0.10,
-    smoothing
-  );
-
-  poseBone(
-    racer,
-    'leftLowerArm',
-    0.72 +
-    Math.max(
-      0,
-      stride
-    ) * 0.13,
+    'leftToes',
+    -leftContact * 0.12,
     0,
     0,
     smoothing
@@ -2778,12 +3678,8 @@ function animateRun(
 
   poseBone(
     racer,
-    'rightLowerArm',
-    0.72 +
-    Math.max(
-      0,
-      -stride
-    ) * 0.13,
+    'rightToes',
+    -rightContact * 0.12,
     0,
     0,
     smoothing
@@ -2795,7 +3691,7 @@ function animateRun(
         elapsed * 7 +
         racer.laneIndex
       ) *
-      0.006 *
+      0.0045 *
       speedRatio;
 
     racer.spoon.rotation.z =
@@ -2803,7 +3699,7 @@ function animateRun(
         elapsed * 5.6 +
         racer.laneIndex
       ) *
-      0.008 *
+      0.006 *
       speedRatio;
   }
 
@@ -2813,7 +3709,7 @@ function animateRun(
         elapsed * 5.8 +
         racer.laneIndex
       ) *
-      0.003 *
+      0.0025 *
       speedRatio,
       0.050 +
       Math.abs(
@@ -2821,14 +3717,14 @@ function animateRun(
           elapsed * 6.8
         )
       ) *
-      0.002 *
+      0.0017 *
       speedRatio,
       0.35 +
       Math.cos(
         elapsed * 5 +
         racer.laneIndex
       ) *
-      0.0025 *
+      0.002 *
       speedRatio
     );
   }
@@ -2943,29 +3839,64 @@ function getRawInputVector() {
   return { x, y };
 }
 
+
 function getSmoothedInput(dt) {
   const raw =
     getRawInputVector();
 
-  const deadZone = 0.09;
+  const deadZone =
+    0.11;
+
+  function applyDeadZone(
+    value
+  ) {
+    const absoluteValue =
+      Math.abs(value);
+
+    if (
+      absoluteValue <=
+      deadZone
+    ) {
+      return 0;
+    }
+
+    const normalized =
+      (
+        absoluteValue -
+        deadZone
+      ) /
+      (
+        1 -
+        deadZone
+      );
+
+    const curved =
+      Math.pow(
+        normalized,
+        1.22
+      );
+
+    return (
+      Math.sign(value) *
+      curved
+    );
+  }
 
   const targetX =
-    Math.abs(raw.x) <
-    deadZone
-      ? 0
-      : raw.x;
+    applyDeadZone(
+      raw.x
+    );
 
   const targetY =
-    Math.abs(raw.y) <
-    deadZone
-      ? 0
-      : raw.y;
+    applyDeadZone(
+      raw.y
+    );
 
   smoothInputX =
     THREE.MathUtils.damp(
       smoothInputX,
       targetX,
-      11,
+      8.2,
       dt
     );
 
@@ -2973,7 +3904,7 @@ function getSmoothedInput(dt) {
     THREE.MathUtils.damp(
       smoothInputY,
       targetY,
-      11,
+      8.2,
       dt
     );
 
@@ -3077,8 +4008,10 @@ function updatePlayer(
     );
 
   if (raceStarted) {
-    player.root.position.z -=
-      currentSpeed * dt;
+    player.root.position.z +=
+      RUN_FORWARD_Z *
+      currentSpeed *
+      dt;
 
     if (
       Math.abs(
@@ -3087,7 +4020,7 @@ function updatePlayer(
     ) {
       playerTargetX +=
         lateralPower *
-        3.0 *
+        2.55 *
         player.preset.handling *
         (
           0.48 +
@@ -3101,7 +4034,7 @@ function updatePlayer(
           nearestLaneX(
             playerTargetX
           ),
-          2.2,
+          1.75,
           dt
         );
     }
@@ -3126,7 +4059,7 @@ function updatePlayer(
       THREE.MathUtils.damp(
         player.root.position.x,
         playerTargetX,
-        8.8,
+        6.8,
         dt
       );
 
@@ -3140,19 +4073,21 @@ function updatePlayer(
         0.001
       );
 
+    // Avatar selalu menghadap arah finish (-Z).
+    // Steering hanya memberi rotasi kecil, tidak pernah membalik 180°.
     const targetYaw =
       THREE.MathUtils.clamp(
         -lateralVelocity *
-        0.045,
-        -0.19,
-        0.19
+        0.032,
+        -0.095,
+        0.095
       );
 
     player.root.rotation.y =
       dampAngle(
         player.root.rotation.y,
         targetYaw,
-        10,
+        9.5,
         dt
       );
 
@@ -3167,8 +4102,8 @@ function updatePlayer(
     player.runPhase +=
       dt *
       (
-        4.4 +
-        currentSpeed * 0.70
+        4.05 +
+        currentSpeed * 0.62
       );
 
     animateRun(
@@ -3245,14 +4180,24 @@ function updateOpponents(
       racer.currentSpeed *
       variation;
 
-    racer.root.position.z -=
-      effectiveSpeed * dt;
+    racer.root.position.z +=
+      RUN_FORWARD_Z *
+      effectiveSpeed *
+      dt;
 
     racer.runPhase +=
       dt *
       (
-        4.35 +
-        effectiveSpeed * 0.68
+        4.00 +
+        effectiveSpeed * 0.60
+      );
+
+    racer.root.rotation.y =
+      dampAngle(
+        racer.root.rotation.y,
+        0,
+        12,
+        dt
       );
 
     animateRun(
@@ -3491,7 +4436,7 @@ function animate() {
   const dt =
     Math.min(
       clock.getDelta(),
-      0.05
+      MAX_FRAME_DELTA
     );
 
   const elapsed =
