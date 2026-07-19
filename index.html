@@ -887,7 +887,7 @@ const TRACK = {
 
 const PLAYER_LANE_INDEX = 2;
 
-const AVATAR_FORWARD_YAW = Math.PI;
+const AVATAR_FORWARD_YAW = 0;
 const RUN_FORWARD_Z = -1;
 const MAX_FRAME_DELTA = 1 / 30;
 
@@ -2038,25 +2038,17 @@ function createSpoon(
   const group =
     new THREE.Group();
 
-  // VRM standard forward is +Z before the avatar scene is rotated.
   group.position.set(
     0,
-    -0.055,
-    0.105
+    -0.030,
+    0.088
   );
-
-  const lipMaterial =
-    new THREE.MeshStandardMaterial({
-      color: 0xc85e68,
-      roughness: 0.78,
-      metalness: 0
-    });
 
   const spoonMaterial =
     new THREE.MeshStandardMaterial({
-      color: 0xe8edf1,
-      roughness: 0.20,
-      metalness: 0.90,
+      color: 0xe7edf2,
+      roughness: 0.18,
+      metalness: 0.88,
       side: THREE.DoubleSide
     });
 
@@ -2066,45 +2058,18 @@ function createSpoon(
       emissive: racer.preset.accent,
       emissiveIntensity:
         racer.isPlayer
-          ? 0.48
-          : 0.28,
-      roughness: 0.13,
-      metalness: 0.22
+          ? 0.28
+          : 0.14,
+      roughness: 0.20,
+      metalness: 0.10
     });
-
-  const upperLip =
-    new THREE.Mesh(
-      new THREE.CapsuleGeometry(
-        0.008,
-        0.045,
-        5,
-        10
-      ),
-      lipMaterial
-    );
-
-  upperLip.rotation.z =
-    Math.PI / 2;
-
-  upperLip.position.y =
-    0.012;
-
-  group.add(upperLip);
-
-  const lowerLip =
-    upperLip.clone();
-
-  lowerLip.position.y =
-    -0.012;
-
-  group.add(lowerLip);
 
   const handle =
     new THREE.Mesh(
       new THREE.CylinderGeometry(
+        0.0055,
         0.007,
-        0.009,
-        0.30,
+        0.18,
         16
       ),
       spoonMaterial
@@ -2114,7 +2079,7 @@ function createSpoon(
     Math.PI / 2;
 
   handle.position.z =
-    0.15;
+    0.085;
 
   handle.castShadow = true;
   group.add(handle);
@@ -2122,23 +2087,23 @@ function createSpoon(
   const bowl =
     new THREE.Mesh(
       new THREE.SphereGeometry(
-        0.064,
-        22,
+        0.034,
+        20,
         18
       ),
       spoonMaterial
     );
 
   bowl.scale.set(
-    0.80,
-    0.22,
-    1.18
+    1.12,
+    0.16,
+    1.34
   );
 
   bowl.position.set(
     0,
     -0.002,
-    0.35
+    0.188
   );
 
   bowl.castShadow = true;
@@ -2147,17 +2112,17 @@ function createSpoon(
   const marble =
     new THREE.Mesh(
       new THREE.SphereGeometry(
-        0.036,
-        20,
-        16
+        0.017,
+        18,
+        14
       ),
       marbleMaterial
     );
 
   marble.position.set(
     0,
-    0.050,
-    0.35
+    0.010,
+    0.188
   );
 
   marble.castShadow = true;
@@ -2168,7 +2133,6 @@ function createSpoon(
   racer.spoon = group;
   racer.marble = marble;
 }
-
 
 function createAccentAccessories(
   racer
@@ -2255,7 +2219,7 @@ function createContactShadow(
     context.createRadialGradient(
       128,
       128,
-      8,
+      10,
       128,
       128,
       118
@@ -2263,12 +2227,12 @@ function createContactShadow(
 
   gradient.addColorStop(
     0,
-    'rgba(0,0,0,.48)'
+    'rgba(0,0,0,.60)'
   );
 
   gradient.addColorStop(
-    0.46,
-    'rgba(0,0,0,.26)'
+    0.48,
+    'rgba(0,0,0,.32)'
   );
 
   gradient.addColorStop(
@@ -2294,8 +2258,8 @@ function createContactShadow(
   const shadow =
     new THREE.Mesh(
       new THREE.PlaneGeometry(
-        0.92,
-        0.56
+        1.00,
+        0.64
       ),
       new THREE.MeshBasicMaterial({
         map: texture,
@@ -2303,8 +2267,8 @@ function createContactShadow(
         depthWrite: false,
         opacity:
           racer.isPlayer
-            ? 0.74
-            : 0.58
+            ? 0.82
+            : 0.68
       })
     );
 
@@ -2313,7 +2277,7 @@ function createContactShadow(
 
   shadow.position.set(
     0,
-    0.012,
+    0.014,
     0.02
   );
 
@@ -2325,215 +2289,9 @@ function createContactShadow(
 function createFaceDetails(
   racer
 ) {
-  const head =
-    racer.bones.head;
-
-  if (!head) return;
-
-  const skin =
-    new THREE.MeshStandardMaterial({
-      color:
-        racer.preset.skinCss,
-      roughness: 0.76,
-      metalness: 0.01
-    });
-
-  const eyeWhite =
-    new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 0.58,
-      metalness: 0.01
-    });
-
-  const iris =
-    new THREE.MeshStandardMaterial({
-      color:
-        racer.preset.accent,
-      emissive:
-        racer.preset.accent,
-      emissiveIntensity:
-        racer.isPlayer
-          ? 0.16
-          : 0.07,
-      roughness: 0.34,
-      metalness: 0.02
-    });
-
-  const pupil =
-    new THREE.MeshStandardMaterial({
-      color: 0x10151d,
-      roughness: 0.44,
-      metalness: 0
-    });
-
-  const lip =
-    new THREE.MeshStandardMaterial({
-      color: 0xc65f6d,
-      roughness: 0.76,
-      metalness: 0
-    });
-
-  const brow =
-    new THREE.MeshStandardMaterial({
-      color:
-        racer.preset.hairCss,
-      roughness: 0.84,
-      metalness: 0
-    });
-
-  const face =
-    new THREE.Group();
-
-  // VRM local face points to +Z before the scene-level 180 degree rotation.
-  face.position.set(
-    0,
-    0.018,
-    0.083
-  );
-
-  [-1, 1].forEach(side => {
-    const white =
-      new THREE.Mesh(
-        new THREE.SphereGeometry(
-          0.025,
-          18,
-          14
-        ),
-        eyeWhite
-      );
-
-    white.position.set(
-      side * 0.034,
-      0.018,
-      0.011
-    );
-
-    white.scale.set(
-      1.20,
-      0.68,
-      0.34
-    );
-
-    face.add(white);
-
-    const coloredIris =
-      new THREE.Mesh(
-        new THREE.SphereGeometry(
-          0.011,
-          16,
-          12
-        ),
-        iris
-      );
-
-    coloredIris.position.set(
-      side * 0.034,
-      0.017,
-      0.020
-    );
-
-    coloredIris.scale.z =
-      0.42;
-
-    face.add(coloredIris);
-
-    const darkPupil =
-      new THREE.Mesh(
-        new THREE.SphereGeometry(
-          0.005,
-          12,
-          10
-        ),
-        pupil
-      );
-
-    darkPupil.position.set(
-      side * 0.034,
-      0.017,
-      0.025
-    );
-
-    darkPupil.scale.z =
-      0.38;
-
-    face.add(darkPupil);
-
-    const eyebrow =
-      new THREE.Mesh(
-        new THREE.CapsuleGeometry(
-          0.0025,
-          0.026,
-          4,
-          8
-        ),
-        brow
-      );
-
-    eyebrow.rotation.z =
-      Math.PI / 2 +
-      (
-        side < 0
-          ? -0.10
-          : 0.10
-      );
-
-    eyebrow.position.set(
-      side * 0.034,
-      0.052,
-      0.010
-    );
-
-    face.add(eyebrow);
-  });
-
-  const nose =
-    new THREE.Mesh(
-      new THREE.ConeGeometry(
-        0.007,
-        0.022,
-        10
-      ),
-      skin
-    );
-
-  nose.rotation.x =
-    Math.PI / 2;
-
-  nose.position.set(
-    0,
-    -0.001,
-    0.022
-  );
-
-  face.add(nose);
-
-  const mouth =
-    new THREE.Mesh(
-      new THREE.TorusGeometry(
-        0.014,
-        0.0028,
-        8,
-        18,
-        Math.PI
-      ),
-      lip
-    );
-
-  mouth.rotation.z =
-    Math.PI;
-
-  mouth.position.set(
-    0,
-    -0.027,
-    0.019
-  );
-
-  face.add(mouth);
-
-  head.add(face);
-  racer.faceDetails = face;
+  // Gunakan wajah bawaan VRM.
+  racer.faceDetails = null;
 }
-
 
 function createHairStyle(
   racer
@@ -2592,524 +2350,89 @@ function createHairStyle(
     return mesh;
   }
 
-  if (style === 'spiky') {
-    addMesh(
-      new THREE.SphereGeometry(0.078, 20, 16),
-      [0, 0.088, -0.004],
-      [0, 0, 0],
-      [1.05, 0.92, 1.08]
-    );
+  addMesh(
+    new THREE.SphereGeometry(0.082, 22, 18),
+    [0, 0.080, 0.000],
+    [0, 0, 0],
+    [1.08, 0.90, 1.12]
+  );
 
-    [-0.05, -0.022, 0, 0.026, 0.052].forEach((x, index) => {
+  if (style === 'spiky') {
+    [-0.048, -0.022, 0, 0.022, 0.048].forEach((x, index) => {
       addMesh(
-        new THREE.ConeGeometry(0.016, 0.060, 8),
-        [x, 0.145 + Math.abs(x) * 0.12, 0.010 - index * 0.002],
-        [-0.38, 0, x * -3.8]
+        new THREE.ConeGeometry(0.015, 0.060, 8),
+        [x, 0.145 + Math.abs(x) * 0.10, -0.010 - index * 0.001],
+        [-0.30, 0, x * -3.5]
       );
     });
   } else if (style === 'swept') {
     addMesh(
-      new THREE.SphereGeometry(0.082, 22, 18),
-      [0.008, 0.084, -0.010],
-      [0, 0, 0],
-      [1.14, 0.90, 1.18]
-    );
-
-    addMesh(
-      new THREE.CapsuleGeometry(0.034, 0.10, 6, 10),
-      [0.030, 0.112, 0.012],
-      [-0.2, -0.52, -0.7],
-      [1.2, 1.05, 1.0]
-    );
-
-    addMesh(
-      new THREE.CapsuleGeometry(0.024, 0.07, 6, 10),
-      [-0.050, 0.030, -0.045],
-      [0.18, 0, 0.6]
+      new THREE.CapsuleGeometry(0.034, 0.11, 6, 10),
+      [0.025, 0.112, -0.018],
+      [-0.22, -0.55, -0.55],
+      [1.15, 1.00, 1.0]
     );
   } else if (style === 'bob') {
     addMesh(
-      new THREE.SphereGeometry(0.086, 22, 18),
-      [0, 0.070, -0.010],
-      [0, 0, 0],
-      [1.06, 0.96, 1.12]
-    );
-
-    addMesh(
       new THREE.CapsuleGeometry(0.046, 0.13, 6, 12),
-      [0, 0.000, -0.030],
+      [0, -0.005, 0.000],
       [0, 0, 0],
-      [1.16, 1.0, 1.18]
+      [1.14, 1.0, 1.08]
     );
 
     addMesh(
-      new THREE.CapsuleGeometry(0.022, 0.060, 6, 10),
-      [-0.075, 0.005, 0.020],
-      [0, 0, -0.65]
-    );
-
-    addMesh(
-      new THREE.CapsuleGeometry(0.022, 0.060, 6, 10),
-      [0.075, 0.005, 0.020],
-      [0, 0, 0.65]
-    );
-  } else if (style === 'ponytail') {
-    addMesh(
-      new THREE.SphereGeometry(0.078, 20, 16),
-      [0, 0.083, -0.012],
-      [0, 0, 0],
-      [1.02, 0.90, 1.08]
-    );
-
-    addMesh(
-      new THREE.CapsuleGeometry(0.020, 0.16, 6, 12),
-      [0, 0.020, -0.090],
-      [0.18, 0, 0],
-      [0.9, 1.18, 0.9]
-    );
-
-    addMesh(
-      new THREE.TorusGeometry(0.018, 0.006, 6, 14),
-      [0, 0.052, -0.060],
-      [Math.PI / 2, 0, 0]
-    );
-
-    addMesh(
-      new THREE.CapsuleGeometry(0.018, 0.05, 6, 10),
-      [-0.070, 0.010, 0.022],
+      new THREE.CapsuleGeometry(0.020, 0.058, 6, 10),
+      [-0.072, 0.005, -0.010],
       [0, 0, -0.55]
     );
 
     addMesh(
-      new THREE.CapsuleGeometry(0.018, 0.05, 6, 10),
-      [0.070, 0.010, 0.022],
+      new THREE.CapsuleGeometry(0.020, 0.058, 6, 10),
+      [0.072, 0.005, -0.010],
       [0, 0, 0.55]
+    );
+  } else if (style === 'ponytail') {
+    addMesh(
+      new THREE.CapsuleGeometry(0.020, 0.17, 6, 12),
+      [0, 0.022, 0.095],
+      [-0.10, 0, 0],
+      [0.85, 1.12, 0.85]
+    );
+
+    addMesh(
+      new THREE.TorusGeometry(0.018, 0.006, 6, 14),
+      [0, 0.056, 0.060],
+      [Math.PI / 2, 0, 0]
     );
   } else if (style === 'crest') {
     addMesh(
-      new THREE.SphereGeometry(0.080, 20, 16),
-      [0, 0.084, -0.010],
-      [0, 0, 0],
-      [1.08, 0.92, 1.10]
-    );
-
-    addMesh(
-      new THREE.BoxGeometry(0.028, 0.11, 0.09),
-      [0, 0.150, 0.000],
+      new THREE.BoxGeometry(0.028, 0.11, 0.082),
+      [0, 0.150, -0.010],
       [-0.18, 0, 0]
     );
-
-    addMesh(
-      new THREE.CapsuleGeometry(0.020, 0.070, 6, 10),
-      [-0.085, 0.020, -0.020],
-      [0, 0, -0.45]
-    );
-
-    addMesh(
-      new THREE.CapsuleGeometry(0.020, 0.070, 6, 10),
-      [0.085, 0.020, -0.020],
-      [0, 0, 0.45]
-    );
   }
+
+  [-0.040, -0.013, 0.013, 0.040].forEach((x, i) => {
+    addMesh(
+      new THREE.CapsuleGeometry(0.013, 0.040, 6, 10),
+      [x, 0.052 - Math.abs(x) * 0.05, -0.058 - i * 0.002],
+      [0.40, 0, x * -2.0],
+      [0.92, 1.0, 0.9]
+    );
+  });
 
   head.add(group);
   racer.hairStyleGroup = group;
 }
 
 
-
-
 function createOutfit(
   racer
 ) {
-  const trimMaterial =
-    new THREE.MeshStandardMaterial({
-      color: racer.preset.accent,
-      emissive: racer.preset.accent,
-      emissiveIntensity:
-        racer.isPlayer
-          ? 0.55
-          : 0.20,
-      roughness: 0.24,
-      metalness: 0.12
-    });
-
-  const suitMaterial =
-    new THREE.MeshStandardMaterial({
-      color: racer.preset.suitDarkCss,
-      roughness: 0.55,
-      metalness: 0.06
-    });
-
-  const suitMaterial2 =
-    new THREE.MeshStandardMaterial({
-      color:
-        new THREE.Color(
-          racer.preset.suitDarkCss
-        ).multiplyScalar(1.18),
-      roughness: 0.50,
-      metalness: 0.04
-    });
-
-  const shoeMaterial =
-    new THREE.MeshStandardMaterial({
-      color: 0x0f141b,
-      roughness: 0.48,
-      metalness: 0.10
-    });
-
-  const chest =
-    racer.bones.upperChest ||
-    racer.bones.chest;
-
-  const hips =
-    racer.bones.hips;
-
-  if (chest) {
-    const torsoSuit =
-      new THREE.Mesh(
-        new THREE.CapsuleGeometry(
-          0.132,
-          0.23,
-          10,
-          18
-        ),
-        suitMaterial
-      );
-
-    torsoSuit.position.set(
-      0,
-      -0.028,
-      0.010
-    );
-
-    torsoSuit.scale.set(
-      1.06,
-      1.10,
-      0.64
-    );
-
-    torsoSuit.castShadow = true;
-    chest.add(torsoSuit);
-
-    const frontTrim =
-      new THREE.Mesh(
-        new THREE.BoxGeometry(
-          0.030,
-          0.200,
-          0.012
-        ),
-        trimMaterial
-      );
-
-    frontTrim.position.set(
-      0,
-      -0.020,
-      0.108
-    );
-
-    chest.add(frontTrim);
-
-    const leftTrim =
-      new THREE.Mesh(
-        new THREE.BoxGeometry(
-          0.016,
-          0.148,
-          0.010
-        ),
-        trimMaterial
-      );
-
-    leftTrim.position.set(
-      -0.052,
-      -0.030,
-      0.103
-    );
-
-    leftTrim.rotation.z =
-      -0.18;
-
-    chest.add(leftTrim);
-
-    const rightTrim =
-      leftTrim.clone();
-
-    rightTrim.position.x =
-      0.052;
-
-    rightTrim.rotation.z =
-      0.18;
-
-    chest.add(rightTrim);
-  }
-
-  if (hips) {
-    const waistSuit =
-      new THREE.Mesh(
-        new THREE.SphereGeometry(
-          0.145,
-          20,
-          16
-        ),
-        suitMaterial
-      );
-
-    waistSuit.position.set(
-      0,
-      -0.010,
-      0.012
-    );
-
-    waistSuit.scale.set(
-      1.08,
-      0.50,
-      0.70
-    );
-
-    waistSuit.castShadow = true;
-    hips.add(waistSuit);
-
-    const beltFront =
-      new THREE.Mesh(
-        new THREE.BoxGeometry(
-          0.22,
-          0.022,
-          0.012
-        ),
-        trimMaterial
-      );
-
-    beltFront.position.set(
-      0,
-      0.008,
-      0.100
-    );
-
-    hips.add(beltFront);
-  }
-
-  function addArmCloth(
-    upperArm,
-    lowerArm
-  ) {
-    if (upperArm) {
-      const sleeve =
-        new THREE.Mesh(
-          new THREE.CapsuleGeometry(
-            0.040,
-            0.12,
-            8,
-            14
-          ),
-          suitMaterial2
-        );
-
-      sleeve.position.set(
-        0,
-        -0.10,
-        0.020
-      );
-
-      sleeve.scale.set(
-        1.00,
-        1.00,
-        0.58
-      );
-
-      sleeve.castShadow = true;
-      upperArm.add(sleeve);
-    }
-
-    if (lowerArm) {
-      const forearmCloth =
-        new THREE.Mesh(
-          new THREE.CapsuleGeometry(
-            0.032,
-            0.10,
-            8,
-            14
-          ),
-          suitMaterial
-        );
-
-      forearmCloth.position.set(
-        0,
-        -0.085,
-        0.020
-      );
-
-      forearmCloth.scale.set(
-        0.98,
-        1.00,
-        0.58
-      );
-
-      forearmCloth.castShadow = true;
-      lowerArm.add(forearmCloth);
-    }
-  }
-
-  function addLegCloth(
-    upperLeg,
-    lowerLeg,
-    foot,
-    side
-  ) {
-    if (upperLeg) {
-      const thigh =
-        new THREE.Mesh(
-          new THREE.CapsuleGeometry(
-            0.062,
-            0.23,
-            8,
-            16
-          ),
-          suitMaterial2
-        );
-
-      thigh.position.set(
-        0,
-        -0.175,
-        0.026
-      );
-
-      thigh.scale.set(
-        0.95,
-        1.02,
-        0.64
-      );
-
-      thigh.castShadow = true;
-      upperLeg.add(thigh);
-
-      const stripe =
-        new THREE.Mesh(
-          new THREE.BoxGeometry(
-            0.010,
-            0.16,
-            0.010
-          ),
-          trimMaterial
-        );
-
-      stripe.position.set(
-        side * 0.034,
-        -0.175,
-        0.082
-      );
-
-      upperLeg.add(stripe);
-    }
-
-    if (lowerLeg) {
-      const shin =
-        new THREE.Mesh(
-          new THREE.CapsuleGeometry(
-            0.050,
-            0.21,
-            8,
-            16
-          ),
-          suitMaterial
-        );
-
-      shin.position.set(
-        0,
-        -0.160,
-        0.024
-      );
-
-      shin.scale.set(
-        0.94,
-        1.02,
-        0.62
-      );
-
-      shin.castShadow = true;
-      lowerLeg.add(shin);
-
-      const shinTrim =
-        new THREE.Mesh(
-          new THREE.BoxGeometry(
-            0.042,
-            0.015,
-            0.010
-          ),
-          trimMaterial
-        );
-
-      shinTrim.position.set(
-        0,
-        0.000,
-        0.072
-      );
-
-      lowerLeg.add(shinTrim);
-    }
-
-    if (foot) {
-      const shoe =
-        new THREE.Mesh(
-          new THREE.BoxGeometry(
-            0.128,
-            0.070,
-            0.235
-          ),
-          shoeMaterial
-        );
-
-      shoe.position.set(
-        0,
-        -0.030,
-        0.082
-      );
-
-      shoe.castShadow = true;
-      foot.add(shoe);
-
-      const shoeAccent =
-        new THREE.Mesh(
-          new THREE.BoxGeometry(
-            0.082,
-            0.010,
-            0.170
-          ),
-          trimMaterial
-        );
-
-      shoeAccent.position.set(
-        0,
-        -0.060,
-        0.082
-      );
-
-      foot.add(shoeAccent);
-    }
-  }
-
-  addArmCloth(
-    racer.bones.leftUpperArm,
-    racer.bones.leftLowerArm
-  );
-
-  addArmCloth(
-    racer.bones.rightUpperArm,
-    racer.bones.rightLowerArm
-  );
-
-  addLegCloth(
-    racer.bones.leftUpperLeg,
-    racer.bones.leftLowerLeg,
-    racer.bones.leftFoot,
-    -1
-  );
-
-  addLegCloth(
-    racer.bones.rightUpperLeg,
-    racer.bones.rightLowerLeg,
-    racer.bones.rightFoot,
-    1
-  );
+  // Tidak menambahkan geometri pakaian tambahan.
+  // Gunakan pakaian bawaan VRM yang sudah diwarnai oleh tintAvatarMaterials
+  // agar hasilnya lebih bersih dan tidak tampak seperti gumpalan.
+  racer.outfit = null;
 }
 
 function lockForwardDirection(
