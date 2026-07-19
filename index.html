@@ -1777,6 +1777,11 @@ function tintAvatarMaterials(
       preset.accent
     );
 
+  const darkColor =
+    new THREE.Color(
+      preset.suitDarkCss
+    );
+
   const hairColor =
     new THREE.Color(
       preset.hairCss
@@ -1795,7 +1800,9 @@ function tintAvatarMaterials(
     object.frustumCulled = false;
 
     const materials =
-      Array.isArray(object.material)
+      Array.isArray(
+        object.material
+      )
         ? object.material
         : [object.material];
 
@@ -1803,32 +1810,37 @@ function tintAvatarMaterials(
       if (!material) return;
 
       const materialName =
-        material.name ||
-        object.name ||
-        '';
+        String(
+          material.name ||
+          object.name ||
+          ''
+        ).toLowerCase();
 
       if (
         findHairMaterialName(
           materialName
         )
       ) {
-        if (material.color) {
-          material.color.lerp(
-            hairColor,
-            0.72
-          );
-        }
+        material.color?.lerp(
+          hairColor,
+          0.56
+        );
       } else if (
         findSkinMaterialName(
           materialName
-        )
+        ) ||
+        materialName.includes('face')
       ) {
-        if (material.color) {
-          material.color.lerp(
-            skinColor,
-            0.58
-          );
-        }
+        material.color?.lerp(
+          skinColor,
+          0.34
+        );
+      } else if (
+        materialName.includes('eye') ||
+        materialName.includes('mouth') ||
+        materialName.includes('lip')
+      ) {
+        // Pertahankan detail wajah bawaan VRM.
       } else if (
         material.color
       ) {
@@ -1839,18 +1851,29 @@ function tintAvatarMaterials(
             material.color.b
           ) / 3;
 
+        const target =
+          brightness >
+          0.50
+            ? accentColor
+            : darkColor;
+
+        material.color.lerp(
+          target,
+          0.72
+        );
+
         if (
-          brightness < 0.72 &&
-          !String(materialName)
-            .toLowerCase()
-            .includes('eye')
+          'roughness' in material
         ) {
-          material.color
-            .multiplyScalar(0.36)
-            .lerp(
-              accentColor,
-              0.46
-            );
+          material.roughness =
+            0.55;
+        }
+
+        if (
+          'metalness' in material
+        ) {
+          material.metalness =
+            0.04;
         }
       }
 
@@ -2038,17 +2061,11 @@ function createSpoon(
   const group =
     new THREE.Group();
 
-  group.position.set(
-    0,
-    -0.030,
-    0.088
-  );
-
   const spoonMaterial =
     new THREE.MeshStandardMaterial({
-      color: 0xe7edf2,
-      roughness: 0.18,
-      metalness: 0.88,
+      color: 0xe8eef3,
+      roughness: 0.16,
+      metalness: 0.90,
       side: THREE.DoubleSide
     });
 
@@ -2058,17 +2075,17 @@ function createSpoon(
       emissive: racer.preset.accent,
       emissiveIntensity:
         racer.isPlayer
-          ? 0.28
-          : 0.14,
-      roughness: 0.20,
+          ? 0.26
+          : 0.12,
+      roughness: 0.18,
       metalness: 0.10
     });
 
   const handle =
     new THREE.Mesh(
       new THREE.CylinderGeometry(
-        0.0055,
-        0.007,
+        0.005,
+        0.0065,
         0.18,
         16
       ),
@@ -2078,8 +2095,11 @@ function createSpoon(
   handle.rotation.x =
     Math.PI / 2;
 
-  handle.position.z =
-    0.085;
+  handle.position.set(
+    0,
+    0,
+    -0.09
+  );
 
   handle.castShadow = true;
   group.add(handle);
@@ -2088,7 +2108,7 @@ function createSpoon(
     new THREE.Mesh(
       new THREE.SphereGeometry(
         0.034,
-        20,
+        22,
         18
       ),
       spoonMaterial
@@ -2096,111 +2116,118 @@ function createSpoon(
 
   bowl.scale.set(
     1.12,
-    0.16,
+    0.18,
     1.34
   );
 
   bowl.position.set(
     0,
     -0.002,
-    0.188
+    -0.19
   );
 
   bowl.castShadow = true;
   group.add(bowl);
 
+  // Kelereng menjadi anak dari bowl, sehingga selalu berada
+  // tepat di cekungan sendok dan tidak bisa melayang sendiri.
   const marble =
     new THREE.Mesh(
       new THREE.SphereGeometry(
         0.017,
-        18,
-        14
+        20,
+        16
       ),
       marbleMaterial
     );
 
   marble.position.set(
     0,
-    0.010,
-    0.188
+    0.085,
+    0
   );
 
   marble.castShadow = true;
-  group.add(marble);
+  bowl.add(marble);
 
-  head.add(group);
+  scene.add(group);
 
   racer.spoon = group;
+  racer.spoonBowl = bowl;
   racer.marble = marble;
+  racer.mouthOffset = {
+    forward: 0.105,
+    down: 0.035
+  };
+
+  updateMouthAttachment(
+    racer
+  );
+}
+
+function updateMouthAttachment(
+  racer
+) {
+  if (
+    !racer ||
+    !racer.spoon ||
+    !racer.bones.head
+  ) return;
+
+  const headPosition =
+    new THREE.Vector3();
+
+  const rootQuaternion =
+    new THREE.Quaternion();
+
+  racer.bones.head.getWorldPosition(
+    headPosition
+  );
+
+  racer.root.getWorldQuaternion(
+    rootQuaternion
+  );
+
+  const forward =
+    new THREE.Vector3(
+      0,
+      0,
+      -1
+    ).applyQuaternion(
+      rootQuaternion
+    );
+
+  const down =
+    new THREE.Vector3(
+      0,
+      -1,
+      0
+    );
+
+  racer.spoon.position
+    .copy(
+      headPosition
+    )
+    .addScaledVector(
+      forward,
+      racer.mouthOffset.forward
+    )
+    .addScaledVector(
+      down,
+      racer.mouthOffset.down
+    );
+
+  racer.spoon.quaternion.copy(
+    rootQuaternion
+  );
 }
 
 function createAccentAccessories(
   racer
 ) {
-  const accent =
-    new THREE.MeshStandardMaterial({
-      color: racer.preset.accent,
-      emissive: racer.preset.accent,
-      emissiveIntensity:
-        racer.isPlayer
-          ? 0.85
-          : 0.28,
-      roughness: 0.26,
-      metalness: 0.16
-    });
-
-  const chest =
-    racer.bones.upperChest ||
-    racer.bones.chest;
-
-  if (chest) {
-    const emblem =
-      new THREE.Mesh(
-        new THREE.BoxGeometry(
-          0.060,
-          0.105,
-          0.010
-        ),
-        accent
-      );
-
-    emblem.position.set(
-      0,
-      -0.025,
-      0.120
-    );
-
-    chest.add(emblem);
-  }
-
-  [
-    racer.bones.leftHand,
-    racer.bones.rightHand
-  ].forEach(hand => {
-    if (!hand) return;
-
-    const cuff =
-      new THREE.Mesh(
-        new THREE.CylinderGeometry(
-          0.032,
-          0.032,
-          0.020,
-          18
-        ),
-        accent
-      );
-
-    cuff.rotation.z =
-      Math.PI / 2;
-
-    cuff.position.set(
-      0,
-      -0.005,
-      0.045
-    );
-
-    hand.add(cuff);
-  });
+  // Tidak menambahkan emblem, cuff, ring, atau geometri tambahan.
+  // Tampilan menggunakan material bawaan VRM agar bersih.
+  racer.accessories = null;
 }
 
 function createContactShadow(
@@ -2429,9 +2456,8 @@ function createHairStyle(
 function createOutfit(
   racer
 ) {
-  // Tidak menambahkan geometri pakaian tambahan.
-  // Gunakan pakaian bawaan VRM yang sudah diwarnai oleh tintAvatarMaterials
-  // agar hasilnya lebih bersih dan tidak tampak seperti gumpalan.
+  // Tidak membuat capsule, sphere, armor, atau pakaian tambahan.
+  // Warna outfit berasal dari material bawaan model VRM.
   racer.outfit = null;
 }
 
@@ -2517,6 +2543,7 @@ async function createRacer(
     bones,
     rests,
     spoon: null,
+    spoonBowl: null,
     marble: null,
     label: null,
     currentSpeed: 0,
@@ -2940,12 +2967,9 @@ function setIdlePose(
     );
   }
 
-  if (racer.marble) {
-    racer.marble.position.set(
-      0,
-      0.050,
-      0.35
-    );
+  if (racer.spoonBowl) {
+    racer.spoonBowl.rotation.z =
+      0;
   }
 }
 
@@ -3286,30 +3310,9 @@ function animateRun(
       speedRatio;
   }
 
-  if (racer.marble) {
-    racer.marble.position.set(
-      Math.sin(
-        elapsed * 5.8 +
-        racer.laneIndex
-      ) *
-      0.0025 *
-      speedRatio,
-      0.050 +
-      Math.abs(
-        Math.sin(
-          elapsed * 6.8
-        )
-      ) *
-      0.0017 *
-      speedRatio,
-      0.35 +
-      Math.cos(
-        elapsed * 5 +
-        racer.laneIndex
-      ) *
-      0.002 *
-      speedRatio
-    );
+  if (racer.spoonBowl) {
+    racer.spoonBowl.rotation.z =
+      0;
   }
 }
 
@@ -3962,6 +3965,9 @@ function animate() {
 
   racers.forEach(racer => {
     racer.vrm?.update(dt);
+    updateMouthAttachment(
+      racer
+    );
   });
 
   updateCamera(dt);
