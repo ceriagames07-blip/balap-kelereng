@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Human Runner Real VRM Anime V8 Corrected</title>
+  <title>Anime Runner VRM V12 Public</title>
   <style>
     :root{
       --bg:#080b14;
@@ -768,8 +768,8 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER REAL VRM V8</span></h1>
-      <p>Avatar anime VRM dengan langkah maju yang benar, ayunan tangan pelari, pakaian futuristik, wajah lebih jelas, warna kulit, dan bayangan kontak.</p>
+      <h1>HUMAN <span>RUNNER VRM V12 PUBLIC</span></h1>
+      <p>Versi publik satu file HTML. Avatar VRM dan library 3D dimuat langsung dari CDN saat pengunjung membuka game.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
@@ -836,10 +836,22 @@
   <div id="loader" class="loader">
     <div class="loader-card">
       <div class="loader-ring"></div>
-      <h2>Memuat avatar anime VRM asli</h2>
-      <p id="loaderText">Memuat skinned mesh, tekstur wajah, rambut, pakaian, dan skeleton.</p>
+      <h2>Memuat karakter anime 3D</h2>
+      <p id="loaderText">Mengambil model VRM, tekstur, pakaian, dan skeleton dari server publik.</p>
       <div class="load-progress"><div id="loadProgressBar"></div></div>
       <div id="loaderError" class="loader-error"></div>
+      <button id="retryLoadBtn" type="button" style="
+        display:none;
+        width:100%;
+        margin-top:12px;
+        min-height:40px;
+        border:0;
+        border-radius:11px;
+        background:linear-gradient(180deg,#a7fbff,#54dff5);
+        color:#06141a;
+        font-weight:900;
+        cursor:pointer;
+      ">COBA MUAT ULANG</button>
     </div>
   </div>
 </main>
@@ -986,6 +998,7 @@ const loaderLayer = document.getElementById('loader');
 const loaderText = document.getElementById('loaderText');
 const loadProgressBar = document.getElementById('loadProgressBar');
 const loaderError = document.getElementById('loaderError');
+const retryLoadBtn = document.getElementById('retryLoadBtn');
 const statusText = document.getElementById('statusText');
 const speedText = document.getElementById('speedText');
 const distanceText = document.getElementById('distanceText');
@@ -3016,6 +3029,7 @@ async function loadAllRacers() {
   );
 
   loaderError.textContent = '';
+  retryLoadBtn.style.display = 'none';
   loadProgressBar.style.width =
     '0%';
 
@@ -3076,10 +3090,14 @@ async function loadAllRacers() {
     modelsReady = false;
 
     loaderText.textContent =
-      'Avatar anime gagal dimuat.';
+      'Karakter anime gagal dimuat.';
 
     loaderError.textContent =
-      'Periksa koneksi internet, lalu buka ulang halaman. Model memakai sumber VRM publik dan tidak lagi menggunakan karakter rakitan.';
+      `${error?.name || 'Error'}: ${error?.message || error}
+
+Pastikan internet aktif, lalu tekan COBA MUAT ULANG.`;
+
+    retryLoadBtn.style.display = 'block';
   }
 }
 
@@ -4704,6 +4722,13 @@ characterSelector.addEventListener(
         .classList
         .add('hidden');
     }
+  }
+);
+
+retryLoadBtn.addEventListener(
+  'click',
+  () => {
+    location.reload();
   }
 );
 
