@@ -2246,20 +2246,20 @@ function createContactShadow(
     context.createRadialGradient(
       128,
       128,
-      10,
+      8,
       128,
       128,
-      118
+      120
     );
 
   gradient.addColorStop(
     0,
-    'rgba(0,0,0,.60)'
+    'rgba(0,0,0,.64)'
   );
 
   gradient.addColorStop(
-    0.48,
-    'rgba(0,0,0,.32)'
+    0.46,
+    'rgba(0,0,0,.36)'
   );
 
   gradient.addColorStop(
@@ -2282,35 +2282,106 @@ function createContactShadow(
       canvas
     );
 
+  const material =
+    new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+      opacity:
+        racer.isPlayer
+          ? 0.80
+          : 0.64,
+      side: THREE.DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1
+    });
+
   const shadow =
     new THREE.Mesh(
       new THREE.PlaneGeometry(
-        1.00,
-        0.64
+        0.96,
+        0.62
       ),
-      new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        depthWrite: false,
-        opacity:
-          racer.isPlayer
-            ? 0.82
-            : 0.68
-      })
+      material
     );
 
   shadow.rotation.x =
     -Math.PI / 2;
 
+  shadow.renderOrder = 2;
+  shadow.frustumCulled = false;
+
+  scene.add(shadow);
+
+  racer.contactShadow =
+    shadow;
+
+  updateGroundShadow(
+    racer,
+    0
+  );
+}
+
+function updateGroundShadow(
+  racer,
+  verticalBounce = 0
+) {
+  if (
+    !racer ||
+    !racer.contactShadow
+  ) return;
+
+  const shadow =
+    racer.contactShadow;
+
+  // Bayangan selalu berada tepat di permukaan lintasan,
+  // tidak ikut naik bersama root karakter.
   shadow.position.set(
-    0,
-    0.014,
+    racer.root.position.x,
+    0.018,
+    racer.root.position.z +
     0.02
   );
 
-  shadow.renderOrder = 1;
-  racer.root.add(shadow);
-  racer.contactShadow = shadow;
+  shadow.rotation.set(
+    -Math.PI / 2,
+    0,
+    -racer.root.rotation.y
+  );
+
+  const heightFactor =
+    THREE.MathUtils.clamp(
+      1 -
+      verticalBounce *
+      2.0,
+      0.86,
+      1
+    );
+
+  shadow.scale.set(
+    heightFactor,
+    heightFactor,
+    1
+  );
+
+  const baseOpacity =
+    racer.isPlayer
+      ? 0.80
+      : 0.64;
+
+  shadow.material.opacity =
+    THREE.MathUtils.clamp(
+      baseOpacity -
+      verticalBounce *
+      1.15,
+      racer.isPlayer
+        ? 0.66
+        : 0.52,
+      baseOpacity
+    );
+
+  shadow.visible = true;
 }
 
 function createFaceDetails(
@@ -2747,6 +2818,279 @@ function poseBone(
 }
 
 
+function poseBentElbow(
+  racer,
+  side,
+  bendAngle,
+  swing,
+  smoothing
+) {
+  const isLeft =
+    side === 'left';
+
+  const lowerName =
+    isLeft
+      ? 'leftLowerArm'
+      : 'rightLowerArm';
+
+  const lower =
+    racer.bones[lowerName];
+
+  const lowerRest =
+    racer.rests[lowerName];
+
+  if (
+    !lower ||
+    !lowerRest
+  ) return;
+
+  const mirror =
+    isLeft
+      ? 1
+      : -1;
+
+  // Pada rig VRM, sumbu X lower arm cenderung menjadi sumbu puntir.
+  // Tekukan siku yang terlihat dibuat pada sumbu Y lokal.
+  const bendQuaternion =
+    new THREE.Quaternion()
+      .setFromAxisAngle(
+        new THREE.Vector3(
+          0,
+          1,
+          0
+        ),
+        -mirror *
+        bendAngle
+      );
+
+  // Sedikit roll mengikuti ayunan agar forearm tidak kaku.
+  const rollQuaternion =
+    new THREE.Quaternion()
+      .setFromAxisAngle(
+        new THREE.Vector3(
+          1,
+          0,
+          0
+        ),
+        swing *
+        0.08
+      );
+
+  const target =
+    lowerRest
+      .clone()
+      .multiply(
+        bendQuaternion
+      )
+      .multiply(
+        rollQuaternion
+      );
+
+  lower.quaternion.slerp(
+    target,
+    THREE.MathUtils.clamp(
+      smoothing,
+      0,
+      1
+    )
+  );
+}
+
+
+function poseRunningArm(
+  racer,
+  side,
+  swing,
+  speedRatio,
+  smoothing
+) {
+  const isLeft =
+    side === 'left';
+
+  const upperName =
+    isLeft
+      ? 'leftUpperArm'
+      : 'rightUpperArm';
+
+  const lowerName =
+    isLeft
+      ? 'leftLowerArm'
+      : 'rightLowerArm';
+
+  const handName =
+    isLeft
+      ? 'leftHand'
+      : 'rightHand';
+
+  const shoulderName =
+    isLeft
+      ? 'leftShoulder'
+      : 'rightShoulder';
+
+  const upper =
+    racer.bones[upperName];
+
+  const upperRest =
+    racer.rests[upperName];
+
+  if (
+    !upper ||
+    !upperRest
+  ) return;
+
+  const mirror =
+    isLeft
+      ? 1
+      : -1;
+
+  const forwardAmount =
+    Math.max(
+      0,
+      swing
+    );
+
+  const backwardAmount =
+    Math.max(
+      0,
+      -swing
+    );
+
+  // Gerak bahu kecil membuat ayunan tidak terlihat seperti
+  // hanya siku yang bergerak.
+  poseBone(
+    racer,
+    shoulderName,
+    swing *
+    (
+      0.07 +
+      speedRatio *
+      0.05
+    ),
+    mirror *
+    swing *
+    0.025,
+    mirror *
+    0.055,
+    smoothing,
+    'XYZ'
+  );
+
+  // Turunkan lengan dari T-pose.
+  const downQuaternion =
+    new THREE.Quaternion()
+      .setFromAxisAngle(
+        new THREE.Vector3(
+          0,
+          0,
+          1
+        ),
+        mirror *
+        1.15
+      );
+
+  // Rotasi Y lokal menghasilkan gerakan tangan
+  // benar-benar ke depan dan ke belakang.
+  const swingQuaternion =
+    new THREE.Quaternion()
+      .setFromAxisAngle(
+        new THREE.Vector3(
+          0,
+          1,
+          0
+        ),
+        mirror *
+        swing *
+        (
+          0.72 +
+          speedRatio *
+          0.34
+        )
+      );
+
+  // Sedikit rotasi X supaya tangan tidak menyapu terlalu datar.
+  const driveQuaternion =
+    new THREE.Quaternion()
+      .setFromAxisAngle(
+        new THREE.Vector3(
+          1,
+          0,
+          0
+        ),
+        swing *
+        (
+          0.12 +
+          speedRatio *
+          0.08
+        )
+      );
+
+  // Urutan penting:
+  // ayunkan lengan terlebih dahulu, kemudian turunkan dari T-pose.
+  const armOffset =
+    downQuaternion
+      .clone()
+      .multiply(
+        swingQuaternion
+      )
+      .multiply(
+        driveQuaternion
+      );
+
+  const upperTarget =
+    upperRest
+      .clone()
+      .multiply(
+        armOffset
+      );
+
+  upper.quaternion.slerp(
+    upperTarget,
+    THREE.MathUtils.clamp(
+      smoothing,
+      0,
+      1
+    )
+  );
+
+  // Siku selalu menekuk sekitar 70–105 derajat.
+  // Tekukan bertambah saat tangan bergerak ke depan.
+  const elbowBend =
+    1.22 +
+    forwardAmount *
+    (
+      0.42 +
+      speedRatio *
+      0.16
+    ) +
+    backwardAmount *
+    0.10;
+
+  poseBentElbow(
+    racer,
+    side,
+    elbowBend,
+    swing,
+    smoothing
+  );
+
+  // Pergelangan mengikuti ayunan secara halus.
+  poseBone(
+    racer,
+    handName,
+    -0.04 +
+    forwardAmount *
+    0.04,
+    mirror *
+    swing *
+    0.035,
+    mirror *
+    -0.025,
+    smoothing,
+    'XYZ'
+  );
+}
+
+
 function setIdlePose(
   racer,
   elapsed,
@@ -2849,20 +3193,18 @@ function setIdlePose(
     'ZXY'
   );
 
-  poseBone(
+  poseBentElbow(
     racer,
-    'leftLowerArm',
-    0.22,
-    -0.025,
+    'left',
+    0.42,
     0,
     smoothing
   );
 
-  poseBone(
+  poseBentElbow(
     racer,
-    'rightLowerArm',
-    0.22,
-    0.025,
+    'right',
+    0.42,
     0,
     smoothing
   );
@@ -2946,18 +3288,10 @@ function setIdlePose(
     );
 
 
-  if (racer.contactShadow) {
-    racer.contactShadow.scale.set(
-      1,
-      1,
-      1
-    );
-
-    racer.contactShadow.material.opacity =
-      racer.isPlayer
-        ? 0.72
-        : 0.56;
-  }
+  updateGroundShadow(
+    racer,
+    0
+  );
 
   if (racer.spoon) {
     racer.spoon.rotation.set(
@@ -3023,10 +3357,6 @@ function animateRun(
     0.48 +
     speedRatio * 0.38;
 
-  const armAmplitude =
-    0.43 +
-    speedRatio * 0.34;
-
   const smoothing =
     1 -
     Math.exp(
@@ -3054,24 +3384,11 @@ function animateRun(
   racer.root.position.y =
     verticalBounce;
 
-  // Bayangan mengikuti tinggi badan saat berlari.
-  // verticalBounce hanya digunakan di dalam animateRun, tempat nilainya didefinisikan.
-  if (racer.contactShadow) {
-    const shadowScale =
-      1 -
-      verticalBounce * 2.4;
-
-    racer.contactShadow.scale.set(
-      THREE.MathUtils.clamp(shadowScale, 0.82, 1),
-      THREE.MathUtils.clamp(shadowScale, 0.82, 1),
-      1
-    );
-
-    racer.contactShadow.material.opacity =
-      racer.isPlayer
-        ? 0.72 - verticalBounce * 2.2
-        : 0.56 - verticalBounce * 1.8;
-  }
+  // Bayangan tetap di permukaan lintasan hingga garis finish.
+  updateGroundShadow(
+    racer,
+    verticalBounce
+  );
 
   poseBone(
     racer,
@@ -3120,86 +3437,27 @@ function animateRun(
     smoothing
   );
 
-  // Bahu turun dan rileks.
-  poseBone(
-    racer,
-    'leftShoulder',
-    -stride * 0.055,
-    0,
-    0.065,
-    smoothing,
-    'ZXY'
-  );
+  // Gerakan tangan berlawanan dengan kaki:
+  // kaki kiri maju => tangan kanan maju.
+  const leftArmSwing =
+    -stride;
 
-  poseBone(
-    racer,
-    'rightShoulder',
-    stride * 0.055,
-    0,
-    -0.065,
-    smoothing,
-    'ZXY'
-  );
+  const rightArmSwing =
+    stride;
 
-  // Lengan diturunkan ±1.12 rad dari T-pose,
-  // lalu diayunkan ke depan/belakang lewat sumbu X.
-  poseBone(
+  poseRunningArm(
     racer,
-    'leftUpperArm',
-    -stride * armAmplitude,
-    -0.045,
-    1.16,
-    smoothing,
-    'ZXY'
-  );
-
-  poseBone(
-    racer,
-    'rightUpperArm',
-    stride * armAmplitude,
-    0.045,
-    -1.16,
-    smoothing,
-    'ZXY'
-  );
-
-  poseBone(
-    racer,
-    'leftLowerArm',
-    1.02 +
-    leftContact * 0.12 +
-    leftRecovery * 0.08,
-    -0.035,
-    0,
+    'left',
+    leftArmSwing,
+    speedRatio,
     smoothing
   );
 
-  poseBone(
+  poseRunningArm(
     racer,
-    'rightLowerArm',
-    1.02 +
-    rightContact * 0.12 +
-    rightRecovery * 0.08,
-    0.035,
-    0,
-    smoothing
-  );
-
-  poseBone(
-    racer,
-    'leftHand',
-    0.02,
-    0,
-    -0.04,
-    smoothing
-  );
-
-  poseBone(
-    racer,
-    'rightHand',
-    0.02,
-    0,
-    0.04,
+    'right',
+    rightArmSwing,
+    speedRatio,
     smoothing
   );
 
@@ -3700,6 +3958,11 @@ function updateOpponents(
         elapsed,
         1
       );
+
+      updateGroundShadow(
+        racer,
+        0
+      );
     }
   });
 }
@@ -3741,6 +4004,11 @@ function finishPlayerRace() {
     player,
     clock.elapsedTime,
     1
+  );
+
+  updateGroundShadow(
+    player,
+    0
   );
 
   const position =
@@ -3965,8 +4233,18 @@ function animate() {
 
   racers.forEach(racer => {
     racer.vrm?.update(dt);
+
     updateMouthAttachment(
       racer
+    );
+
+    // Tetap dipanggil setelah finish agar bayangan tidak menghilang.
+    updateGroundShadow(
+      racer,
+      Math.max(
+        0,
+        racer.root.position.y
+      )
     );
   });
 
