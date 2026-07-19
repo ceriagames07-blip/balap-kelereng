@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Human Runner Spoon Marble V3</title>
+  <title>Human Runner 5 Characters V4</title>
   <style>
     :root{
       --bg:#080b14;
@@ -444,13 +444,13 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER SPOON MARBLE V3</span></h1>
-      <p>Versi lintasan dan analog yang sama, tetapi karakter diganti menjadi manusia casual dengan sendok digigit dan kelereng di atasnya.</p>
+      <h1>HUMAN <span>RUNNER 5 CHARACTERS V4</span></h1>
+      <p>Lima karakter manusia casual di lintasan: satu pemain utama dan empat lawan otomatis dengan gerakan lari yang lebih natural.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
       <span class="status-dot"></span>
-      <span id="statusText">Menyiapkan manusia...</span>
+      <span id="statusText">Menyiapkan 5 pelari...</span>
     </div>
   </header>
 
@@ -483,7 +483,7 @@
     <button id="resetBtn" type="button" class="control-btn primary">RESET LOMBA</button>
     <button id="cameraBtn" type="button" class="control-btn">KAMERA: FOLLOW</button>
     <button id="laneBtn" type="button" class="control-btn">BATAS JALUR: ON</button>
-    <div class="hint">Keyboard: WASD atau tombol panah</div>
+    <div class="hint">Analog atas untuk berlari • kiri/kanan untuk berpindah jalur • WASD / tombol panah</div>
   </section>
 
   <section id="finishBanner" class="finish-banner">
@@ -492,11 +492,11 @@
     <button id="finishResetBtn" type="button" class="control-btn primary">LARI LAGI</button>
   </section>
 
-  <div id="loader" class="loader">
+  <div id="loader" class="loader hidden">
     <div class="loader-card">
       <div class="loader-ring"></div>
-      <h2>Menyiapkan pelari manusia</h2>
-      <p id="loaderText">Membuat karakter manusia casual, sendok, dan kelereng.</p>
+      <h2>Menyiapkan lima pelari</h2>
+      <p id="loaderText">Membangun lima karakter manusia casual dari kode.</p>
     </div>
   </div>
 </main>
@@ -508,15 +508,16 @@
 
   const TRACK = {
     width: 9.6,
-    laneCount: 6,
+    laneCount: 5,
     startZ: 46,
     finishZ: -54,
     length: 100
   };
 
+  const PLAYER_INDEX = 2;
+
   const viewport = document.getElementById('viewport');
   const loader = document.getElementById('loader');
-  const loaderText = document.getElementById('loaderText');
   const statusText = document.getElementById('statusText');
   const speedText = document.getElementById('speedText');
   const distanceText = document.getElementById('distanceText');
@@ -540,7 +541,7 @@
     0.1,
     400
   );
-  camera.position.set(4.4, 3.1, 42.2);
+  camera.position.set(5.8, 3.3, 53);
 
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -567,8 +568,8 @@
 
   const clock = new THREE.Clock();
 
-  let runner = null;
-  let rig = null;
+  let racers = [];
+  let player = null;
   let cameraFollow = true;
   let laneLimit = true;
   let raceStarted = false;
@@ -576,8 +577,7 @@
   let raceTime = 0;
   let currentSpeed = 0;
   let targetSpeed = 0;
-  let runPhase = 0;
-  let currentDirection = new THREE.Vector3(0, 0, -1);
+  let playerRunPhase = 0;
 
   const joystick = {
     active: false,
@@ -599,16 +599,15 @@
 
   setupLights();
   createTrack();
-  createHumanRunner();
+  createRacers();
   resetRace();
-  loader.classList.add('hidden');
-  statusText.textContent = 'Manusia casual siap';
+  statusText.textContent = '5 pelari siap';
   animate();
 
   function setupLights() {
-    scene.add(new THREE.HemisphereLight(0xdff6ff, 0x151121, 2.2));
+    scene.add(new THREE.HemisphereLight(0xdff6ff, 0x151121, 2.25));
 
-    const sun = new THREE.DirectionalLight(0xffffff, 4.5);
+    const sun = new THREE.DirectionalLight(0xffffff, 4.6);
     sun.position.set(8, 14, 8);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -618,11 +617,11 @@
     sun.shadow.camera.bottom = -8;
     scene.add(sun);
 
-    const cyan = new THREE.DirectionalLight(0x50dfff, 2.1);
+    const cyan = new THREE.DirectionalLight(0x50dfff, 2.0);
     cyan.position.set(-8, 5, 6);
     scene.add(cyan);
 
-    const orange = new THREE.PointLight(0xff7e32, 10, 28, 2);
+    const orange = new THREE.PointLight(0xff7e32, 9, 28, 2);
     orange.position.set(0, 4, -12);
     scene.add(orange);
   }
@@ -655,10 +654,12 @@
     scene.add(track);
 
     const laneWidth = TRACK.width / TRACK.laneCount;
-    const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xf8f3e5 });
+    const lineMaterial = new THREE.MeshBasicMaterial({
+      color: 0xf8f3e5
+    });
 
-    for (let i = 0; i <= TRACK.laneCount; i++) {
-      const x = -TRACK.width / 2 + i * laneWidth;
+    for (let index = 0; index <= TRACK.laneCount; index++) {
+      const x = -TRACK.width / 2 + index * laneWidth;
       const line = new THREE.Mesh(
         new THREE.BoxGeometry(0.035, 0.012, 120),
         lineMaterial
@@ -668,17 +669,18 @@
     }
 
     for (let lane = 0; lane < TRACK.laneCount; lane++) {
-      const x = -TRACK.width / 2 + laneWidth * (lane + 0.5);
+      const x = getLaneX(lane);
       const canvas = document.createElement('canvas');
       canvas.width = 128;
       canvas.height = 128;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, 128, 128);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 78px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(String(lane + 1), 64, 67);
+
+      const context = canvas.getContext('2d');
+      context.clearRect(0, 0, 128, 128);
+      context.fillStyle = '#ffffff';
+      context.font = 'bold 78px Arial';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(String(lane + 1), 64, 67);
 
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
@@ -700,15 +702,16 @@
     createTrackLine(TRACK.finishZ, 0xffffff, 0.25);
 
     const tileSize = TRACK.width / 12;
-    for (let i = 0; i < 12; i++) {
+
+    for (let index = 0; index < 12; index++) {
       const tile = new THREE.Mesh(
         new THREE.BoxGeometry(tileSize, 0.018, 0.45),
         new THREE.MeshBasicMaterial({
-          color: i % 2 === 0 ? 0xffffff : 0x111111
+          color: index % 2 === 0 ? 0xffffff : 0x111111
         })
       );
       tile.position.set(
-        -TRACK.width / 2 + tileSize * (i + 0.5),
+        -TRACK.width / 2 + tileSize * (index + 0.5),
         0.025,
         TRACK.finishZ
       );
@@ -782,17 +785,17 @@
     canvas.width = width;
     canvas.height = height;
 
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#0a1524';
-    ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = '#65eaff';
-    ctx.lineWidth = 18;
-    ctx.strokeRect(9, 9, width - 18, height - 18);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '900 132px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, width / 2, height / 2 + 7);
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#0a1524';
+    context.fillRect(0, 0, width, height);
+    context.strokeStyle = '#65eaff';
+    context.lineWidth = 18;
+    context.strokeRect(9, 9, width - 18, height - 18);
+    context.fillStyle = '#ffffff';
+    context.font = '900 132px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(text, width / 2, height / 2 + 7);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -806,7 +809,19 @@
     );
   }
 
-  function material(color, roughness = 0.78, metalness = 0.03) {
+  function getLaneX(laneIndex) {
+    const laneWidth = TRACK.width / TRACK.laneCount;
+    return (
+      -TRACK.width / 2 +
+      laneWidth * (laneIndex + 0.5)
+    );
+  }
+
+  function createMaterial(
+    color,
+    roughness = 0.78,
+    metalness = 0.02
+  ) {
     return new THREE.MeshStandardMaterial({
       color,
       roughness,
@@ -817,122 +832,352 @@
     });
   }
 
-  function addMesh(parent, geometry, mat, position, rotation, scale) {
-    const mesh = new THREE.Mesh(geometry, mat);
+  function addMesh(
+    parent,
+    geometry,
+    meshMaterial,
+    position,
+    rotation = [0, 0, 0],
+    scale = [1, 1, 1]
+  ) {
+    const mesh = new THREE.Mesh(
+      geometry,
+      meshMaterial
+    );
+
     mesh.position.set(...position);
     mesh.rotation.set(...rotation);
     mesh.scale.set(...scale);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     parent.add(mesh);
+
     return mesh;
   }
 
-  function createHumanRunner() {
-    runner = new THREE.Group();
-    scene.add(runner);
+  function createTorsoGeometry() {
+    const profile = [
+      new THREE.Vector2(0.145, 0.00),
+      new THREE.Vector2(0.175, 0.10),
+      new THREE.Vector2(0.185, 0.25),
+      new THREE.Vector2(0.215, 0.42),
+      new THREE.Vector2(0.245, 0.62),
+      new THREE.Vector2(0.225, 0.78),
+      new THREE.Vector2(0.165, 0.88)
+    ];
 
-    const shadow = new THREE.Mesh(
-      new THREE.CircleGeometry(0.42, 32),
-      new THREE.MeshBasicMaterial({
-        color: 0x000000,
-        transparent: true,
-        opacity: 0.28
-      })
+    return new THREE.LatheGeometry(
+      profile,
+      32
     );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = 0.014;
-    runner.add(shadow);
-
-    rig = buildSmoothHuman();
-    rig.root.scale.setScalar(0.88);
-    runner.add(rig.root);
   }
 
-  function buildSmoothHuman() {
-    const skin = material(0xf0bea0, 0.82, 0.01);
-    const skinShade = material(0xd99b7b, 0.84, 0.01);
-    const shirt = material(0x2e73e5, 0.78, 0.01);
-    const shirtDark = material(0x17499d, 0.82, 0.01);
-    const shorts = material(0x25345b, 0.82, 0.01);
-    const shoes = material(0xf4f5f7, 0.54, 0.08);
-    const sole = material(0xb9c5d1, 0.68, 0.05);
-    const hair = material(0x3b2116, 0.90, 0.0);
-    const eyeWhite = material(0xffffff, 0.72, 0.0);
-    const iris = material(0x1d4f7f, 0.48, 0.0);
-    const lip = material(0xc75d68, 0.82, 0.0);
-    const blush = material(0xee9ca5, 0.92, 0.0);
+  function createLabelSprite(text, color) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 180;
 
-    const spoonMetal = new THREE.MeshStandardMaterial({
-      color: 0xe5eaed,
-      emissive: 0x151719,
-      emissiveIntensity: 0.06,
-      roughness: 0.22,
-      metalness: 0.88,
-      side: THREE.DoubleSide
-    });
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
-    const marbleMat = new THREE.MeshStandardMaterial({
-      color: 0x42caff,
-      emissive: 0x075b91,
-      emissiveIntensity: 0.44,
-      roughness: 0.13,
-      metalness: 0.22
-    });
+    context.fillStyle = 'rgba(4,11,21,.90)';
+    context.strokeStyle = color;
+    context.lineWidth = 8;
+
+    context.beginPath();
+    context.roundRect(10, 10, 492, 125, 34);
+    context.fill();
+    context.stroke();
+
+    context.fillStyle = '#ffffff';
+    context.font = '900 62px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(text, 256, 73);
+
+    context.fillStyle = color;
+    context.beginPath();
+    context.moveTo(236, 136);
+    context.lineTo(276, 136);
+    context.lineTo(256, 174);
+    context.closePath();
+    context.fill();
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthWrite: false
+      })
+    );
+
+    sprite.scale.set(1.35, 0.48, 1);
+    return sprite;
+  }
+
+  function createRacers() {
+    const styles = [
+      {
+        shirt: 0xe44f4f,
+        shorts: 0x293754,
+        shoes: 0xf4f5f7,
+        hair: 0x2c1b13,
+        skin: 0xe8b18e
+      },
+      {
+        shirt: 0xf2b43f,
+        shorts: 0x253454,
+        shoes: 0xeeeeee,
+        hair: 0x24150f,
+        skin: 0xdca27f
+      },
+      {
+        shirt: 0x2f79eb,
+        shorts: 0x172a4d,
+        shoes: 0xffffff,
+        hair: 0x3b2116,
+        skin: 0xf0bea0
+      },
+      {
+        shirt: 0x35b87a,
+        shorts: 0x26324a,
+        shoes: 0xf2f2f2,
+        hair: 0x20140f,
+        skin: 0xe4aa86
+      },
+      {
+        shirt: 0x9058db,
+        shorts: 0x283451,
+        shoes: 0xf7f7f7,
+        hair: 0x3a2417,
+        skin: 0xe9b28d
+      }
+    ];
+
+    const aiSpeeds = [
+      8.05,
+      8.35,
+      0,
+      8.55,
+      8.18
+    ];
+
+    const reactionTimes = [
+      0.12,
+      0.28,
+      0,
+      0.18,
+      0.38
+    ];
+
+    racers = [];
+
+    for (
+      let index = 0;
+      index < TRACK.laneCount;
+      index++
+    ) {
+      const isPlayer = index === PLAYER_INDEX;
+
+      const racerRoot = new THREE.Group();
+      racerRoot.position.set(
+        getLaneX(index),
+        0,
+        TRACK.startZ + 1.4
+      );
+      scene.add(racerRoot);
+
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.40, 30),
+        new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          transparent: true,
+          opacity: 0.26
+        })
+      );
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.y = 0.014;
+      racerRoot.add(shadow);
+
+      const rig = buildHuman(
+        styles[index],
+        isPlayer
+      );
+
+      rig.root.scale.setScalar(
+        isPlayer ? 0.91 : 0.87
+      );
+
+      racerRoot.add(rig.root);
+
+      if (isPlayer) {
+        const label = createLabelSprite(
+          'PEMAIN',
+          '#62e5ff'
+        );
+        label.position.set(0, 3.25, 0);
+        racerRoot.add(label);
+      }
+
+      racers.push({
+        index,
+        isPlayer,
+        root: racerRoot,
+        rig,
+        targetSpeed: aiSpeeds[index],
+        currentSpeed: 0,
+        reactionTime: reactionTimes[index],
+        runPhase: index * 1.18,
+        finished: false
+      });
+    }
+
+    player = racers[PLAYER_INDEX];
+  }
+
+  function buildHuman(style, isPlayer) {
+    const skin = createMaterial(
+      style.skin,
+      0.82,
+      0.01
+    );
+
+    const skinShade = createMaterial(
+      new THREE.Color(style.skin)
+        .multiplyScalar(0.82),
+      0.84,
+      0.01
+    );
+
+    const shirt = createMaterial(
+      style.shirt,
+      0.76,
+      0.01
+    );
+
+    const shirtDark = createMaterial(
+      new THREE.Color(style.shirt)
+        .multiplyScalar(0.68),
+      0.82,
+      0.01
+    );
+
+    const shorts = createMaterial(
+      style.shorts,
+      0.82,
+      0.01
+    );
+
+    const shoes = createMaterial(
+      style.shoes,
+      0.56,
+      0.06
+    );
+
+    const sole = createMaterial(
+      0xaebac8,
+      0.68,
+      0.04
+    );
+
+    const hair = createMaterial(
+      style.hair,
+      0.91,
+      0
+    );
+
+    const eyeWhite = createMaterial(
+      0xffffff,
+      0.70,
+      0
+    );
+
+    const iris = createMaterial(
+      isPlayer ? 0x1a6099 : 0x253f61,
+      0.48,
+      0
+    );
+
+    const lip = createMaterial(
+      0xc65d68,
+      0.82,
+      0
+    );
+
+    const blush = createMaterial(
+      0xee9ca5,
+      0.92,
+      0
+    );
+
+    const spoonMetal =
+      new THREE.MeshStandardMaterial({
+        color: 0xe7ecef,
+        emissive: 0x151719,
+        emissiveIntensity: 0.06,
+        roughness: 0.22,
+        metalness: 0.88,
+        side: THREE.DoubleSide
+      });
+
+    const marbleMaterial =
+      new THREE.MeshStandardMaterial({
+        color: isPlayer ? 0x42caff : 0xffd85a,
+        emissive: isPlayer ? 0x075b91 : 0x805300,
+        emissiveIntensity: 0.42,
+        roughness: 0.13,
+        metalness: 0.22
+      });
 
     const root = new THREE.Group();
 
     const hips = new THREE.Group();
-    hips.position.y = 1.15;
+    hips.position.y = 1.16;
     root.add(hips);
 
     addMesh(
       hips,
-      new THREE.SphereGeometry(0.24, 28, 22),
+      new THREE.SphereGeometry(0.235, 30, 24),
       shorts,
-      [0, 0.01, 0],
+      [0, 0.005, 0],
       [0, 0, 0],
-      [1.25, 0.82, 0.96]
+      [1.26, 0.82, 0.96]
     );
 
     const spine = new THREE.Group();
-    spine.position.y = 0.08;
+    spine.position.y = 0.05;
     hips.add(spine);
 
     addMesh(
       spine,
-      new THREE.CapsuleGeometry(0.19, 0.22, 10, 18),
-      shirtDark,
-      [0, 0.26, 0],
+      createTorsoGeometry(),
+      shirt,
+      [0, 0.05, 0],
       [0, 0, 0],
       [1.02, 1, 0.92]
     );
 
     addMesh(
       spine,
-      new THREE.CapsuleGeometry(0.25, 0.42, 12, 20),
-      shirt,
-      [0, 0.62, 0],
-      [0, 0, 0],
-      [1.04, 1, 0.94]
-    );
-
-    addMesh(
-      spine,
-      new THREE.TorusGeometry(0.12, 0.024, 10, 24),
+      new THREE.TorusGeometry(0.118, 0.022, 10, 26),
       shirtDark,
-      [0, 0.92, -0.01],
-      [Math.PI / 2, 0, 0],
-      [1, 1, 1]
+      [0, 0.91, -0.005],
+      [Math.PI / 2, 0, 0]
     );
 
     addMesh(
       spine,
-      new THREE.CylinderGeometry(0.062, 0.068, 0.12, 18),
+      new THREE.CylinderGeometry(
+        0.062,
+        0.068,
+        0.12,
+        18
+      ),
       skin,
-      [0, 1.02, 0],
-      [0, 0, 0],
-      [1, 1, 1]
+      [0, 1.02, 0]
     );
 
     const head = new THREE.Group();
@@ -941,7 +1186,7 @@
 
     addMesh(
       head,
-      new THREE.SphereGeometry(0.235, 32, 26),
+      new THREE.SphereGeometry(0.235, 34, 28),
       skin,
       [0, 0, 0],
       [0, 0, 0],
@@ -951,16 +1196,16 @@
     addMesh(
       head,
       new THREE.SphereGeometry(
-        0.245,
-        30,
-        22,
+        0.247,
+        34,
+        26,
         0,
         Math.PI * 2,
         0,
         Math.PI * 0.61
       ),
       hair,
-      [0, 0.045, 0],
+      [0, 0.048, 0],
       [0, 0, 0],
       [1.01, 0.80, 1.01]
     );
@@ -969,15 +1214,13 @@
       head,
       new THREE.BoxGeometry(0.30, 0.075, 0.055),
       hair,
-      [0, 0.075, -0.185],
-      [0, 0, 0],
-      [1, 1, 1]
+      [0, 0.077, -0.185]
     );
 
     [-1, 1].forEach(side => {
       addMesh(
         head,
-        new THREE.SphereGeometry(0.037, 16, 12),
+        new THREE.SphereGeometry(0.037, 18, 14),
         eyeWhite,
         [side * 0.073, 0.025, -0.218],
         [0, 0, 0],
@@ -986,7 +1229,7 @@
 
       addMesh(
         head,
-        new THREE.SphereGeometry(0.016, 14, 12),
+        new THREE.SphereGeometry(0.016, 16, 12),
         iris,
         [side * 0.073, 0.024, -0.235],
         [0, 0, 0],
@@ -998,13 +1241,12 @@
         new THREE.BoxGeometry(0.075, 0.012, 0.012),
         hair,
         [side * 0.073, 0.088, -0.205],
-        [0, 0, side < 0 ? 0.12 : -0.12],
-        [1, 1, 1]
+        [0, 0, side < 0 ? 0.12 : -0.12]
       );
 
       addMesh(
         head,
-        new THREE.SphereGeometry(0.021, 12, 10),
+        new THREE.SphereGeometry(0.021, 14, 10),
         blush,
         [side * 0.135, -0.045, -0.202],
         [0, 0, 0],
@@ -1013,7 +1255,7 @@
 
       addMesh(
         head,
-        new THREE.SphereGeometry(0.042, 16, 12),
+        new THREE.SphereGeometry(0.042, 18, 14),
         skinShade,
         [side * 0.224, -0.005, 0],
         [0, 0, 0],
@@ -1026,13 +1268,18 @@
       new THREE.ConeGeometry(0.020, 0.052, 12),
       skinShade,
       [0, -0.015, -0.242],
-      [-Math.PI / 2, 0, 0],
-      [1, 1, 1]
+      [-Math.PI / 2, 0, 0]
     );
 
     addMesh(
       head,
-      new THREE.TorusGeometry(0.031, 0.006, 8, 22, Math.PI),
+      new THREE.TorusGeometry(
+        0.031,
+        0.006,
+        8,
+        22,
+        Math.PI
+      ),
       lip,
       [0, -0.082, -0.222],
       [Math.PI, 0, 0],
@@ -1043,14 +1290,12 @@
     spoon.position.set(0, -0.073, -0.225);
     head.add(spoon);
 
-    // Bibir atas dan bawah menjepit gagang sendok.
     addMesh(
       spoon,
       new THREE.CapsuleGeometry(0.011, 0.060, 6, 12),
       lip,
       [0, 0.016, 0],
-      [0, 0, Math.PI / 2],
-      [1, 1, 1]
+      [0, 0, Math.PI / 2]
     );
 
     addMesh(
@@ -1058,8 +1303,7 @@
       new THREE.CapsuleGeometry(0.011, 0.060, 6, 12),
       lip,
       [0, -0.016, 0],
-      [0, 0, Math.PI / 2],
-      [1, 1, 1]
+      [0, 0, Math.PI / 2]
     );
 
     addMesh(
@@ -1067,8 +1311,7 @@
       new THREE.CylinderGeometry(0.012, 0.014, 0.38, 18),
       spoonMetal,
       [0, 0, -0.19],
-      [Math.PI / 2, 0, 0],
-      [1, 1, 1]
+      [Math.PI / 2, 0, 0]
     );
 
     addMesh(
@@ -1076,13 +1319,12 @@
       new THREE.CylinderGeometry(0.016, 0.022, 0.12, 18),
       spoonMetal,
       [0, 0, -0.43],
-      [Math.PI / 2, 0, 0],
-      [1, 1, 1]
+      [Math.PI / 2, 0, 0]
     );
 
     addMesh(
       spoon,
-      new THREE.SphereGeometry(0.088, 26, 20),
+      new THREE.SphereGeometry(0.088, 28, 22),
       spoonMetal,
       [0, -0.004, -0.52],
       [0, 0, 0],
@@ -1092,7 +1334,7 @@
     addMesh(
       spoon,
       new THREE.SphereGeometry(0.071, 24, 18),
-      material(0xaab4bb, 0.34, 0.68),
+      createMaterial(0xaab4bb, 0.34, 0.68),
       [0, 0.014, -0.523],
       [0, 0, 0],
       [0.74, 0.11, 1.10]
@@ -1100,133 +1342,158 @@
 
     const marble = addMesh(
       spoon,
-      new THREE.SphereGeometry(0.052, 26, 22),
-      marbleMat,
-      [0, 0.074, -0.523],
-      [0, 0, 0],
-      [1, 1, 1]
+      new THREE.SphereGeometry(0.052, 28, 22),
+      marbleMaterial,
+      [0, 0.074, -0.523]
     );
 
     function buildArm(side) {
       const shoulder = new THREE.Group();
-      shoulder.position.set(side * 0.36, 0.79, 0);
+      shoulder.position.set(
+        side * 0.35,
+        0.77,
+        0
+      );
       spine.add(shoulder);
 
       addMesh(
         shoulder,
-        new THREE.SphereGeometry(0.105, 20, 16),
+        new THREE.SphereGeometry(0.104, 22, 18),
         shirt,
-        [side * 0.018, 0, 0],
+        [side * 0.012, 0, 0],
         [0, 0, 0],
-        [1.02, 0.96, 0.96]
+        [1.03, 0.96, 0.96]
       );
 
       addMesh(
         shoulder,
-        new THREE.CapsuleGeometry(0.075, 0.34, 9, 16),
+        new THREE.CylinderGeometry(
+          0.074,
+          0.066,
+          0.38,
+          22
+        ),
         skin,
-        [0, -0.255, 0],
-        [0, 0, 0],
-        [1, 1, 1]
+        [0, -0.245, 0]
       );
 
       const elbow = new THREE.Group();
-      elbow.position.y = -0.50;
+      elbow.position.y = -0.45;
       shoulder.add(elbow);
 
       addMesh(
         elbow,
-        new THREE.SphereGeometry(0.074, 18, 14),
+        new THREE.SphereGeometry(0.070, 20, 16),
         skin,
-        [0, 0, 0],
-        [0, 0, 0],
-        [1, 1, 1]
+        [0, 0, 0]
       );
 
       addMesh(
         elbow,
-        new THREE.CapsuleGeometry(0.062, 0.30, 9, 16),
+        new THREE.CylinderGeometry(
+          0.064,
+          0.052,
+          0.34,
+          22
+        ),
         skin,
-        [0, -0.225, 0],
-        [0, 0, 0],
-        [1, 1, 1]
+        [0, -0.225, 0]
       );
 
       const wrist = new THREE.Group();
-      wrist.position.y = -0.44;
+      wrist.position.y = -0.42;
       elbow.add(wrist);
 
       addMesh(
         wrist,
-        new THREE.SphereGeometry(0.064, 18, 14),
+        new THREE.SphereGeometry(0.061, 20, 16),
         skin,
         [0, 0, 0],
         [0, 0, 0],
-        [0.88, 1.04, 0.68]
+        [0.90, 1.05, 0.68]
       );
 
-      return { shoulder, elbow, wrist };
+      return {
+        shoulder,
+        elbow,
+        wrist
+      };
     }
 
     function buildLeg(side) {
       const hip = new THREE.Group();
-      hip.position.set(side * 0.16, 0, 0);
+      hip.position.set(
+        side * 0.16,
+        0,
+        0
+      );
       hips.add(hip);
 
       addMesh(
         hip,
-        new THREE.CapsuleGeometry(0.105, 0.43, 10, 18),
+        new THREE.CylinderGeometry(
+          0.104,
+          0.090,
+          0.50,
+          24
+        ),
         shorts,
-        [0, -0.315, 0],
-        [0, 0, 0],
-        [1, 1, 1]
+        [0, -0.31, 0]
       );
 
       const knee = new THREE.Group();
-      knee.position.y = -0.62;
+      knee.position.y = -0.57;
       hip.add(knee);
 
       addMesh(
         knee,
-        new THREE.SphereGeometry(0.088, 20, 16),
+        new THREE.SphereGeometry(0.086, 22, 18),
         skin,
-        [0, 0, 0],
-        [0, 0, 0],
-        [1, 1, 1]
+        [0, 0, 0]
       );
 
       addMesh(
         knee,
-        new THREE.CapsuleGeometry(0.083, 0.37, 10, 18),
+        new THREE.CylinderGeometry(
+          0.081,
+          0.067,
+          0.43,
+          24
+        ),
         skin,
-        [0, -0.28, 0],
-        [0, 0, 0],
-        [1, 1, 1]
+        [0, -0.29, 0]
       );
 
       const ankle = new THREE.Group();
-      ankle.position.y = -0.54;
+      ankle.position.y = -0.53;
       knee.add(ankle);
 
       addMesh(
         ankle,
-        new THREE.CapsuleGeometry(0.095, 0.25, 10, 18),
+        new THREE.CapsuleGeometry(
+          0.094,
+          0.24,
+          10,
+          18
+        ),
         shoes,
-        [0, -0.01, -0.105],
+        [0, -0.01, -0.11],
         [Math.PI / 2, 0, 0],
-        [1.0, 1.0, 0.90]
+        [1, 1, 0.90]
       );
 
       addMesh(
         ankle,
         new THREE.BoxGeometry(0.19, 0.035, 0.37),
         sole,
-        [0, -0.09, -0.10],
-        [0, 0, 0],
-        [1, 1, 1]
+        [0, -0.09, -0.11]
       );
 
-      return { hip, knee, ankle };
+      return {
+        hip,
+        knee,
+        ankle
+      };
     }
 
     const leftArm = buildArm(-1);
@@ -1248,67 +1515,185 @@
     };
   }
 
-  function setIdlePose(elapsed) {
-    if (!rig) return;
+  function setIdlePose(racer, elapsed) {
+    const rig = racer.rig;
+    const breath =
+      Math.sin(elapsed * 2.0 + racer.index) *
+      0.012;
 
-    const breath = Math.sin(elapsed * 2.0);
-
-    rig.root.position.y = breath * 0.012;
+    rig.root.position.y = breath;
     rig.hips.rotation.set(0, 0, 0);
-    rig.spine.rotation.set(-0.025 + breath * 0.008, 0, 0);
-    rig.head.rotation.set(0.018, Math.sin(elapsed * 0.6) * 0.025, 0);
+    rig.spine.rotation.set(
+      -0.025 + breath * 0.50,
+      0,
+      0
+    );
+    rig.head.rotation.set(
+      0.018,
+      Math.sin(elapsed * 0.6 + racer.index) * 0.020,
+      0
+    );
 
-    rig.leftArm.shoulder.rotation.set(0.10, 0, 0.08);
-    rig.rightArm.shoulder.rotation.set(0.10, 0, -0.08);
-    rig.leftArm.elbow.rotation.set(-0.15, 0, 0);
-    rig.rightArm.elbow.rotation.set(-0.15, 0, 0);
+    rig.leftArm.shoulder.rotation.set(
+      0.08,
+      0,
+      0.08
+    );
+    rig.rightArm.shoulder.rotation.set(
+      0.08,
+      0,
+      -0.08
+    );
+    rig.leftArm.elbow.rotation.set(
+      0.42,
+      0,
+      0
+    );
+    rig.rightArm.elbow.rotation.set(
+      0.42,
+      0,
+      0
+    );
 
-    rig.leftLeg.hip.rotation.set(-0.035, 0, 0);
-    rig.rightLeg.hip.rotation.set(-0.035, 0, 0);
-    rig.leftLeg.knee.rotation.set(-0.07, 0, 0);
-    rig.rightLeg.knee.rotation.set(-0.07, 0, 0);
-    rig.leftLeg.ankle.rotation.set(0.02, 0, 0);
-    rig.rightLeg.ankle.rotation.set(0.02, 0, 0);
-
-    rig.spoon.rotation.set(0, 0, 0);
-    rig.marble.position.set(0, 0.074, -0.523);
-  }
-
-  function animateHumanRun(elapsed, speedRatio) {
-    if (!rig) return;
-
-    const stride = Math.sin(runPhase);
-    const doubleStep = Math.sin(runPhase * 2);
-    const bounce = Math.abs(doubleStep) * (0.035 + speedRatio * 0.035);
-    const legAmplitude = 0.58 + speedRatio * 0.42;
-    const armAmplitude = 0.52 + speedRatio * 0.32;
-
-    rig.root.position.y = bounce;
-    rig.hips.rotation.x = -0.025 + doubleStep * 0.025;
-    rig.hips.rotation.z = stride * 0.035;
-    rig.spine.rotation.x = -0.10 - speedRatio * 0.045;
-    rig.spine.rotation.z = -stride * 0.022;
-    rig.head.rotation.x = 0.055;
-    rig.head.rotation.z = stride * 0.018;
-
-    // Karakter menghadap lokal -Z. Rotasi X positif menggerakkan kaki ke depan.
-    rig.leftLeg.hip.rotation.set(stride * legAmplitude, 0, 0.025);
-    rig.rightLeg.hip.rotation.set(-stride * legAmplitude, 0, -0.025);
-
-    const leftKneeBend = Math.max(0, -stride) * (0.90 + speedRatio * 0.34);
-    const rightKneeBend = Math.max(0, stride) * (0.90 + speedRatio * 0.34);
-
-    // Rotasi negatif membuat tumit bergerak ke belakang, seperti lutut manusia berlari.
-    rig.leftLeg.knee.rotation.set(-leftKneeBend, 0, 0);
-    rig.rightLeg.knee.rotation.set(-rightKneeBend, 0, 0);
-
+    rig.leftLeg.hip.rotation.set(
+      -0.025,
+      0,
+      0
+    );
+    rig.rightLeg.hip.rotation.set(
+      -0.025,
+      0,
+      0
+    );
+    rig.leftLeg.knee.rotation.set(
+      -0.06,
+      0,
+      0
+    );
+    rig.rightLeg.knee.rotation.set(
+      -0.06,
+      0,
+      0
+    );
     rig.leftLeg.ankle.rotation.set(
-      0.10 - Math.max(0, stride) * 0.26,
+      0.02,
       0,
       0
     );
     rig.rightLeg.ankle.rotation.set(
-      0.10 - Math.max(0, -stride) * 0.26,
+      0.02,
+      0,
+      0
+    );
+
+    rig.spoon.rotation.set(0, 0, 0);
+    rig.marble.position.set(
+      0,
+      0.074,
+      -0.523
+    );
+  }
+
+  function animateRun(
+    racer,
+    elapsed,
+    speedRatio
+  ) {
+    const rig = racer.rig;
+    const phase = racer.runPhase;
+    const stride = Math.sin(phase);
+    const doubleStep = Math.sin(phase * 2);
+    const contactPulse =
+      Math.max(0, Math.cos(phase * 2));
+
+    const bounce =
+      Math.abs(doubleStep) *
+      (0.030 + speedRatio * 0.040);
+
+    const legAmplitude =
+      0.54 + speedRatio * 0.38;
+
+    const armAmplitude =
+      0.48 + speedRatio * 0.30;
+
+    rig.root.position.y =
+      bounce - contactPulse * 0.008;
+
+    rig.hips.rotation.x =
+      -0.035 + doubleStep * 0.020;
+
+    rig.hips.rotation.y =
+      -stride * 0.035;
+
+    rig.hips.rotation.z =
+      stride * 0.025;
+
+    // Tubuh condong ke depan karena arah lokal depan adalah -Z.
+    rig.spine.rotation.x =
+      -0.105 - speedRatio * 0.040;
+
+    rig.spine.rotation.y =
+      stride * 0.035;
+
+    rig.spine.rotation.z =
+      -stride * 0.017;
+
+    rig.head.rotation.x = 0.075;
+    rig.head.rotation.y =
+      -stride * 0.018;
+    rig.head.rotation.z =
+      stride * 0.012;
+
+    // Paha bergerak maju/mundur.
+    rig.leftLeg.hip.rotation.set(
+      stride * legAmplitude,
+      0,
+      0.018
+    );
+
+    rig.rightLeg.hip.rotation.set(
+      -stride * legAmplitude,
+      0,
+      -0.018
+    );
+
+    // Lutut menekuk ketika kaki berada di belakang dan kembali ke depan.
+    const leftRecovery =
+      Math.max(0, -stride);
+
+    const rightRecovery =
+      Math.max(0, stride);
+
+    rig.leftLeg.knee.rotation.set(
+      -0.08 -
+      leftRecovery *
+      (0.92 + speedRatio * 0.30),
+      0,
+      0
+    );
+
+    rig.rightLeg.knee.rotation.set(
+      -0.08 -
+      rightRecovery *
+      (0.92 + speedRatio * 0.30),
+      0,
+      0
+    );
+
+    // Telapak mengarah ke atas ketika kaki mengayun,
+    // lalu lebih rata ketika menyentuh lintasan.
+    rig.leftLeg.ankle.rotation.set(
+      0.14 -
+      Math.max(0, stride) * 0.30 +
+      leftRecovery * 0.12,
+      0,
+      0
+    );
+
+    rig.rightLeg.ankle.rotation.set(
+      0.14 -
+      Math.max(0, -stride) * 0.30 +
+      rightRecovery * 0.12,
       0,
       0
     );
@@ -1317,57 +1702,105 @@
     rig.leftArm.shoulder.rotation.set(
       -stride * armAmplitude,
       0,
-      0.10
+      0.09
     );
+
     rig.rightArm.shoulder.rotation.set(
       stride * armAmplitude,
       0,
-      -0.10
+      -0.09
     );
 
+    // Siku selalu menekuk ke depan, bukan terbalik.
     rig.leftArm.elbow.rotation.set(
-      -0.42 - Math.max(0, stride) * 0.16,
-      0,
-      0
-    );
-    rig.rightArm.elbow.rotation.set(
-      -0.42 - Math.max(0, -stride) * 0.16,
+      0.78 +
+      Math.max(0, stride) * 0.12,
       0,
       0
     );
 
-    // Sendok tetap tergigit dan kelereng hanya bergeser sedikit di dalam mangkuk.
+    rig.rightArm.elbow.rotation.set(
+      0.78 +
+      Math.max(0, -stride) * 0.12,
+      0,
+      0
+    );
+
     const wobble = speedRatio;
+
     rig.spoon.rotation.x =
-      Math.sin(elapsed * 7.2) * 0.009 * wobble;
+      Math.sin(
+        elapsed * 7.2 +
+        racer.index
+      ) *
+      0.008 *
+      wobble;
 
     rig.spoon.rotation.z =
-      Math.cos(elapsed * 5.8) * 0.012 * wobble;
+      Math.cos(
+        elapsed * 5.8 +
+        racer.index
+      ) *
+      0.010 *
+      wobble;
 
     rig.marble.position.set(
-      Math.sin(elapsed * 6.0) * 0.005 * wobble,
-      0.074 + Math.abs(Math.sin(elapsed * 7.0)) * 0.003 * wobble,
-      -0.523 + Math.cos(elapsed * 5.2) * 0.004 * wobble
+      Math.sin(
+        elapsed * 6.0 +
+        racer.index
+      ) *
+      0.004 *
+      wobble,
+      0.074 +
+      Math.abs(
+        Math.sin(elapsed * 7.0)
+      ) *
+      0.0025 *
+      wobble,
+      -0.523 +
+      Math.cos(
+        elapsed * 5.2 +
+        racer.index
+      ) *
+      0.003 *
+      wobble
     );
   }
 
   function resetRace() {
-    if (!runner) return;
-
     raceStarted = false;
     raceFinished = false;
     raceTime = 0;
     currentSpeed = 0;
     targetSpeed = 0;
-    runPhase = 0;
-    currentDirection.set(0, 0, -1);
+    playerRunPhase = 0;
 
-    runner.position.set(0, 0, TRACK.startZ + 1.4);
-    runner.rotation.set(0, 0, 0);
+    racers.forEach(racer => {
+      racer.root.position.set(
+        getLaneX(racer.index),
+        0,
+        TRACK.startZ + 1.4
+      );
+
+      racer.root.rotation.set(
+        0,
+        0,
+        0
+      );
+
+      racer.currentSpeed = 0;
+      racer.runPhase =
+        racer.index * 1.18;
+
+      racer.finished = false;
+      setIdlePose(
+        racer,
+        clock.elapsedTime
+      );
+    });
 
     finishBanner.classList.remove('show');
     setJoystick(0, 0);
-    setIdlePose(clock.elapsedTime);
     updateHud();
     statusText.textContent = 'Siap di garis start';
   }
@@ -1384,12 +1817,16 @@
       (keys.ArrowDown || keys.s ? 1 : 0) -
       (keys.ArrowUp || keys.w ? 1 : 0);
 
-    if (keyboardX !== 0 || keyboardY !== 0) {
+    if (
+      keyboardX !== 0 ||
+      keyboardY !== 0
+    ) {
       x = keyboardX;
       y = keyboardY;
     }
 
     const length = Math.hypot(x, y);
+
     if (length > 1) {
       x /= length;
       y /= length;
@@ -1398,117 +1835,275 @@
     return {
       x,
       y,
-      magnitude: Math.min(1, Math.hypot(x, y))
+      magnitude:
+        Math.min(
+          1,
+          Math.hypot(x, y)
+        )
     };
   }
 
-  function updateRunner(dt, elapsed) {
-    if (!runner || raceFinished) return;
+  function updatePlayer(
+    dt,
+    elapsed,
+    input
+  ) {
+    if (!player || raceFinished) return;
 
-    const input = getInputVector();
-    const deadZone = 0.08;
-    const moving = input.magnitude > deadZone;
-
-    if (moving && !raceStarted) {
-      raceStarted = true;
-      statusText.textContent = 'Lomba dimulai';
-    }
-
-    const maxSpeed = 9.2;
-    targetSpeed = moving
-      ? maxSpeed * Math.pow(input.magnitude, 0.72)
-      : 0;
-
-    const acceleration = targetSpeed > currentSpeed ? 8.5 : 12.5;
-    currentSpeed = THREE.MathUtils.damp(
-      currentSpeed,
-      targetSpeed,
-      acceleration,
-      dt
-    );
-
-    if (moving) {
-      const direction = new THREE.Vector3(
-        input.x,
-        0,
-        input.y
-      ).normalize();
-
-      currentDirection
-        .lerp(direction, 1 - Math.exp(-8.5 * dt))
-        .normalize();
-
-      runner.position.addScaledVector(
-        currentDirection,
-        currentSpeed * dt
-      );
-
-      // Rig manusia menghadap lokal -Z sehingga arah tidak terbalik.
-      const targetYaw = Math.atan2(
-        -currentDirection.x,
-        -currentDirection.z
-      );
-
-      runner.rotation.y = dampAngle(
-        runner.rotation.y,
-        targetYaw,
-        13,
-        dt
-      );
-
-      const speedRatio = THREE.MathUtils.clamp(
-        currentSpeed / maxSpeed,
+    const forwardPower =
+      THREE.MathUtils.clamp(
+        -input.y,
         0,
         1
       );
 
-      runPhase += dt * (5.0 + currentSpeed * 0.70);
-      animateHumanRun(elapsed, speedRatio);
-    } else {
-      setIdlePose(elapsed);
+    const moving =
+      forwardPower > 0.06 ||
+      Math.abs(input.x) > 0.08;
+
+    if (
+      forwardPower > 0.06 &&
+      !raceStarted
+    ) {
+      raceStarted = true;
+      statusText.textContent =
+        'Lomba dimulai';
     }
 
-    if (laneLimit) {
-      const half = TRACK.width / 2 - 0.24;
-      runner.position.x = THREE.MathUtils.clamp(
-        runner.position.x,
-        -half,
-        half
+    const maxSpeed = 9.25;
+
+    targetSpeed =
+      raceStarted
+        ? maxSpeed *
+          Math.pow(
+            forwardPower,
+            0.72
+          )
+        : 0;
+
+    const acceleration =
+      targetSpeed > currentSpeed
+        ? 7.8
+        : 10.5;
+
+    currentSpeed =
+      THREE.MathUtils.damp(
+        currentSpeed,
+        targetSpeed,
+        acceleration,
+        dt
+      );
+
+    if (raceStarted) {
+      player.root.position.z -=
+        currentSpeed * dt;
+
+      const lateralSpeed =
+        3.35 *
+        (
+          0.35 +
+          forwardPower * 0.65
+        );
+
+      player.root.position.x +=
+        input.x *
+        lateralSpeed *
+        dt;
+
+      if (laneLimit) {
+        const half =
+          TRACK.width / 2 -
+          0.35;
+
+        player.root.position.x =
+          THREE.MathUtils.clamp(
+            player.root.position.x,
+            -half,
+            half
+          );
+      }
+
+      // Hanya sedikit memiringkan arah badan ketika pindah jalur.
+      const targetYaw =
+        -input.x * 0.18;
+
+      player.root.rotation.y =
+        dampAngle(
+          player.root.rotation.y,
+          targetYaw,
+          10,
+          dt
+        );
+
+      const speedRatio =
+        THREE.MathUtils.clamp(
+          currentSpeed / maxSpeed,
+          0,
+          1
+        );
+
+      player.runPhase +=
+        dt *
+        (
+          4.8 +
+          currentSpeed * 0.72
+        );
+
+      animateRun(
+        player,
+        elapsed,
+        speedRatio
+      );
+    } else if (!moving) {
+      setIdlePose(
+        player,
+        elapsed
       );
     }
 
-    runner.position.z = THREE.MathUtils.clamp(
-      runner.position.z,
-      TRACK.finishZ - 4,
-      TRACK.startZ + 5
-    );
-
-    if (raceStarted) {
-      raceTime += dt;
-    }
-
     if (
-      runner.position.z <= TRACK.finishZ &&
+      player.root.position.z <=
+      TRACK.finishZ &&
       !raceFinished
     ) {
-      finishRace();
+      finishPlayerRace();
     }
   }
 
-  function finishRace() {
+  function updateOpponents(
+    dt,
+    elapsed
+  ) {
+    racers.forEach(racer => {
+      if (
+        racer.isPlayer ||
+        racer.finished
+      ) return;
+
+      if (
+        !raceStarted ||
+        raceTime < racer.reactionTime
+      ) {
+        setIdlePose(
+          racer,
+          elapsed
+        );
+        return;
+      }
+
+      racer.currentSpeed =
+        THREE.MathUtils.damp(
+          racer.currentSpeed,
+          racer.targetSpeed,
+          3.2,
+          dt
+        );
+
+      const fatigue =
+        raceTime > 8
+          ? 0.96 +
+            Math.sin(
+              elapsed * 0.45 +
+              racer.index
+            ) *
+            0.025
+          : 1;
+
+      const effectiveSpeed =
+        racer.currentSpeed *
+        fatigue;
+
+      racer.root.position.z -=
+        effectiveSpeed * dt;
+
+      racer.runPhase +=
+        dt *
+        (
+          4.8 +
+          effectiveSpeed * 0.69
+        );
+
+      animateRun(
+        racer,
+        elapsed,
+        THREE.MathUtils.clamp(
+          effectiveSpeed / 9.0,
+          0,
+          1
+        )
+      );
+
+      if (
+        racer.root.position.z <=
+        TRACK.finishZ
+      ) {
+        racer.root.position.z =
+          TRACK.finishZ;
+
+        racer.finished = true;
+        racer.currentSpeed = 0;
+
+        setIdlePose(
+          racer,
+          elapsed
+        );
+      }
+    });
+  }
+
+  function getPlayerPosition() {
+    if (!player) return 5;
+
+    let ahead = 0;
+
+    racers.forEach(racer => {
+      if (
+        racer === player
+      ) return;
+
+      if (
+        racer.finished ||
+        racer.root.position.z <
+        player.root.position.z - 0.08
+      ) {
+        ahead++;
+      }
+    });
+
+    return ahead + 1;
+  }
+
+  function finishPlayerRace() {
     raceFinished = true;
     currentSpeed = 0;
     targetSpeed = 0;
-    setIdlePose(clock.elapsedTime);
+
+    player.root.position.z =
+      TRACK.finishZ;
+
+    player.finished = true;
+    setIdlePose(
+      player,
+      clock.elapsedTime
+    );
+
+    const position =
+      getPlayerPosition();
 
     finishText.textContent =
-      `Waktu lomba: ${raceTime.toFixed(2)} detik`;
+      `Waktu ${raceTime.toFixed(2)} detik • Posisi ${position} dari 5`;
 
     finishBanner.classList.add('show');
-    statusText.textContent = 'Finish!';
+    statusText.textContent =
+      `Finish posisi ${position}/5`;
   }
 
-  function dampAngle(current, target, lambda, dt) {
+  function dampAngle(
+    current,
+    target,
+    lambda,
+    dt
+  ) {
     let delta =
       (target - current + Math.PI) %
       (Math.PI * 2) -
@@ -1516,54 +2111,69 @@
 
     return current +
       delta *
-      (1 - Math.exp(-lambda * dt));
+      (
+        1 -
+        Math.exp(-lambda * dt)
+      );
   }
 
   function updateCamera(dt) {
-    if (!runner) return;
-
-    const forward = currentDirection.clone();
-    if (forward.lengthSq() < 0.001) {
-      forward.set(0, 0, -1);
-    }
+    if (!player) return;
 
     if (cameraFollow) {
       let desiredPosition;
       let desiredTarget;
 
       if (!raceStarted) {
-        // Preview dari depan sebelum lomba agar wajah, sendok, dan kelereng terlihat.
-        const side = new THREE.Vector3(
-          -forward.z,
-          0,
-          forward.x
-        );
+        // Preview semua pelari dari depan sebelum start.
+        desiredPosition =
+          player.root.position.clone()
+            .add(
+              new THREE.Vector3(
+                5.4,
+                3.4,
+                -5.9
+              )
+            );
 
-        desiredPosition = runner.position.clone()
-          .addScaledVector(forward, 4.5)
-          .addScaledVector(side, 2.5)
-          .add(new THREE.Vector3(0, 2.6, 0));
-
-        desiredTarget = runner.position.clone()
-          .add(new THREE.Vector3(0, 1.35, 0));
+        desiredTarget =
+          new THREE.Vector3(
+            0,
+            1.35,
+            TRACK.startZ + 1.0
+          );
       } else {
-        desiredPosition = runner.position.clone()
-          .addScaledVector(forward, -5.2)
-          .add(new THREE.Vector3(2.8, 2.8, 0));
+        desiredPosition =
+          player.root.position.clone()
+            .add(
+              new THREE.Vector3(
+                3.1,
+                2.9,
+                5.4
+              )
+            );
 
-        desiredTarget = runner.position.clone()
-          .add(new THREE.Vector3(0, 1.05, 0))
-          .addScaledVector(forward, 2.3);
+        desiredTarget =
+          player.root.position.clone()
+            .add(
+              new THREE.Vector3(
+                0,
+                1.18,
+                -2.3
+              )
+            );
       }
 
       camera.position.lerp(
         desiredPosition,
-        1 - Math.exp(-5.5 * dt)
+        1 -
+        Math.exp(-5.5 * dt)
       );
 
       orbit.target.lerp(
         desiredTarget,
-        1 - Math.exp(-7.5 * dt)
+        1 -
+        Math.exp(-7.5 * dt)
       );
     }
 
@@ -1571,18 +2181,21 @@
   }
 
   function updateHud() {
-    if (!runner) return;
+    if (!player) return;
 
     const rawDistance =
-      TRACK.startZ - runner.position.z;
+      TRACK.startZ -
+      player.root.position.z;
 
-    const distance = THREE.MathUtils.clamp(
-      rawDistance,
-      0,
-      TRACK.length
-    );
+    const distance =
+      THREE.MathUtils.clamp(
+        rawDistance,
+        0,
+        TRACK.length
+      );
 
-    const progress = distance / TRACK.length;
+    const progress =
+      distance / TRACK.length;
 
     speedText.textContent =
       `${(currentSpeed * 3.6).toFixed(1)} km/j`;
@@ -1595,44 +2208,123 @@
 
     progressBar.style.width =
       `${progress * 100}%`;
+
+    if (
+      raceStarted &&
+      !raceFinished
+    ) {
+      statusText.textContent =
+        `Posisi ${getPlayerPosition()}/5`;
+    }
   }
 
   function animate() {
     requestAnimationFrame(animate);
 
-    const dt = Math.min(clock.getDelta(), 0.05);
-    const elapsed = clock.elapsedTime;
+    const dt =
+      Math.min(
+        clock.getDelta(),
+        0.05
+      );
 
-    updateRunner(dt, elapsed);
+    const elapsed =
+      clock.elapsedTime;
+
+    const input =
+      getInputVector();
+
+    updatePlayer(
+      dt,
+      elapsed,
+      input
+    );
+
+    if (
+      raceStarted &&
+      !raceFinished
+    ) {
+      raceTime += dt;
+    }
+
+    updateOpponents(
+      dt,
+      elapsed
+    );
+
     updateCamera(dt);
     updateHud();
-    renderer.render(scene, camera);
+
+    renderer.render(
+      scene,
+      camera
+    );
   }
 
   function setJoystick(x, y) {
-    joystick.x = THREE.MathUtils.clamp(x, -1, 1);
-    joystick.y = THREE.MathUtils.clamp(y, -1, 1);
+    joystick.x =
+      THREE.MathUtils.clamp(
+        x,
+        -1,
+        1
+      );
 
-    const radius = joystickZone.clientWidth * 0.31;
+    joystick.y =
+      THREE.MathUtils.clamp(
+        y,
+        -1,
+        1
+      );
+
+    const radius =
+      joystickZone.clientWidth *
+      0.31;
 
     joystickKnob.style.transform =
       `translate(calc(-50% + ${joystick.x * radius}px), calc(-50% + ${joystick.y * radius}px))`;
   }
 
-  function updateJoystickFromEvent(event) {
-    const rect = joystickZone.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+  function updateJoystickFromEvent(
+    event
+  ) {
+    const rect =
+      joystickZone
+        .getBoundingClientRect();
 
-    let dx = event.clientX - centerX;
-    let dy = event.clientY - centerY;
+    const centerX =
+      rect.left +
+      rect.width / 2;
 
-    const maxRadius = rect.width * 0.31;
-    const distance = Math.hypot(dx, dy);
+    const centerY =
+      rect.top +
+      rect.height / 2;
 
-    if (distance > maxRadius) {
-      dx = dx / distance * maxRadius;
-      dy = dy / distance * maxRadius;
+    let dx =
+      event.clientX -
+      centerX;
+
+    let dy =
+      event.clientY -
+      centerY;
+
+    const maxRadius =
+      rect.width * 0.31;
+
+    const distance =
+      Math.hypot(dx, dy);
+
+    if (
+      distance >
+      maxRadius
+    ) {
+      dx =
+        dx /
+        distance *
+        maxRadius;
+
+      dy =
+        dy /
+        distance *
+        maxRadius;
     }
 
     setJoystick(
@@ -1641,95 +2333,163 @@
     );
   }
 
-  joystickZone.addEventListener('pointerdown', event => {
-    joystick.active = true;
-    joystick.pointerId = event.pointerId;
-    joystickZone.setPointerCapture(event.pointerId);
-    joystickZone.classList.add('active');
-    updateJoystickFromEvent(event);
-  });
+  joystickZone.addEventListener(
+    'pointerdown',
+    event => {
+      joystick.active = true;
+      joystick.pointerId =
+        event.pointerId;
 
-  joystickZone.addEventListener('pointermove', event => {
+      joystickZone
+        .setPointerCapture(
+          event.pointerId
+        );
+
+      joystickZone
+        .classList
+        .add('active');
+
+      updateJoystickFromEvent(
+        event
+      );
+    }
+  );
+
+  joystickZone.addEventListener(
+    'pointermove',
+    event => {
+      if (
+        !joystick.active ||
+        event.pointerId !==
+        joystick.pointerId
+      ) return;
+
+      updateJoystickFromEvent(
+        event
+      );
+    }
+  );
+
+  function releaseJoystick(
+    event
+  ) {
     if (
-      !joystick.active ||
-      event.pointerId !== joystick.pointerId
-    ) return;
-
-    updateJoystickFromEvent(event);
-  });
-
-  function releaseJoystick(event) {
-    if (
-      joystick.pointerId !== null &&
-      event.pointerId !== joystick.pointerId
+      joystick.pointerId !==
+        null &&
+      event.pointerId !==
+        joystick.pointerId
     ) return;
 
     joystick.active = false;
     joystick.pointerId = null;
-    joystickZone.classList.remove('active');
+
+    joystickZone
+      .classList
+      .remove('active');
+
     setJoystick(0, 0);
   }
 
-  joystickZone.addEventListener('pointerup', releaseJoystick);
-  joystickZone.addEventListener('pointercancel', releaseJoystick);
+  joystickZone.addEventListener(
+    'pointerup',
+    releaseJoystick
+  );
 
-  addEventListener('keydown', event => {
-    const key = event.key.length === 1
-      ? event.key.toLowerCase()
-      : event.key;
+  joystickZone.addEventListener(
+    'pointercancel',
+    releaseJoystick
+  );
 
-    if (key in keys) {
-      keys[key] = true;
-      event.preventDefault();
+  addEventListener(
+    'keydown',
+    event => {
+      const key =
+        event.key.length === 1
+          ? event.key.toLowerCase()
+          : event.key;
+
+      if (key in keys) {
+        keys[key] = true;
+        event.preventDefault();
+      }
     }
-  });
+  );
 
-  addEventListener('keyup', event => {
-    const key = event.key.length === 1
-      ? event.key.toLowerCase()
-      : event.key;
+  addEventListener(
+    'keyup',
+    event => {
+      const key =
+        event.key.length === 1
+          ? event.key.toLowerCase()
+          : event.key;
 
-    if (key in keys) {
-      keys[key] = false;
-      event.preventDefault();
+      if (key in keys) {
+        keys[key] = false;
+        event.preventDefault();
+      }
     }
-  });
+  );
 
-  resetBtn.addEventListener('click', resetRace);
-  finishResetBtn.addEventListener('click', resetRace);
+  resetBtn.addEventListener(
+    'click',
+    resetRace
+  );
 
-  cameraBtn.addEventListener('click', () => {
-    cameraFollow = !cameraFollow;
+  finishResetBtn.addEventListener(
+    'click',
+    resetRace
+  );
 
-    cameraBtn.textContent =
-      `KAMERA: ${cameraFollow ? 'FOLLOW' : 'BEBAS'}`;
-  });
+  cameraBtn.addEventListener(
+    'click',
+    () => {
+      cameraFollow =
+        !cameraFollow;
 
-  laneBtn.addEventListener('click', () => {
-    laneLimit = !laneLimit;
+      cameraBtn.textContent =
+        `KAMERA: ${cameraFollow ? 'FOLLOW' : 'BEBAS'}`;
+    }
+  );
 
-    laneBtn.textContent =
-      `BATAS JALUR: ${laneLimit ? 'ON' : 'OFF'}`;
-  });
+  laneBtn.addEventListener(
+    'click',
+    () => {
+      laneLimit =
+        !laneLimit;
 
-  addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
+      laneBtn.textContent =
+        `BATAS JALUR: ${laneLimit ? 'ON' : 'OFF'}`;
+    }
+  );
 
-    renderer.setPixelRatio(
-      Math.min(devicePixelRatio, 1.8)
-    );
+  addEventListener(
+    'resize',
+    () => {
+      camera.aspect =
+        innerWidth /
+        innerHeight;
 
-    renderer.setSize(
-      innerWidth,
-      innerHeight
-    );
+      camera
+        .updateProjectionMatrix();
 
-    setJoystick(
-      joystick.x,
-      joystick.y
-    );
-  });
+      renderer.setPixelRatio(
+        Math.min(
+          devicePixelRatio,
+          1.8
+        )
+      );
+
+      renderer.setSize(
+        innerWidth,
+        innerHeight
+      );
+
+      setJoystick(
+        joystick.x,
+        joystick.y
+      );
+    }
+  );
 
 </script>
 </body>
