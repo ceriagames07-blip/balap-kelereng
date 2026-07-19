@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Human Runner Anime 5 Characters V5</title>
+  <title>Human Runner Real VRM Anime V6</title>
   <style>
     :root{
       --bg:#080b14;
@@ -680,7 +680,87 @@
       .avatar-glow { bottom: 12px; height: 38px; }
     }
 
-  </style>
+  
+    .vrm-source-note {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.35;
+    }
+
+    .load-progress {
+      width: 100%;
+      height: 9px;
+      margin-top: 14px;
+      padding: 2px;
+      border: 1px solid rgba(102,235,255,.22);
+      border-radius: 999px;
+      background: rgba(255,255,255,.035);
+      overflow: hidden;
+    }
+
+    .load-progress > div {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--cyan), var(--orange));
+      transition: width .20s ease;
+    }
+
+    .loader-error {
+      margin-top: 12px;
+      color: #ff9b9b;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .character-avatar.real-vrm {
+      background:
+        radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--card-color) 30%, transparent), transparent 39%),
+        linear-gradient(180deg, #35465d 0%, #151d2a 100%);
+    }
+
+    .character-avatar.real-vrm::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 17px;
+      width: 51px;
+      height: 61px;
+      transform: translateX(-50%);
+      border-radius: 48% 48% 43% 43%;
+      background: var(--skin-color);
+      box-shadow:
+        inset -8px -6px 0 rgba(76,31,18,.08),
+        0 0 20px color-mix(in srgb, var(--card-color) 24%, transparent);
+    }
+
+    .character-avatar.real-vrm::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -10px;
+      width: 98px;
+      height: 96px;
+      transform: translateX(-50%);
+      border-radius: 43% 43% 16% 16%;
+      background:
+        linear-gradient(
+          90deg,
+          var(--suit-dark) 0 20%,
+          var(--card-color) 20% 31%,
+          var(--suit-dark) 31% 69%,
+          var(--card-color) 69% 80%,
+          var(--suit-dark) 80%
+        );
+    }
+
+    .character-avatar.real-vrm .avatar-head,
+    .character-avatar.real-vrm .avatar-body {
+      display: none;
+    }
+
+</style>
 </head>
 <body>
 <main id="app">
@@ -688,13 +768,13 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER ANIME V5</span></h1>
-      <p>Lima karakter anime 3D modern dengan kulit, bodysuit menyambung, wajah berbeda, analog lebih stabil, dan pilihan karakter pemain.</p>
+      <h1>HUMAN <span>RUNNER REAL VRM V6</span></h1>
+      <p>Lima avatar anime VRM asli dengan skinned mesh, tekstur kulit, rambut, pakaian, wajah, skeleton, pilihan pemain, dan gerakan lari halus.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
       <span class="status-dot"></span>
-      <span id="statusText">Menyiapkan pelari anime...</span>
+      <span id="statusText">Memuat avatar anime asli...</span>
     </div>
   </header>
 
@@ -738,8 +818,8 @@
       <div class="selector-head">
         <div>
           <h2>PILIH <span>KARAKTER PEMAIN</span></h2>
-          <p>Kelima karakter memiliki wajah, warna kulit, rambut, bentuk tubuh, dan bodysuit yang berbeda. Pemilihan karakter akan mereset lomba.</p>
-          <div class="reference-chip">GAYA ANIME GAME • KULIT TERLIHAT • BODYSUIT MENYAMBUNG</div>
+          <p>Kelima karakter memakai avatar VRM anime dengan mesh tubuh menyatu, tekstur wajah dan rambut asli. Pemilihan karakter akan mereset lomba.</p>
+          <div class="reference-chip">REAL VRM AVATAR • SKINNED MESH • SKELETON ANIMATION</div>
         </div>
         <button id="closeSelectorBtn" class="selector-close" type="button">✕</button>
       </div>
@@ -753,19 +833,37 @@
     <button id="finishResetBtn" type="button" class="control-btn primary">LARI LAGI</button>
   </section>
 
-  <div id="loader" class="loader hidden">
+  <div id="loader" class="loader">
     <div class="loader-card">
       <div class="loader-ring"></div>
-      <h2>Menyiapkan lima pelari</h2>
-      <p id="loaderText">Membangun lima karakter manusia casual dari kode.</p>
+      <h2>Memuat avatar anime VRM asli</h2>
+      <p id="loaderText">Memuat skinned mesh, tekstur wajah, rambut, pakaian, dan skeleton.</p>
+      <div class="load-progress"><div id="loadProgressBar"></div></div>
+      <div id="loaderError" class="loader-error"></div>
     </div>
   </div>
 </main>
 
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+    "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"
+  }
+}
+</script>
+
 <script type="module">
 
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/+esm';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js/+esm';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import {
+  VRMLoaderPlugin,
+  VRMUtils
+} from '@pixiv/three-vrm';
 
 const TRACK = {
   width: 9.6,
@@ -777,130 +875,113 @@ const TRACK = {
 
 const PLAYER_LANE_INDEX = 2;
 
+const MALE_MODEL = {
+  primary:
+    'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/masc_vroid.vrm',
+  fallback:
+    'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/masc_vroid.vrm'
+};
+
+const FEMALE_MODEL = {
+  primary:
+    'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/fem_vroid.vrm',
+  fallback:
+    'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/fem_vroid.vrm'
+};
+
 const CHARACTER_PRESETS = [
   {
-    id: 'aero',
-    name: 'AERO',
-    type: 'Seimbang • Lincah',
-    skin: 0xf2bea0,
-    skinCss: '#f2bea0',
-    hair: 0x13202c,
-    hairCss: '#13202c',
-    hairStyle: 'spikes',
-    suit: 0x10313a,
-    suitDark: 0x071b22,
-    suitCss: '#10313a',
+    id: 'kai',
+    name: 'KAI',
+    type: 'Male Anime • Balanced',
+    gender: 'male',
+    accent: 0x36e5f2,
+    accentCss: '#36e5f2',
+    skinCss: '#efb895',
+    hairCss: '#15202b',
     suitDarkCss: '#071b22',
-    accent: 0x31e7f4,
-    accentCss: '#31e7f4',
-    eye: 0x1f7ca7,
-    faceWidth: 1.00,
-    faceHeight: 1.05,
-    shoulders: 1.05,
-    hips: 0.95,
     height: 1.00,
-    speed: 9.25,
-    handling: 1.00
+    headScale: [1.00, 1.00, 1.00],
+    bodyScale: [1.00, 1.00, 1.00],
+    speed: 9.24,
+    handling: 1.00,
+    expression: 'neutral'
   },
   {
-    id: 'blaze',
-    name: 'BLAZE',
-    type: 'Cepat • Agresif',
-    skin: 0xd89973,
-    skinCss: '#d89973',
-    hair: 0x541914,
+    id: 'ren',
+    name: 'REN',
+    type: 'Male Anime • Speed',
+    gender: 'male',
+    accent: 0xff5c4f,
+    accentCss: '#ff5c4f',
+    skinCss: '#d89572',
     hairCss: '#541914',
-    hairStyle: 'mohawk',
-    suit: 0x3a1214,
-    suitDark: 0x1c0809,
-    suitCss: '#3a1214',
-    suitDarkCss: '#1c0809',
-    accent: 0xff5448,
-    accentCss: '#ff5448',
-    eye: 0x6d2c21,
-    faceWidth: 1.05,
-    faceHeight: 1.00,
-    shoulders: 1.10,
-    hips: 0.96,
-    height: 1.03,
+    suitDarkCss: '#1d0909',
+    height: 1.04,
+    headScale: [1.04, 0.98, 1.00],
+    bodyScale: [1.05, 1.02, 1.02],
     speed: 9.48,
-    handling: 0.92
+    handling: 0.92,
+    expression: 'relaxed'
   },
   {
-    id: 'nova',
-    name: 'NOVA',
-    type: 'Halus • Stabil',
-    skin: 0xf3c9b1,
-    skinCss: '#f3c9b1',
-    hair: 0x28225f,
-    hairCss: '#28225f',
-    hairStyle: 'bob',
-    suit: 0x241542,
-    suitDark: 0x10091f,
-    suitCss: '#241542',
-    suitDarkCss: '#10091f',
+    id: 'mika',
+    name: 'MIKA',
+    type: 'Female Anime • Smooth',
+    gender: 'female',
     accent: 0xb76cff,
     accentCss: '#b76cff',
-    eye: 0x6e55a9,
-    faceWidth: 0.96,
-    faceHeight: 1.08,
-    shoulders: 0.94,
-    hips: 1.04,
+    skinCss: '#f2c4aa',
+    hairCss: '#30256c',
+    suitDarkCss: '#160b2b',
     height: 0.98,
-    speed: 9.05,
-    handling: 1.12
+    headScale: [0.98, 1.04, 1.00],
+    bodyScale: [0.96, 1.00, 0.98],
+    speed: 9.08,
+    handling: 1.14,
+    expression: 'happy'
   },
   {
-    id: 'jade',
-    name: 'JADE',
-    type: 'Responsif • Ringan',
-    skin: 0xb97855,
-    skinCss: '#b97855',
-    hair: 0x101816,
-    hairCss: '#101816',
-    hairStyle: 'ponytail',
-    suit: 0x0d3027,
-    suitDark: 0x061912,
-    suitCss: '#0d3027',
-    suitDarkCss: '#061912',
-    accent: 0x42e890,
-    accentCss: '#42e890',
-    eye: 0x275d48,
-    faceWidth: 0.98,
-    faceHeight: 1.03,
-    shoulders: 0.96,
-    hips: 1.02,
+    id: 'yuna',
+    name: 'YUNA',
+    type: 'Female Anime • Control',
+    gender: 'female',
+    accent: 0x43e899,
+    accentCss: '#43e899',
+    skinCss: '#b97b59',
+    hairCss: '#102019',
+    suitDarkCss: '#071d15',
     height: 1.01,
-    speed: 9.16,
-    handling: 1.16
+    headScale: [1.02, 1.00, 1.00],
+    bodyScale: [0.98, 1.02, 1.00],
+    speed: 9.18,
+    handling: 1.18,
+    expression: 'relaxed'
   },
   {
-    id: 'volt',
-    name: 'VOLT',
-    type: 'Kuat • Konsisten',
-    skin: 0x7c4a36,
-    skinCss: '#7c4a36',
-    hair: 0xc6cbd4,
-    hairCss: '#c6cbd4',
-    hairStyle: 'crest',
-    suit: 0x342c10,
-    suitDark: 0x171305,
-    suitCss: '#342c10',
-    suitDarkCss: '#171305',
-    accent: 0xffd449,
-    accentCss: '#ffd449',
-    eye: 0xd5a526,
-    faceWidth: 1.08,
-    faceHeight: 1.02,
-    shoulders: 1.13,
-    hips: 1.00,
-    height: 1.05,
-    speed: 9.32,
-    handling: 0.96
+    id: 'sora',
+    name: 'SORA',
+    type: 'Male Anime • Power',
+    gender: 'male',
+    accent: 0xffd44a,
+    accentCss: '#ffd44a',
+    skinCss: '#7d4d38',
+    hairCss: '#d2d6df',
+    suitDarkCss: '#211b07',
+    height: 1.06,
+    headScale: [1.08, 1.00, 1.00],
+    bodyScale: [1.10, 1.04, 1.05],
+    speed: 9.34,
+    handling: 0.96,
+    expression: 'neutral'
   }
 ];
 
 const viewport = document.getElementById('viewport');
+const loaderLayer = document.getElementById('loader');
+const loaderText = document.getElementById('loaderText');
+const loadProgressBar = document.getElementById('loadProgressBar');
+const loaderError = document.getElementById('loaderError');
 const statusText = document.getElementById('statusText');
 const speedText = document.getElementById('speedText');
 const distanceText = document.getElementById('distanceText');
@@ -936,11 +1017,11 @@ const renderer = new THREE.WebGLRenderer({
   alpha: true,
   powerPreference: 'high-performance'
 });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.55));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.12;
+renderer.toneMappingExposure = 1.08;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 viewport.appendChild(renderer.domElement);
@@ -956,10 +1037,20 @@ orbit.maxPolarAngle = Math.PI * 0.50;
 
 const clock = new THREE.Clock();
 
+const vrmLoader = new GLTFLoader();
+vrmLoader.register(parser => new VRMLoaderPlugin(parser));
+
 let racers = [];
 let player = null;
-let selectedPresetIndex = Number(localStorage.getItem('selected_anime_runner') || 0);
-selectedPresetIndex = THREE.MathUtils.clamp(selectedPresetIndex, 0, CHARACTER_PRESETS.length - 1);
+let selectedPresetIndex =
+  Number(localStorage.getItem('real_vrm_runner_index') || 0);
+
+selectedPresetIndex =
+  THREE.MathUtils.clamp(
+    selectedPresetIndex,
+    0,
+    CHARACTER_PRESETS.length - 1
+  );
 
 let cameraFollow = true;
 let laneLimit = true;
@@ -971,6 +1062,7 @@ let targetSpeed = 0;
 let playerTargetX = 0;
 let smoothInputX = 0;
 let smoothInputY = 0;
+let modelsReady = false;
 
 const joystick = {
   active: false,
@@ -993,15 +1085,24 @@ const keys = {
 setupLights();
 createTrack();
 renderCharacterSelector();
-createRacers();
-resetRace();
-statusText.textContent = '5 pelari anime siap';
 animate();
+loadAllRacers();
 
 function setupLights() {
-  scene.add(new THREE.HemisphereLight(0xdff6ff, 0x151121, 2.25));
+  scene.add(
+    new THREE.HemisphereLight(
+      0xe8f7ff,
+      0x151121,
+      2.25
+    )
+  );
 
-  const sun = new THREE.DirectionalLight(0xffffff, 4.6);
+  const sun =
+    new THREE.DirectionalLight(
+      0xffffff,
+      4.5
+    );
+
   sun.position.set(8, 14, 8);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -1011,11 +1112,23 @@ function setupLights() {
   sun.shadow.camera.bottom = -8;
   scene.add(sun);
 
-  const cyan = new THREE.DirectionalLight(0x50dfff, 2.0);
-  cyan.position.set(-8, 5, 6);
-  scene.add(cyan);
+  const fill =
+    new THREE.DirectionalLight(
+      0x6fdcff,
+      1.8
+    );
 
-  const warm = new THREE.PointLight(0xff7e32, 9, 28, 2);
+  fill.position.set(-8, 5, 6);
+  scene.add(fill);
+
+  const warm =
+    new THREE.PointLight(
+      0xff8c43,
+      7,
+      28,
+      2
+    );
+
   warm.position.set(0, 4, -12);
   scene.add(warm);
 }
@@ -1029,6 +1142,7 @@ function createTrack() {
       metalness: 0
     })
   );
+
   grass.rotation.x = -Math.PI / 2;
   grass.position.set(0, -0.025, -4);
   grass.receiveShadow = true;
@@ -1042,157 +1156,335 @@ function createTrack() {
       metalness: 0.03
     })
   );
+
   track.rotation.x = -Math.PI / 2;
   track.position.set(0, 0, -4);
   track.receiveShadow = true;
   scene.add(track);
 
-  const laneWidth = TRACK.width / TRACK.laneCount;
-  const lineMaterial = new THREE.MeshBasicMaterial({
-    color: 0xf8f3e5
-  });
+  const laneWidth =
+    TRACK.width /
+    TRACK.laneCount;
 
-  for (let index = 0; index <= TRACK.laneCount; index++) {
-    const x = -TRACK.width / 2 + index * laneWidth;
+  const lineMaterial =
+    new THREE.MeshBasicMaterial({
+      color: 0xf8f3e5
+    });
+
+  for (
+    let index = 0;
+    index <= TRACK.laneCount;
+    index++
+  ) {
+    const x =
+      -TRACK.width / 2 +
+      index * laneWidth;
+
     const line = new THREE.Mesh(
-      new THREE.BoxGeometry(0.035, 0.012, 120),
+      new THREE.BoxGeometry(
+        0.035,
+        0.012,
+        120
+      ),
       lineMaterial
     );
-    line.position.set(x, 0.012, -4);
+
+    line.position.set(
+      x,
+      0.012,
+      -4
+    );
+
     scene.add(line);
   }
 
-  for (let lane = 0; lane < TRACK.laneCount; lane++) {
+  for (
+    let lane = 0;
+    lane < TRACK.laneCount;
+    lane++
+  ) {
     const x = getLaneX(lane);
-    const canvas = document.createElement('canvas');
+
+    const canvas =
+      document.createElement('canvas');
+
     canvas.width = 128;
     canvas.height = 128;
-    const context = canvas.getContext('2d');
+
+    const context =
+      canvas.getContext('2d');
+
     context.fillStyle = '#ffffff';
     context.font = 'bold 78px Arial';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    context.fillText(String(lane + 1), 64, 67);
 
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
+    context.fillText(
+      String(lane + 1),
+      64,
+      67
+    );
+
+    const texture =
+      new THREE.CanvasTexture(
+        canvas
+      );
+
+    texture.colorSpace =
+      THREE.SRGBColorSpace;
 
     const number = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.8, 0.8),
+      new THREE.PlaneGeometry(
+        0.8,
+        0.8
+      ),
       new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
         side: THREE.DoubleSide
       })
     );
-    number.rotation.x = -Math.PI / 2;
-    number.position.set(x, 0.025, TRACK.startZ + 2.2);
+
+    number.rotation.x =
+      -Math.PI / 2;
+
+    number.position.set(
+      x,
+      0.025,
+      TRACK.startZ + 2.2
+    );
+
     scene.add(number);
   }
 
-  createTrackLine(TRACK.startZ, 0xffffff, 0.18);
-  createTrackLine(TRACK.finishZ, 0xffffff, 0.25);
+  createTrackLine(
+    TRACK.startZ,
+    0xffffff,
+    0.18
+  );
 
-  const tileSize = TRACK.width / 12;
-  for (let index = 0; index < 12; index++) {
+  createTrackLine(
+    TRACK.finishZ,
+    0xffffff,
+    0.25
+  );
+
+  const tileSize =
+    TRACK.width / 12;
+
+  for (
+    let index = 0;
+    index < 12;
+    index++
+  ) {
     const tile = new THREE.Mesh(
-      new THREE.BoxGeometry(tileSize, 0.018, 0.45),
+      new THREE.BoxGeometry(
+        tileSize,
+        0.018,
+        0.45
+      ),
       new THREE.MeshBasicMaterial({
-        color: index % 2 === 0 ? 0xffffff : 0x111111
+        color:
+          index % 2 === 0
+            ? 0xffffff
+            : 0x111111
       })
     );
+
     tile.position.set(
-      -TRACK.width / 2 + tileSize * (index + 0.5),
+      -TRACK.width / 2 +
+      tileSize * (index + 0.5),
       0.025,
       TRACK.finishZ
     );
+
     scene.add(tile);
   }
 
-  const standMaterial = new THREE.MeshStandardMaterial({
-    color: 0x1b2638,
-    roughness: 0.74,
-    metalness: 0.18
-  });
+  const standMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0x1b2638,
+      roughness: 0.74,
+      metalness: 0.18
+    });
 
   [-1, 1].forEach(side => {
-    for (let row = 0; row < 5; row++) {
-      const stand = new THREE.Mesh(
-        new THREE.BoxGeometry(4.2, 0.4, 112),
-        standMaterial
-      );
+    for (
+      let row = 0;
+      row < 5;
+      row++
+    ) {
+      const stand =
+        new THREE.Mesh(
+          new THREE.BoxGeometry(
+            4.2,
+            0.4,
+            112
+          ),
+          standMaterial
+        );
+
       stand.position.set(
-        side * (7.2 + row * 0.45),
+        side *
+        (7.2 + row * 0.45),
         0.2 + row * 0.38,
         -4
       );
+
       stand.castShadow = true;
       stand.receiveShadow = true;
       scene.add(stand);
     }
   });
 
-  const gateMaterial = new THREE.MeshStandardMaterial({
-    color: 0x1b324d,
-    emissive: 0x0b3150,
-    emissiveIntensity: 0.45,
-    roughness: 0.38,
-    metalness: 0.45
-  });
+  const gateMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0x1b324d,
+      emissive: 0x0b3150,
+      emissiveIntensity: 0.45,
+      roughness: 0.38,
+      metalness: 0.45
+    });
 
-  [-TRACK.width / 2 - 0.55, TRACK.width / 2 + 0.55].forEach(x => {
-    const pole = new THREE.Mesh(
-      new THREE.BoxGeometry(0.22, 4.8, 0.22),
-      gateMaterial
+  [
+    -TRACK.width / 2 - 0.55,
+    TRACK.width / 2 + 0.55
+  ].forEach(x => {
+    const pole =
+      new THREE.Mesh(
+        new THREE.BoxGeometry(
+          0.22,
+          4.8,
+          0.22
+        ),
+        gateMaterial
+      );
+
+    pole.position.set(
+      x,
+      2.4,
+      TRACK.finishZ
     );
-    pole.position.set(x, 2.4, TRACK.finishZ);
+
     pole.castShadow = true;
     scene.add(pole);
   });
 
-  const finishTop = new THREE.Mesh(
-    new THREE.BoxGeometry(TRACK.width + 1.35, 0.45, 0.28),
-    gateMaterial
+  const finishTop =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        TRACK.width + 1.35,
+        0.45,
+        0.28
+      ),
+      gateMaterial
+    );
+
+  finishTop.position.set(
+    0,
+    4.7,
+    TRACK.finishZ
   );
-  finishTop.position.set(0, 4.7, TRACK.finishZ);
+
   scene.add(finishTop);
 
-  const finishSign = makeTextBoard('FINISH', 1024, 220);
-  finishSign.position.set(0, 4.7, TRACK.finishZ + 0.16);
+  const finishSign =
+    makeTextBoard(
+      'FINISH',
+      1024,
+      220
+    );
+
+  finishSign.position.set(
+    0,
+    4.7,
+    TRACK.finishZ + 0.16
+  );
+
   scene.add(finishSign);
 }
 
-function createTrackLine(z, color, depth) {
+function createTrackLine(
+  z,
+  color,
+  depth
+) {
   const line = new THREE.Mesh(
-    new THREE.BoxGeometry(TRACK.width, 0.02, depth),
-    new THREE.MeshBasicMaterial({ color })
+    new THREE.BoxGeometry(
+      TRACK.width,
+      0.02,
+      depth
+    ),
+    new THREE.MeshBasicMaterial({
+      color
+    })
   );
-  line.position.set(0, 0.025, z);
+
+  line.position.set(
+    0,
+    0.025,
+    z
+  );
+
   scene.add(line);
 }
 
-function makeTextBoard(text, width, height) {
-  const canvas = document.createElement('canvas');
+function makeTextBoard(
+  text,
+  width,
+  height
+) {
+  const canvas =
+    document.createElement('canvas');
+
   canvas.width = width;
   canvas.height = height;
-  const context = canvas.getContext('2d');
+
+  const context =
+    canvas.getContext('2d');
 
   context.fillStyle = '#0a1524';
-  context.fillRect(0, 0, width, height);
+  context.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
   context.strokeStyle = '#65eaff';
   context.lineWidth = 18;
-  context.strokeRect(9, 9, width - 18, height - 18);
+
+  context.strokeRect(
+    9,
+    9,
+    width - 18,
+    height - 18
+  );
+
   context.fillStyle = '#ffffff';
   context.font = '900 132px Arial';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.fillText(text, width / 2, height / 2 + 7);
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
+  context.fillText(
+    text,
+    width / 2,
+    height / 2 + 7
+  );
+
+  const texture =
+    new THREE.CanvasTexture(
+      canvas
+    );
+
+  texture.colorSpace =
+    THREE.SRGBColorSpace;
 
   return new THREE.Mesh(
-    new THREE.PlaneGeometry(5.1, 1.1),
+    new THREE.PlaneGeometry(
+      5.1,
+      1.1
+    ),
     new THREE.MeshBasicMaterial({
       map: texture,
       side: THREE.DoubleSide
@@ -1201,815 +1493,1350 @@ function makeTextBoard(text, width, height) {
 }
 
 function getLaneX(laneIndex) {
-  const laneWidth = TRACK.width / TRACK.laneCount;
-  return -TRACK.width / 2 + laneWidth * (laneIndex + 0.5);
+  const laneWidth =
+    TRACK.width /
+    TRACK.laneCount;
+
+  return (
+    -TRACK.width / 2 +
+    laneWidth *
+    (laneIndex + 0.5)
+  );
 }
 
-function createMaterial(color, roughness = 0.72, metalness = 0.02, emissive = 0x000000, emissiveIntensity = 0) {
-  return new THREE.MeshStandardMaterial({
-    color,
-    roughness,
-    metalness,
-    emissive,
-    emissiveIntensity,
-    transparent: false,
-    opacity: 1,
-    depthWrite: true
-  });
-}
+function createLabelSprite(
+  text,
+  color
+) {
+  const canvas =
+    document.createElement('canvas');
 
-function addMesh(parent, geometry, material, position, rotation = [0, 0, 0], scale = [1, 1, 1]) {
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(...position);
-  mesh.rotation.set(...rotation);
-  mesh.scale.set(...scale);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  parent.add(mesh);
-  return mesh;
-}
+  canvas.width = 600;
+  canvas.height = 190;
 
-function createTorsoGeometry() {
-  return new THREE.LatheGeometry([
-    new THREE.Vector2(0.145, 0.00),
-    new THREE.Vector2(0.175, 0.10),
-    new THREE.Vector2(0.188, 0.25),
-    new THREE.Vector2(0.222, 0.43),
-    new THREE.Vector2(0.255, 0.64),
-    new THREE.Vector2(0.228, 0.81),
-    new THREE.Vector2(0.165, 0.91)
-  ], 40);
-}
+  const context =
+    canvas.getContext('2d');
 
-function createLabelSprite(text, color) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 180;
-  const context = canvas.getContext('2d');
+  context.fillStyle =
+    'rgba(4,11,21,.92)';
 
-  context.fillStyle = 'rgba(4,11,21,.90)';
   context.strokeStyle = color;
   context.lineWidth = 8;
+
   context.beginPath();
-  context.moveTo(42, 10);
-  context.lineTo(470, 10);
-  context.quadraticCurveTo(502, 10, 502, 42);
-  context.lineTo(502, 103);
-  context.quadraticCurveTo(502, 135, 470, 135);
-  context.lineTo(42, 135);
-  context.quadraticCurveTo(10, 135, 10, 103);
-  context.lineTo(10, 42);
-  context.quadraticCurveTo(10, 10, 42, 10);
-  context.closePath();
+  context.roundRect(
+    10,
+    10,
+    580,
+    130,
+    35
+  );
   context.fill();
   context.stroke();
 
   context.fillStyle = '#ffffff';
-  context.font = '900 58px Arial';
+  context.font = '900 59px Arial';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.fillText(text, 256, 73);
+
+  context.fillText(
+    text,
+    300,
+    76
+  );
 
   context.fillStyle = color;
   context.beginPath();
-  context.moveTo(236, 136);
-  context.lineTo(276, 136);
-  context.lineTo(256, 174);
+  context.moveTo(278, 141);
+  context.lineTo(322, 141);
+  context.lineTo(300, 184);
   context.closePath();
   context.fill();
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
+  const texture =
+    new THREE.CanvasTexture(
+      canvas
+    );
 
-  const sprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({
-      map: texture,
-      transparent: true,
-      depthWrite: false
-    })
+  texture.colorSpace =
+    THREE.SRGBColorSpace;
+
+  const sprite =
+    new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthWrite: false
+      })
+    );
+
+  sprite.scale.set(
+    1.55,
+    0.50,
+    1
   );
-  sprite.scale.set(1.45, 0.50, 1);
+
   return sprite;
-}
-
-function createHair(head, preset, hairMaterial) {
-  if (preset.hairStyle === 'bob') {
-    addMesh(
-      head,
-      new THREE.SphereGeometry(0.255, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.75),
-      hairMaterial,
-      [0, 0.025, 0.018],
-      [0, 0, 0],
-      [1.04, 0.96, 1.04]
-    );
-    addMesh(head, new THREE.BoxGeometry(0.31, 0.12, 0.07), hairMaterial, [0, 0.065, -0.188]);
-    return;
-  }
-
-  if (preset.hairStyle === 'ponytail') {
-    addMesh(
-      head,
-      new THREE.SphereGeometry(0.247, 32, 24, 0, Math.PI * 2, 0, Math.PI * 0.62),
-      hairMaterial,
-      [0, 0.05, 0],
-      [0, 0, 0],
-      [1.02, 0.82, 1.02]
-    );
-    addMesh(head, new THREE.CapsuleGeometry(0.075, 0.30, 9, 16), hairMaterial, [0, 0.02, 0.25], [Math.PI / 2, 0, 0], [0.85, 1.0, 0.85]);
-    return;
-  }
-
-  if (preset.hairStyle === 'mohawk') {
-    addMesh(
-      head,
-      new THREE.SphereGeometry(0.242, 32, 24, 0, Math.PI * 2, 0, Math.PI * 0.56),
-      hairMaterial,
-      [0, 0.045, 0],
-      [0, 0, 0],
-      [1.01, 0.72, 1.01]
-    );
-    for (let i = 0; i < 5; i++) {
-      addMesh(
-        head,
-        new THREE.ConeGeometry(0.052 - i * 0.004, 0.16, 12),
-        hairMaterial,
-        [0, 0.24 - i * 0.012, 0.13 - i * 0.07],
-        [0.20, 0, 0],
-        [1, 1, 1]
-      );
-    }
-    return;
-  }
-
-  if (preset.hairStyle === 'crest') {
-    addMesh(
-      head,
-      new THREE.SphereGeometry(0.242, 32, 24, 0, Math.PI * 2, 0, Math.PI * 0.58),
-      hairMaterial,
-      [0, 0.047, 0],
-      [0, 0, 0],
-      [1.02, 0.76, 1.02]
-    );
-    for (let i = -2; i <= 2; i++) {
-      addMesh(
-        head,
-        new THREE.ConeGeometry(0.042, 0.17 + Math.abs(i) * 0.015, 10),
-        hairMaterial,
-        [i * 0.055, 0.24, 0.015 + Math.abs(i) * 0.018],
-        [0, 0, -i * 0.12],
-        [1, 1, 1]
-      );
-    }
-    return;
-  }
-
-  addMesh(
-    head,
-    new THREE.SphereGeometry(0.245, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.58),
-    hairMaterial,
-    [0, 0.048, 0],
-    [0, 0, 0],
-    [1.02, 0.76, 1.02]
-  );
-
-  const spikePositions = [
-    [-0.17, 0.19, -0.04, -0.25],
-    [-0.09, 0.24, -0.02, -0.10],
-    [0.00, 0.27, 0.00, 0],
-    [0.09, 0.24, -0.02, 0.10],
-    [0.17, 0.19, -0.04, 0.25]
-  ];
-
-  spikePositions.forEach(([x, y, z, rz]) => {
-    addMesh(
-      head,
-      new THREE.ConeGeometry(0.052, 0.18, 10),
-      hairMaterial,
-      [x, y, z],
-      [0.12, 0, rz],
-      [1, 1, 1]
-    );
-  });
-}
-
-function buildAnimeHuman(preset, isPlayer) {
-  const skin = createMaterial(preset.skin, 0.78, 0.01);
-  const skinShade = createMaterial(new THREE.Color(preset.skin).multiplyScalar(0.82), 0.82, 0.01);
-  const suit = createMaterial(preset.suit, 0.40, 0.30);
-  const suitDark = createMaterial(preset.suitDark, 0.34, 0.42);
-  const accent = createMaterial(
-    preset.accent,
-    0.24,
-    0.25,
-    preset.accent,
-    isPlayer ? 1.10 : 0.62
-  );
-  const boots = createMaterial(0x101820, 0.35, 0.44);
-  const hair = createMaterial(preset.hair, 0.84, 0.02);
-  const eyeWhite = createMaterial(0xffffff, 0.64, 0);
-  const iris = createMaterial(preset.eye, 0.38, 0);
-  const lip = createMaterial(0xc75e69, 0.80, 0);
-  const spoonMetal = createMaterial(0xe7ecef, 0.20, 0.90);
-  const marbleMaterial = createMaterial(
-    isPlayer ? preset.accent : 0xffd85a,
-    0.12,
-    0.22,
-    isPlayer ? preset.accent : 0x805300,
-    0.44
-  );
-
-  const root = new THREE.Group();
-  root.scale.set(
-    preset.height,
-    preset.height,
-    preset.height
-  );
-
-  const hips = new THREE.Group();
-  hips.position.y = 1.19;
-  root.add(hips);
-
-  addMesh(
-    hips,
-    new THREE.SphereGeometry(0.245, 34, 28),
-    suit,
-    [0, 0, 0],
-    [0, 0, 0],
-    [preset.hips * 1.24, 0.82, 0.98]
-  );
-
-  addMesh(
-    hips,
-    new THREE.TorusGeometry(0.215, 0.035, 12, 32),
-    accent,
-    [0, 0.055, 0],
-    [Math.PI / 2, 0, 0],
-    [preset.hips, 1, preset.hips]
-  );
-
-  const spine = new THREE.Group();
-  spine.position.y = 0.045;
-  hips.add(spine);
-
-  addMesh(
-    spine,
-    createTorsoGeometry(),
-    suit,
-    [0, 0.03, 0],
-    [0, 0, 0],
-    [preset.shoulders, 1, 0.94]
-  );
-
-  addMesh(
-    spine,
-    new THREE.CapsuleGeometry(0.036, 0.50, 8, 16),
-    accent,
-    [-0.095, 0.52, -0.212],
-    [-0.06, 0, -0.14],
-    [1, 1, 0.52]
-  );
-
-  addMesh(
-    spine,
-    new THREE.CapsuleGeometry(0.036, 0.50, 8, 16),
-    accent,
-    [0.095, 0.52, -0.212],
-    [-0.06, 0, 0.14],
-    [1, 1, 0.52]
-  );
-
-  addMesh(
-    spine,
-    new THREE.TorusGeometry(0.135, 0.022, 10, 28),
-    accent,
-    [0, 0.63, -0.225],
-    [Math.PI / 2, 0, 0],
-    [0.92, 1.0, 1.15]
-  );
-
-  addMesh(
-    spine,
-    new THREE.CylinderGeometry(0.062, 0.068, 0.12, 20),
-    skin,
-    [0, 1.02, 0]
-  );
-
-  const head = new THREE.Group();
-  head.position.set(0, 1.25, 0);
-  spine.add(head);
-
-  addMesh(
-    head,
-    new THREE.SphereGeometry(0.238, 36, 30),
-    skin,
-    [0, 0, 0],
-    [0, 0, 0],
-    [preset.faceWidth, preset.faceHeight, 0.96]
-  );
-
-  createHair(head, preset, hair);
-
-  [-1, 1].forEach(side => {
-    addMesh(
-      head,
-      new THREE.SphereGeometry(0.040, 18, 14),
-      eyeWhite,
-      [side * 0.075, 0.026, -0.223],
-      [0, 0, 0],
-      [1.24, 0.68, 0.34]
-    );
-
-    addMesh(
-      head,
-      new THREE.SphereGeometry(0.017, 16, 12),
-      iris,
-      [side * 0.075, 0.025, -0.241],
-      [0, 0, 0],
-      [1, 1, 0.38]
-    );
-
-    addMesh(
-      head,
-      new THREE.BoxGeometry(0.078, 0.012, 0.012),
-      hair,
-      [side * 0.075, 0.091, -0.208],
-      [0, 0, side < 0 ? 0.11 : -0.11]
-    );
-
-    addMesh(
-      head,
-      new THREE.SphereGeometry(0.022, 14, 10),
-      createMaterial(0xee9ca5, 0.92, 0),
-      [side * 0.138, -0.045, -0.204],
-      [0, 0, 0],
-      [1.45, 0.56, 0.28]
-    );
-
-    addMesh(
-      head,
-      new THREE.SphereGeometry(0.043, 18, 14),
-      skinShade,
-      [side * 0.227, -0.005, 0],
-      [0, 0, 0],
-      [0.38, 1.08, 0.74]
-    );
-  });
-
-  addMesh(
-    head,
-    new THREE.ConeGeometry(0.020, 0.052, 12),
-    skinShade,
-    [0, -0.015, -0.246],
-    [-Math.PI / 2, 0, 0]
-  );
-
-  addMesh(
-    head,
-    new THREE.TorusGeometry(0.031, 0.006, 8, 22, Math.PI),
-    lip,
-    [0, -0.083, -0.225],
-    [Math.PI, 0, 0],
-    [1, 0.72, 1]
-  );
-
-  const spoon = new THREE.Group();
-  spoon.position.set(0, -0.074, -0.228);
-  head.add(spoon);
-
-  addMesh(spoon, new THREE.CapsuleGeometry(0.011, 0.060, 6, 12), lip, [0, 0.016, 0], [0, 0, Math.PI / 2]);
-  addMesh(spoon, new THREE.CapsuleGeometry(0.011, 0.060, 6, 12), lip, [0, -0.016, 0], [0, 0, Math.PI / 2]);
-  addMesh(spoon, new THREE.CylinderGeometry(0.012, 0.014, 0.38, 18), spoonMetal, [0, 0, -0.19], [Math.PI / 2, 0, 0]);
-  addMesh(spoon, new THREE.CylinderGeometry(0.016, 0.022, 0.12, 18), spoonMetal, [0, 0, -0.43], [Math.PI / 2, 0, 0]);
-  addMesh(spoon, new THREE.SphereGeometry(0.088, 28, 22), spoonMetal, [0, -0.004, -0.52], [0, 0, 0], [0.78, 0.20, 1.18]);
-  addMesh(spoon, new THREE.SphereGeometry(0.071, 24, 18), createMaterial(0xaab4bb, 0.34, 0.68), [0, 0.014, -0.523], [0, 0, 0], [0.74, 0.11, 1.10]);
-
-  const marble = addMesh(
-    spoon,
-    new THREE.SphereGeometry(0.052, 28, 22),
-    marbleMaterial,
-    [0, 0.074, -0.523]
-  );
-
-  function buildArm(side) {
-    const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.35 * preset.shoulders, 0.78, 0);
-    spine.add(shoulder);
-
-    addMesh(
-      shoulder,
-      new THREE.SphereGeometry(0.112, 26, 20),
-      skin,
-      [side * 0.012, -0.005, 0],
-      [0, 0, 0],
-      [1.04, 1.0, 0.98]
-    );
-
-    addMesh(
-      shoulder,
-      new THREE.CapsuleGeometry(0.077, 0.34, 10, 20),
-      skin,
-      [0, -0.235, 0]
-    );
-
-    const elbow = new THREE.Group();
-    elbow.position.y = -0.43;
-    shoulder.add(elbow);
-
-    addMesh(
-      elbow,
-      new THREE.SphereGeometry(0.076, 24, 18),
-      skin,
-      [0, 0, 0]
-    );
-
-    addMesh(
-      elbow,
-      new THREE.CapsuleGeometry(0.064, 0.31, 10, 20),
-      skin,
-      [0, -0.215, 0]
-    );
-
-    const wrist = new THREE.Group();
-    wrist.position.y = -0.40;
-    elbow.add(wrist);
-
-    addMesh(
-      wrist,
-      new THREE.TorusGeometry(0.082, 0.025, 10, 24),
-      accent,
-      [0, 0.015, 0],
-      [Math.PI / 2, 0, 0],
-      [1, 1, 1]
-    );
-
-    addMesh(
-      wrist,
-      new THREE.SphereGeometry(0.063, 22, 18),
-      skin,
-      [0, -0.04, 0],
-      [0, 0, 0],
-      [0.90, 1.05, 0.68]
-    );
-
-    return { shoulder, elbow, wrist };
-  }
-
-  function buildLeg(side) {
-    const hip = new THREE.Group();
-    hip.position.set(side * 0.16 * preset.hips, 0, 0);
-    hips.add(hip);
-
-    addMesh(
-      hip,
-      new THREE.SphereGeometry(0.118, 26, 20),
-      suit,
-      [0, -0.04, 0],
-      [0, 0, 0],
-      [1.03, 1.05, 1.02]
-    );
-
-    addMesh(
-      hip,
-      new THREE.CapsuleGeometry(0.107, 0.43, 11, 22),
-      suit,
-      [0, -0.32, 0]
-    );
-
-    addMesh(
-      hip,
-      new THREE.CapsuleGeometry(0.025, 0.34, 7, 14),
-      accent,
-      [side * 0.055, -0.30, -0.102],
-      [0, 0, 0],
-      [1, 1, 0.55]
-    );
-
-    const knee = new THREE.Group();
-    knee.position.y = -0.58;
-    hip.add(knee);
-
-    addMesh(
-      knee,
-      new THREE.SphereGeometry(0.094, 24, 20),
-      suitDark,
-      [0, 0, 0]
-    );
-
-    addMesh(
-      knee,
-      new THREE.CapsuleGeometry(0.085, 0.38, 11, 22),
-      suit,
-      [0, -0.27, 0]
-    );
-
-    const ankle = new THREE.Group();
-    ankle.position.y = -0.50;
-    knee.add(ankle);
-
-    addMesh(
-      ankle,
-      new THREE.CapsuleGeometry(0.108, 0.27, 11, 22),
-      boots,
-      [0, -0.02, -0.11],
-      [Math.PI / 2, 0, 0],
-      [1.0, 1.0, 0.92]
-    );
-
-    addMesh(
-      ankle,
-      new THREE.TorusGeometry(0.088, 0.022, 9, 22),
-      accent,
-      [0, 0.03, -0.02],
-      [Math.PI / 2, 0, 0]
-    );
-
-    addMesh(
-      ankle,
-      new THREE.BoxGeometry(0.21, 0.04, 0.39),
-      createMaterial(0x05090e, 0.45, 0.50),
-      [0, -0.105, -0.11]
-    );
-
-    return { hip, knee, ankle };
-  }
-
-  const leftArm = buildArm(-1);
-  const rightArm = buildArm(1);
-  const leftLeg = buildLeg(-1);
-  const rightLeg = buildLeg(1);
-
-  return {
-    root,
-    hips,
-    spine,
-    head,
-    spoon,
-    marble,
-    leftArm,
-    rightArm,
-    leftLeg,
-    rightLeg
-  };
 }
 
 function renderCharacterSelector() {
   characterGrid.innerHTML = '';
 
-  CHARACTER_PRESETS.forEach((preset, index) => {
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = `character-card${index === selectedPresetIndex ? ' active' : ''}`;
-    card.style.setProperty('--card-color', preset.accentCss);
-    card.style.setProperty('--skin-color', preset.skinCss);
-    card.style.setProperty('--hair-color', preset.hairCss);
-    card.style.setProperty('--suit-dark', preset.suitDarkCss);
+  CHARACTER_PRESETS.forEach(
+    (preset, index) => {
+      const card =
+        document.createElement(
+          'button'
+        );
 
-    card.innerHTML = `
-      <div class="character-avatar">
-        <div class="avatar-head"></div>
-        <div class="avatar-hair"></div>
-        <div class="avatar-body"></div>
-        <div class="avatar-glow"></div>
-      </div>
-      <div class="character-name">${preset.name}</div>
-      <div class="character-type">${preset.type}</div>
-      <div class="character-stat">
-        <span>Speed <b>${preset.speed.toFixed(1)}</b></span>
-        <span>Control <b>${Math.round(preset.handling * 100)}</b></span>
-      </div>
-    `;
+      card.type = 'button';
 
-    card.addEventListener('click', () => {
-      chooseCharacter(index);
+      card.className =
+        `character-card${
+          index === selectedPresetIndex
+            ? ' active'
+            : ''
+        }`;
+
+      card.style.setProperty(
+        '--card-color',
+        preset.accentCss
+      );
+
+      card.style.setProperty(
+        '--skin-color',
+        preset.skinCss
+      );
+
+      card.style.setProperty(
+        '--hair-color',
+        preset.hairCss
+      );
+
+      card.style.setProperty(
+        '--suit-dark',
+        preset.suitDarkCss
+      );
+
+      card.innerHTML = `
+        <div class="character-avatar real-vrm">
+          <div class="avatar-hair"></div>
+          <div class="avatar-glow"></div>
+        </div>
+        <div class="character-name">${preset.name}</div>
+        <div class="character-type">${preset.type}</div>
+        <div class="character-stat">
+          <span>Speed <b>${preset.speed.toFixed(1)}</b></span>
+          <span>Control <b>${Math.round(preset.handling * 100)}</b></span>
+        </div>
+        <div class="vrm-source-note">
+          Real VRoid skinned avatar
+        </div>
+      `;
+
+      card.addEventListener(
+        'click',
+        () => {
+          chooseCharacter(index);
+        }
+      );
+
+      characterGrid.appendChild(
+        card
+      );
+    }
+  );
+}
+
+function loadVrmFromUrl(
+  url,
+  onProgress
+) {
+  return new Promise(
+    (resolve, reject) => {
+      vrmLoader.load(
+        url,
+        gltf => {
+          const vrm =
+            gltf.userData.vrm;
+
+          if (!vrm) {
+            reject(
+              new Error(
+                'File berhasil diunduh tetapi data VRM tidak ditemukan.'
+              )
+            );
+            return;
+          }
+
+          resolve(vrm);
+        },
+        progress => {
+          if (
+            progress.total > 0 &&
+            onProgress
+          ) {
+            onProgress(
+              progress.loaded /
+              progress.total
+            );
+          }
+        },
+        reject
+      );
+    }
+  );
+}
+
+async function loadVrmWithFallback(
+  source,
+  onProgress
+) {
+  try {
+    return await loadVrmFromUrl(
+      source.primary,
+      onProgress
+    );
+  } catch (primaryError) {
+    console.warn(
+      'Sumber utama gagal, mencoba cadangan.',
+      primaryError
+    );
+
+    return loadVrmFromUrl(
+      source.fallback,
+      onProgress
+    );
+  }
+}
+
+function findSkinMaterialName(
+  materialName
+) {
+  const value =
+    String(materialName || '')
+      .toLowerCase();
+
+  return (
+    value.includes('face') ||
+    value.includes('skin') ||
+    value.includes('body') ||
+    value.includes('head')
+  );
+}
+
+function findHairMaterialName(
+  materialName
+) {
+  const value =
+    String(materialName || '')
+      .toLowerCase();
+
+  return (
+    value.includes('hair') ||
+    value.includes('bang') ||
+    value.includes('lash') ||
+    value.includes('brow')
+  );
+}
+
+function tintAvatarMaterials(
+  vrm,
+  preset
+) {
+  const accentColor =
+    new THREE.Color(
+      preset.accent
+    );
+
+  const hairColor =
+    new THREE.Color(
+      preset.hairCss
+    );
+
+  const skinColor =
+    new THREE.Color(
+      preset.skinCss
+    );
+
+  vrm.scene.traverse(object => {
+    if (!object.isMesh) return;
+
+    object.castShadow = true;
+    object.receiveShadow = true;
+    object.frustumCulled = false;
+
+    const materials =
+      Array.isArray(object.material)
+        ? object.material
+        : [object.material];
+
+    materials.forEach(material => {
+      if (!material) return;
+
+      const materialName =
+        material.name ||
+        object.name ||
+        '';
+
+      if (
+        findHairMaterialName(
+          materialName
+        )
+      ) {
+        if (material.color) {
+          material.color.lerp(
+            hairColor,
+            0.38
+          );
+        }
+      } else if (
+        findSkinMaterialName(
+          materialName
+        )
+      ) {
+        if (material.color) {
+          material.color.lerp(
+            skinColor,
+            0.14
+          );
+        }
+      } else if (
+        material.color
+      ) {
+        const brightness =
+          (
+            material.color.r +
+            material.color.g +
+            material.color.b
+          ) / 3;
+
+        if (
+          brightness < 0.72 &&
+          !String(materialName)
+            .toLowerCase()
+            .includes('eye')
+        ) {
+          material.color.lerp(
+            accentColor,
+            0.20
+          );
+        }
+      }
+
+      material.needsUpdate = true;
+    });
+  });
+}
+
+function normalizeVrm(
+  vrm,
+  preset
+) {
+  VRMUtils.rotateVRM0(vrm);
+
+  VRMUtils.removeUnnecessaryVertices(
+    vrm.scene
+  );
+
+  VRMUtils.combineSkeletons(
+    vrm.scene
+  );
+
+  vrm.scene.rotation.y =
+    Math.PI;
+
+  vrm.scene.scale.setScalar(1);
+  vrm.scene.position.set(0, 0, 0);
+  vrm.scene.updateMatrixWorld(true);
+
+  let box =
+    new THREE.Box3()
+      .setFromObject(
+        vrm.scene
+      );
+
+  const size =
+    box.getSize(
+      new THREE.Vector3()
+    );
+
+  const scale =
+    2.35 /
+    Math.max(
+      size.y,
+      0.001
+    );
+
+  vrm.scene.scale.set(
+    scale *
+    preset.bodyScale[0],
+    scale *
+    preset.bodyScale[1],
+    scale *
+    preset.bodyScale[2]
+  );
+
+  vrm.scene.updateMatrixWorld(true);
+
+  box =
+    new THREE.Box3()
+      .setFromObject(
+        vrm.scene
+      );
+
+  const center =
+    box.getCenter(
+      new THREE.Vector3()
+    );
+
+  vrm.scene.position.x -=
+    center.x;
+
+  vrm.scene.position.z -=
+    center.z;
+
+  vrm.scene.updateMatrixWorld(true);
+
+  box =
+    new THREE.Box3()
+      .setFromObject(
+        vrm.scene
+      );
+
+  vrm.scene.position.y -=
+    box.min.y;
+
+  const head =
+    vrm.humanoid
+      ?.getNormalizedBoneNode(
+        'head'
+      );
+
+  if (head) {
+    head.scale.multiply(
+      new THREE.Vector3(
+        preset.headScale[0],
+        preset.headScale[1],
+        preset.headScale[2]
+      )
+    );
+  }
+
+  tintAvatarMaterials(
+    vrm,
+    preset
+  );
+
+  if (
+    vrm.expressionManager &&
+    preset.expression !==
+    'neutral'
+  ) {
+    try {
+      vrm.expressionManager.setValue(
+        preset.expression,
+        0.08
+      );
+    } catch {
+      // Some old VRM files do not expose all standard expressions.
+    }
+  }
+
+  vrm.scene.updateMatrixWorld(true);
+}
+
+function captureBones(vrm) {
+  const names = [
+    'hips',
+    'spine',
+    'chest',
+    'upperChest',
+    'neck',
+    'head',
+    'leftShoulder',
+    'rightShoulder',
+    'leftUpperArm',
+    'rightUpperArm',
+    'leftLowerArm',
+    'rightLowerArm',
+    'leftHand',
+    'rightHand',
+    'leftUpperLeg',
+    'rightUpperLeg',
+    'leftLowerLeg',
+    'rightLowerLeg',
+    'leftFoot',
+    'rightFoot',
+    'leftToes',
+    'rightToes'
+  ];
+
+  const bones = {};
+  const rests = {};
+
+  names.forEach(name => {
+    const bone =
+      vrm.humanoid
+        ?.getNormalizedBoneNode(
+          name
+        );
+
+    if (!bone) return;
+
+    bones[name] = bone;
+    rests[name] =
+      bone.quaternion.clone();
+  });
+
+  return {
+    bones,
+    rests
+  };
+}
+
+function createSpoon(
+  racer
+) {
+  const head =
+    racer.bones.head;
+
+  if (!head) return;
+
+  const group =
+    new THREE.Group();
+
+  // VRM standard forward is +Z before the avatar scene is rotated.
+  group.position.set(
+    0,
+    -0.055,
+    0.105
+  );
+
+  const lipMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0xc85e68,
+      roughness: 0.78,
+      metalness: 0
     });
 
-    characterGrid.appendChild(card);
+  const spoonMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0xe8edf1,
+      roughness: 0.20,
+      metalness: 0.90,
+      side: THREE.DoubleSide
+    });
+
+  const marbleMaterial =
+    new THREE.MeshStandardMaterial({
+      color: racer.preset.accent,
+      emissive: racer.preset.accent,
+      emissiveIntensity:
+        racer.isPlayer
+          ? 0.48
+          : 0.28,
+      roughness: 0.13,
+      metalness: 0.22
+    });
+
+  const upperLip =
+    new THREE.Mesh(
+      new THREE.CapsuleGeometry(
+        0.008,
+        0.045,
+        5,
+        10
+      ),
+      lipMaterial
+    );
+
+  upperLip.rotation.z =
+    Math.PI / 2;
+
+  upperLip.position.y =
+    0.012;
+
+  group.add(upperLip);
+
+  const lowerLip =
+    upperLip.clone();
+
+  lowerLip.position.y =
+    -0.012;
+
+  group.add(lowerLip);
+
+  const handle =
+    new THREE.Mesh(
+      new THREE.CylinderGeometry(
+        0.007,
+        0.009,
+        0.30,
+        16
+      ),
+      spoonMaterial
+    );
+
+  handle.rotation.x =
+    Math.PI / 2;
+
+  handle.position.z =
+    0.15;
+
+  handle.castShadow = true;
+  group.add(handle);
+
+  const bowl =
+    new THREE.Mesh(
+      new THREE.SphereGeometry(
+        0.064,
+        22,
+        18
+      ),
+      spoonMaterial
+    );
+
+  bowl.scale.set(
+    0.80,
+    0.22,
+    1.18
+  );
+
+  bowl.position.set(
+    0,
+    -0.002,
+    0.35
+  );
+
+  bowl.castShadow = true;
+  group.add(bowl);
+
+  const marble =
+    new THREE.Mesh(
+      new THREE.SphereGeometry(
+        0.036,
+        20,
+        16
+      ),
+      marbleMaterial
+    );
+
+  marble.position.set(
+    0,
+    0.050,
+    0.35
+  );
+
+  marble.castShadow = true;
+  group.add(marble);
+
+  head.add(group);
+
+  racer.spoon = group;
+  racer.marble = marble;
+}
+
+function createAccentAccessories(
+  racer
+) {
+  const accent =
+    new THREE.MeshStandardMaterial({
+      color: racer.preset.accent,
+      emissive: racer.preset.accent,
+      emissiveIntensity:
+        racer.isPlayer
+          ? 1.0
+          : 0.42,
+      roughness: 0.22,
+      metalness: 0.22
+    });
+
+  const chest =
+    racer.bones.chest ||
+    racer.bones.upperChest;
+
+  if (chest) {
+    const chestLight =
+      new THREE.Mesh(
+        new THREE.TorusGeometry(
+          0.11,
+          0.012,
+          8,
+          24
+        ),
+        accent
+      );
+
+    chestLight.position.set(
+      0,
+      0,
+      0.10
+    );
+
+    chestLight.rotation.x =
+      Math.PI / 2;
+
+    chest.add(chestLight);
+  }
+
+  [
+    racer.bones.leftHand,
+    racer.bones.rightHand
+  ].forEach(hand => {
+    if (!hand) return;
+
+    const band =
+      new THREE.Mesh(
+        new THREE.TorusGeometry(
+          0.052,
+          0.011,
+          8,
+          20
+        ),
+        accent
+      );
+
+    band.rotation.x =
+      Math.PI / 2;
+
+    hand.add(band);
   });
 }
 
-function disposeObject(root) {
-  root.traverse(object => {
-    if (object.geometry) object.geometry.dispose();
+async function createRacer(
+  preset,
+  laneIndex,
+  isPlayer,
+  racerNumber
+) {
+  const source =
+    preset.gender === 'female'
+      ? FEMALE_MODEL
+      : MALE_MODEL;
 
-    if (object.material) {
-      const materials = Array.isArray(object.material) ? object.material : [object.material];
-      materials.forEach(material => {
-        material.map?.dispose?.();
-        material.dispose?.();
-      });
-    }
-  });
+  loaderText.textContent =
+    `Memuat avatar ${racerNumber}/5 • ${preset.name}`;
+
+  const vrm =
+    await loadVrmWithFallback(
+      source,
+      modelProgress => {
+        const totalProgress =
+          (
+            racerNumber - 1 +
+            modelProgress
+          ) / 5;
+
+        loadProgressBar.style.width =
+          `${Math.round(
+            totalProgress * 100
+          )}%`;
+      }
+    );
+
+  normalizeVrm(
+    vrm,
+    preset
+  );
+
+  const {
+    bones,
+    rests
+  } = captureBones(vrm);
+
+  const root =
+    new THREE.Group();
+
+  root.position.set(
+    getLaneX(laneIndex),
+    0,
+    TRACK.startZ + 1.4
+  );
+
+  scene.add(root);
+
+  root.add(vrm.scene);
+
+  const racer = {
+    preset,
+    laneIndex,
+    isPlayer,
+    root,
+    vrm,
+    bones,
+    rests,
+    spoon: null,
+    marble: null,
+    label: null,
+    currentSpeed: 0,
+    targetSpeed:
+      preset.speed *
+      (
+        0.92 +
+        laneIndex * 0.015
+      ),
+    reactionTime:
+      laneIndex ===
+      PLAYER_LANE_INDEX
+        ? 0
+        : 0.12 +
+          laneIndex * 0.055,
+    runPhase:
+      laneIndex * 1.10,
+    finished: false
+  };
+
+  createSpoon(racer);
+  createAccentAccessories(
+    racer
+  );
+
+  const label =
+    createLabelSprite(
+      `PEMAIN • ${preset.name}`,
+      preset.accentCss
+    );
+
+  label.position.set(
+    0,
+    2.95,
+    0
+  );
+
+  label.visible =
+    isPlayer;
+
+  root.add(label);
+  racer.label = label;
+
+  setIdlePose(
+    racer,
+    clock.elapsedTime,
+    1
+  );
+
+  return racer;
 }
 
-function clearRacers() {
-  racers.forEach(racer => {
-    scene.remove(racer.root);
-    disposeObject(racer.root);
-  });
-  racers = [];
-  player = null;
-}
+function getPresetLaneOrder() {
+  const selected =
+    CHARACTER_PRESETS[
+      selectedPresetIndex
+    ];
 
-function getRacePresetOrder() {
-  const selected = CHARACTER_PRESETS[selectedPresetIndex];
-  const others = CHARACTER_PRESETS.filter((_, index) => index !== selectedPresetIndex);
+  const otherPresets =
+    CHARACTER_PRESETS.filter(
+      (_, index) =>
+        index !==
+        selectedPresetIndex
+    );
+
   return [
-    others[0],
-    others[1],
+    otherPresets[0],
+    otherPresets[1],
     selected,
-    others[2],
-    others[3]
+    otherPresets[2],
+    otherPresets[3]
   ];
 }
 
-function createRacers() {
-  clearRacers();
+async function loadAllRacers() {
+  loaderLayer.classList.remove(
+    'hidden'
+  );
 
-  const orderedPresets = getRacePresetOrder();
-  const aiModifiers = [0.92, 0.96, 1, 0.98, 0.94];
-  const reactions = [0.15, 0.28, 0, 0.20, 0.36];
+  loaderError.textContent = '';
+  loadProgressBar.style.width =
+    '0%';
 
-  orderedPresets.forEach((preset, laneIndex) => {
-    const isPlayer = laneIndex === PLAYER_LANE_INDEX;
-    const racerRoot = new THREE.Group();
-    racerRoot.position.set(
-      getLaneX(laneIndex),
-      0,
-      TRACK.startZ + 1.4
-    );
-    scene.add(racerRoot);
+  try {
+    const orderedPresets =
+      getPresetLaneOrder();
 
-    const shadow = new THREE.Mesh(
-      new THREE.CircleGeometry(0.42, 32),
-      new THREE.MeshBasicMaterial({
-        color: 0x000000,
-        transparent: true,
-        opacity: 0.26
-      })
-    );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = 0.014;
-    racerRoot.add(shadow);
+    racers = [];
 
-    const rig = buildAnimeHuman(preset, isPlayer);
-    rig.root.scale.multiplyScalar(isPlayer ? 0.88 : 0.84);
-    racerRoot.add(rig.root);
+    // Sequential parsing is more stable on phones and low-memory browsers.
+    for (
+      let laneIndex = 0;
+      laneIndex < 5;
+      laneIndex++
+    ) {
+      const racer =
+        await createRacer(
+          orderedPresets[
+            laneIndex
+          ],
+          laneIndex,
+          laneIndex ===
+            PLAYER_LANE_INDEX,
+          laneIndex + 1
+        );
 
-    if (isPlayer) {
-      const label = createLabelSprite(`PEMAIN • ${preset.name}`, preset.accentCss);
-      label.position.set(0, 3.45, 0);
-      racerRoot.add(label);
+      racers.push(racer);
     }
 
-    racers.push({
-      index: laneIndex,
-      isPlayer,
-      preset,
-      root: racerRoot,
-      rig,
-      targetSpeed: preset.speed * aiModifiers[laneIndex],
-      currentSpeed: 0,
-      reactionTime: reactions[laneIndex],
-      runPhase: laneIndex * 1.12,
-      finished: false
-    });
+    player =
+      racers[
+        PLAYER_LANE_INDEX
+      ];
+
+    selectedCharacterName.textContent =
+      player.preset.name;
+
+    modelsReady = true;
+    loadProgressBar.style.width =
+      '100%';
+
+    loaderText.textContent =
+      'Semua avatar anime VRM siap.';
+
+    window.setTimeout(() => {
+      loaderLayer.classList.add(
+        'hidden'
+      );
+    }, 350);
+
+    resetRace();
+
+    statusText.textContent =
+      '5 avatar anime asli siap';
+  } catch (error) {
+    console.error(error);
+
+    modelsReady = false;
+
+    loaderText.textContent =
+      'Avatar anime gagal dimuat.';
+
+    loaderError.textContent =
+      'Periksa koneksi internet, lalu buka ulang halaman. Model memakai sumber VRM publik dan tidak lagi menggunakan karakter rakitan.';
+  }
+}
+
+function poseBone(
+  racer,
+  name,
+  x,
+  y,
+  z,
+  smoothing
+) {
+  const bone =
+    racer.bones[name];
+
+  const rest =
+    racer.rests[name];
+
+  if (
+    !bone ||
+    !rest
+  ) return;
+
+  const offsetQuaternion =
+    new THREE.Quaternion()
+      .setFromEuler(
+        new THREE.Euler(
+          x,
+          y,
+          z,
+          'XYZ'
+        )
+      );
+
+  const targetQuaternion =
+    rest.clone()
+      .multiply(
+        offsetQuaternion
+      );
+
+  bone.quaternion.slerp(
+    targetQuaternion,
+    smoothing
+  );
+}
+
+function setIdlePose(
+  racer,
+  elapsed,
+  smoothing
+) {
+  const breath =
+    Math.sin(
+      elapsed * 2 +
+      racer.laneIndex
+    );
+
+  poseBone(
+    racer,
+    'hips',
+    0,
+    0,
+    breath * 0.010,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'spine',
+    -0.025 +
+    breath * 0.006,
+    0,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'chest',
+    0.012,
+    0,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'head',
+    0.020,
+    Math.sin(
+      elapsed * 0.55 +
+      racer.laneIndex
+    ) * 0.018,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'leftUpperArm',
+    0.12,
+    0,
+    0.11,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'rightUpperArm',
+    0.12,
+    0,
+    -0.11,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'leftLowerArm',
+    0.40,
+    0,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'rightLowerArm',
+    0.40,
+    0,
+    0,
+    smoothing
+  );
+
+  [
+    'leftUpperLeg',
+    'rightUpperLeg',
+    'leftLowerLeg',
+    'rightLowerLeg',
+    'leftFoot',
+    'rightFoot'
+  ].forEach(name => {
+    poseBone(
+      racer,
+      name,
+      0,
+      0,
+      0,
+      smoothing
+    );
   });
 
-  player = racers[PLAYER_LANE_INDEX];
-  selectedCharacterName.textContent = player.preset.name;
+  if (racer.spoon) {
+    racer.spoon.rotation.set(
+      0,
+      0,
+      0
+    );
+  }
+
+  if (racer.marble) {
+    racer.marble.position.set(
+      0,
+      0.050,
+      0.35
+    );
+  }
 }
 
-function chooseCharacter(index) {
-  selectedPresetIndex = index;
-  localStorage.setItem('selected_anime_runner', String(index));
-  renderCharacterSelector();
-  characterSelector.classList.add('hidden');
-  createRacers();
-  resetRace();
-  statusText.textContent = `${CHARACTER_PRESETS[index].name} dipilih`;
-}
+function animateRun(
+  racer,
+  elapsed,
+  speedRatio,
+  dt
+) {
+  const phase =
+    racer.runPhase;
 
-function setIdlePose(racer, elapsed) {
-  const rig = racer.rig;
-  const breath = Math.sin(elapsed * 2.0 + racer.index) * 0.010;
+  const stride =
+    Math.sin(phase);
 
-  rig.root.position.y = breath;
-  rig.hips.rotation.set(0, 0, 0);
-  rig.spine.rotation.set(-0.025 + breath * 0.5, 0, 0);
-  rig.head.rotation.set(0.02, Math.sin(elapsed * 0.6 + racer.index) * 0.020, 0);
+  const opposite =
+    Math.sin(
+      phase +
+      Math.PI
+    );
 
-  rig.leftArm.shoulder.rotation.set(0.08, 0, 0.12);
-  rig.rightArm.shoulder.rotation.set(0.08, 0, -0.12);
-  rig.leftArm.elbow.rotation.set(0.48, 0, 0);
-  rig.rightArm.elbow.rotation.set(0.48, 0, 0);
+  const doubleStep =
+    Math.sin(
+      phase * 2
+    );
 
-  rig.leftLeg.hip.rotation.set(-0.02, 0, 0);
-  rig.rightLeg.hip.rotation.set(-0.02, 0, 0);
-  rig.leftLeg.knee.rotation.set(-0.05, 0, 0);
-  rig.rightLeg.knee.rotation.set(-0.05, 0, 0);
-  rig.leftLeg.ankle.rotation.set(0.02, 0, 0);
-  rig.rightLeg.ankle.rotation.set(0.02, 0, 0);
+  const legAmplitude =
+    0.52 +
+    speedRatio * 0.38;
 
-  rig.spoon.rotation.set(0, 0, 0);
-  rig.marble.position.set(0, 0.074, -0.523);
-}
+  const armAmplitude =
+    0.44 +
+    speedRatio * 0.31;
 
-function animateRun(racer, elapsed, speedRatio) {
-  const rig = racer.rig;
-  const phase = racer.runPhase;
-  const stride = Math.sin(phase);
-  const strideOpposite = Math.sin(phase + Math.PI);
-  const doubleStep = Math.sin(phase * 2);
+  const leftRecovery =
+    Math.max(
+      0,
+      -stride
+    );
 
-  const bounce = Math.abs(doubleStep) * (0.022 + speedRatio * 0.033);
-  const legAmplitude = 0.50 + speedRatio * 0.37;
-  const armAmplitude = 0.44 + speedRatio * 0.30;
+  const rightRecovery =
+    Math.max(
+      0,
+      -opposite
+    );
 
-  rig.root.position.y = bounce;
-  rig.hips.rotation.x = -0.035 + doubleStep * 0.018;
-  rig.hips.rotation.y = -stride * 0.034;
-  rig.hips.rotation.z = stride * 0.020;
+  const smoothing =
+    1 -
+    Math.exp(
+      -20 *
+      Math.max(dt, 0.001)
+    );
 
-  rig.spine.rotation.x = -0.095 - speedRatio * 0.040;
-  rig.spine.rotation.y = stride * 0.030;
-  rig.spine.rotation.z = -stride * 0.015;
+  racer.root.position.y =
+    Math.abs(doubleStep) *
+    (
+      0.018 +
+      speedRatio * 0.026
+    );
 
-  rig.head.rotation.x = 0.070;
-  rig.head.rotation.y = -stride * 0.016;
-  rig.head.rotation.z = stride * 0.010;
+  poseBone(
+    racer,
+    'hips',
+    -0.025 +
+    doubleStep * 0.018,
+    -stride * 0.032,
+    stride * 0.018,
+    smoothing
+  );
 
-  rig.leftLeg.hip.rotation.set(
+  poseBone(
+    racer,
+    'spine',
+    -0.080 -
+    speedRatio * 0.045,
+    stride * 0.027,
+    -stride * 0.012,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'chest',
+    -0.025,
+    -stride * 0.020,
+    stride * 0.010,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'head',
+    0.060,
+    stride * 0.012,
+    stride * 0.008,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'leftUpperLeg',
     stride * legAmplitude,
     0,
-    0.015
-  );
-  rig.rightLeg.hip.rotation.set(
-    strideOpposite * legAmplitude,
-    0,
-    -0.015
+    0.012,
+    smoothing
   );
 
-  const leftRecovery = Math.max(0, -stride);
-  const rightRecovery = Math.max(0, -strideOpposite);
-
-  rig.leftLeg.knee.rotation.set(
-    -0.06 - leftRecovery * (0.86 + speedRatio * 0.30),
+  poseBone(
+    racer,
+    'rightUpperLeg',
+    opposite * legAmplitude,
     0,
-    0
-  );
-  rig.rightLeg.knee.rotation.set(
-    -0.06 - rightRecovery * (0.86 + speedRatio * 0.30),
-    0,
-    0
+    -0.012,
+    smoothing
   );
 
-  rig.leftLeg.ankle.rotation.set(
-    0.12 - Math.max(0, stride) * 0.26 + leftRecovery * 0.10,
+  poseBone(
+    racer,
+    'leftLowerLeg',
+    -leftRecovery *
+    (
+      0.88 +
+      speedRatio * 0.30
+    ),
     0,
-    0
-  );
-  rig.rightLeg.ankle.rotation.set(
-    0.12 - Math.max(0, strideOpposite) * 0.26 + rightRecovery * 0.10,
     0,
-    0
+    smoothing
   );
 
-  rig.leftArm.shoulder.rotation.set(
+  poseBone(
+    racer,
+    'rightLowerLeg',
+    -rightRecovery *
+    (
+      0.88 +
+      speedRatio * 0.30
+    ),
+    0,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'leftFoot',
+    0.11 -
+    Math.max(
+      0,
+      stride
+    ) * 0.25 +
+    leftRecovery * 0.10,
+    0,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'rightFoot',
+    0.11 -
+    Math.max(
+      0,
+      opposite
+    ) * 0.25 +
+    rightRecovery * 0.10,
+    0,
+    0,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'leftUpperArm',
     -stride * armAmplitude,
     0,
-    0.10
+    0.10,
+    smoothing
   );
-  rig.rightArm.shoulder.rotation.set(
+
+  poseBone(
+    racer,
+    'rightUpperArm',
     stride * armAmplitude,
     0,
-    -0.10
+    -0.10,
+    smoothing
   );
 
-  rig.leftArm.elbow.rotation.set(
-    0.76 + Math.max(0, stride) * 0.12,
+  poseBone(
+    racer,
+    'leftLowerArm',
+    0.72 +
+    Math.max(
+      0,
+      stride
+    ) * 0.13,
     0,
-    0
-  );
-  rig.rightArm.elbow.rotation.set(
-    0.76 + Math.max(0, -stride) * 0.12,
     0,
-    0
+    smoothing
   );
 
-  const wobble = speedRatio;
-  rig.spoon.rotation.x =
-    Math.sin(elapsed * 7.0 + racer.index) * 0.007 * wobble;
-  rig.spoon.rotation.z =
-    Math.cos(elapsed * 5.6 + racer.index) * 0.009 * wobble;
-
-  rig.marble.position.set(
-    Math.sin(elapsed * 5.8 + racer.index) * 0.0035 * wobble,
-    0.074 + Math.abs(Math.sin(elapsed * 6.8)) * 0.0025 * wobble,
-    -0.523 + Math.cos(elapsed * 5.0 + racer.index) * 0.0028 * wobble
+  poseBone(
+    racer,
+    'rightLowerArm',
+    0.72 +
+    Math.max(
+      0,
+      -stride
+    ) * 0.13,
+    0,
+    0,
+    smoothing
   );
+
+  if (racer.spoon) {
+    racer.spoon.rotation.x =
+      Math.sin(
+        elapsed * 7 +
+        racer.laneIndex
+      ) *
+      0.006 *
+      speedRatio;
+
+    racer.spoon.rotation.z =
+      Math.cos(
+        elapsed * 5.6 +
+        racer.laneIndex
+      ) *
+      0.008 *
+      speedRatio;
+  }
+
+  if (racer.marble) {
+    racer.marble.position.set(
+      Math.sin(
+        elapsed * 5.8 +
+        racer.laneIndex
+      ) *
+      0.003 *
+      speedRatio,
+      0.050 +
+      Math.abs(
+        Math.sin(
+          elapsed * 6.8
+        )
+      ) *
+      0.002 *
+      speedRatio,
+      0.35 +
+      Math.cos(
+        elapsed * 5 +
+        racer.laneIndex
+      ) *
+      0.0025 *
+      speedRatio
+    );
+  }
 }
 
 function resetRace() {
+  if (!modelsReady) return;
+
   raceStarted = false;
   raceFinished = false;
   raceTime = 0;
@@ -2018,25 +2845,51 @@ function resetRace() {
   smoothInputX = 0;
   smoothInputY = 0;
 
-  racers.forEach(racer => {
-    racer.root.position.set(
-      getLaneX(racer.index),
-      0,
-      TRACK.startZ + 1.4
+  racers.forEach(
+    racer => {
+      racer.root.position.set(
+        getLaneX(
+          racer.laneIndex
+        ),
+        0,
+        TRACK.startZ + 1.4
+      );
+
+      racer.root.rotation.set(
+        0,
+        0,
+        0
+      );
+
+      racer.currentSpeed = 0;
+      racer.runPhase =
+        racer.laneIndex *
+        1.10;
+
+      racer.finished = false;
+
+      setIdlePose(
+        racer,
+        clock.elapsedTime,
+        1
+      );
+    }
+  );
+
+  playerTargetX =
+    getLaneX(
+      PLAYER_LANE_INDEX
     );
-    racer.root.rotation.set(0, 0, 0);
-    racer.currentSpeed = 0;
-    racer.runPhase = racer.index * 1.12;
-    racer.finished = false;
-    setIdlePose(racer, clock.elapsedTime);
-  });
 
-  playerTargetX = getLaneX(PLAYER_LANE_INDEX);
+  finishBanner.classList.remove(
+    'show'
+  );
 
-  finishBanner.classList.remove('show');
   setJoystick(0, 0);
   updateHud();
-  statusText.textContent = `${player.preset.name} siap di garis start`;
+
+  statusText.textContent =
+    `${player.preset.name} siap di garis start`;
 }
 
 function getRawInputVector() {
@@ -2044,19 +2897,44 @@ function getRawInputVector() {
   let y = joystick.y;
 
   const keyboardX =
-    (keys.ArrowRight || keys.d ? 1 : 0) -
-    (keys.ArrowLeft || keys.a ? 1 : 0);
+    (
+      keys.ArrowRight ||
+      keys.d
+        ? 1
+        : 0
+    ) -
+    (
+      keys.ArrowLeft ||
+      keys.a
+        ? 1
+        : 0
+    );
 
   const keyboardY =
-    (keys.ArrowDown || keys.s ? 1 : 0) -
-    (keys.ArrowUp || keys.w ? 1 : 0);
+    (
+      keys.ArrowDown ||
+      keys.s
+        ? 1
+        : 0
+    ) -
+    (
+      keys.ArrowUp ||
+      keys.w
+        ? 1
+        : 0
+    );
 
-  if (keyboardX !== 0 || keyboardY !== 0) {
+  if (
+    keyboardX !== 0 ||
+    keyboardY !== 0
+  ) {
     x = keyboardX;
     y = keyboardY;
   }
 
-  const length = Math.hypot(x, y);
+  const length =
+    Math.hypot(x, y);
+
   if (length > 1) {
     x /= length;
     y /= length;
@@ -2066,170 +2944,301 @@ function getRawInputVector() {
 }
 
 function getSmoothedInput(dt) {
-  const raw = getRawInputVector();
+  const raw =
+    getRawInputVector();
+
   const deadZone = 0.09;
 
-  const targetX = Math.abs(raw.x) < deadZone ? 0 : raw.x;
-  const targetY = Math.abs(raw.y) < deadZone ? 0 : raw.y;
+  const targetX =
+    Math.abs(raw.x) <
+    deadZone
+      ? 0
+      : raw.x;
 
-  smoothInputX = THREE.MathUtils.damp(
-    smoothInputX,
-    targetX,
-    12,
-    dt
-  );
+  const targetY =
+    Math.abs(raw.y) <
+    deadZone
+      ? 0
+      : raw.y;
 
-  smoothInputY = THREE.MathUtils.damp(
-    smoothInputY,
-    targetY,
-    12,
-    dt
-  );
+  smoothInputX =
+    THREE.MathUtils.damp(
+      smoothInputX,
+      targetX,
+      11,
+      dt
+    );
 
-  const length = Math.hypot(smoothInputX, smoothInputY);
+  smoothInputY =
+    THREE.MathUtils.damp(
+      smoothInputY,
+      targetY,
+      11,
+      dt
+    );
+
   return {
     x: smoothInputX,
     y: smoothInputY,
-    magnitude: Math.min(1, length)
+    magnitude:
+      Math.min(
+        1,
+        Math.hypot(
+          smoothInputX,
+          smoothInputY
+        )
+      )
   };
 }
 
 function nearestLaneX(x) {
-  let nearest = getLaneX(0);
-  let distance = Infinity;
+  let nearest =
+    getLaneX(0);
 
-  for (let lane = 0; lane < TRACK.laneCount; lane++) {
-    const laneX = getLaneX(lane);
-    const currentDistance = Math.abs(laneX - x);
-    if (currentDistance < distance) {
-      distance = currentDistance;
-      nearest = laneX;
+  let distance =
+    Infinity;
+
+  for (
+    let lane = 0;
+    lane < TRACK.laneCount;
+    lane++
+  ) {
+    const laneX =
+      getLaneX(lane);
+
+    const currentDistance =
+      Math.abs(
+        laneX - x
+      );
+
+    if (
+      currentDistance <
+      distance
+    ) {
+      distance =
+        currentDistance;
+
+      nearest =
+        laneX;
     }
   }
 
   return nearest;
 }
 
-function updatePlayer(dt, elapsed, input) {
-  if (!player || raceFinished) return;
+function updatePlayer(
+  dt,
+  elapsed,
+  input
+) {
+  if (
+    !modelsReady ||
+    !player ||
+    raceFinished
+  ) return;
 
-  const forwardPower = THREE.MathUtils.clamp(-input.y, 0, 1);
-  const lateralPower = input.x;
-  const hasForwardInput = forwardPower > 0.055;
-
-  if (hasForwardInput && !raceStarted) {
-    raceStarted = true;
-    statusText.textContent = 'Lomba dimulai';
-  }
-
-  targetSpeed = raceStarted
-    ? player.preset.speed * Math.pow(forwardPower, 0.72)
-    : 0;
-
-  const speedLambda = targetSpeed > currentSpeed ? 6.6 : 9.2;
-
-  currentSpeed = THREE.MathUtils.damp(
-    currentSpeed,
-    targetSpeed,
-    speedLambda,
-    dt
-  );
-
-  if (raceStarted) {
-    player.root.position.z -= currentSpeed * dt;
-
-    if (Math.abs(lateralPower) > 0.045) {
-      const lateralVelocity =
-        3.0 *
-        player.preset.handling *
-        (0.48 + forwardPower * 0.52);
-
-      playerTargetX += lateralPower * lateralVelocity * dt;
-    } else {
-      playerTargetX = THREE.MathUtils.damp(
-        playerTargetX,
-        nearestLaneX(playerTargetX),
-        2.3,
-        dt
-      );
-    }
-
-    if (laneLimit) {
-      const half = TRACK.width / 2 - 0.38;
-      playerTargetX = THREE.MathUtils.clamp(
-        playerTargetX,
-        -half,
-        half
-      );
-    }
-
-    const previousX = player.root.position.x;
-    player.root.position.x = THREE.MathUtils.damp(
-      player.root.position.x,
-      playerTargetX,
-      9.4,
-      dt
-    );
-
-    const lateralVelocityVisual =
-      (player.root.position.x - previousX) /
-      Math.max(dt, 0.001);
-
-    const targetYaw = THREE.MathUtils.clamp(
-      -lateralVelocityVisual * 0.045,
-      -0.20,
-      0.20
-    );
-
-    player.root.rotation.y = dampAngle(
-      player.root.rotation.y,
-      targetYaw,
-      11,
-      dt
-    );
-
-    const speedRatio = THREE.MathUtils.clamp(
-      currentSpeed / player.preset.speed,
+  const forwardPower =
+    THREE.MathUtils.clamp(
+      -input.y,
       0,
       1
     );
 
+  const lateralPower =
+    input.x;
+
+  if (
+    forwardPower > 0.055 &&
+    !raceStarted
+  ) {
+    raceStarted = true;
+    statusText.textContent =
+      'Lomba dimulai';
+  }
+
+  targetSpeed =
+    raceStarted
+      ? player.preset.speed *
+        Math.pow(
+          forwardPower,
+          0.72
+        )
+      : 0;
+
+  currentSpeed =
+    THREE.MathUtils.damp(
+      currentSpeed,
+      targetSpeed,
+      targetSpeed >
+      currentSpeed
+        ? 6.4
+        : 9.2,
+      dt
+    );
+
+  if (raceStarted) {
+    player.root.position.z -=
+      currentSpeed * dt;
+
+    if (
+      Math.abs(
+        lateralPower
+      ) > 0.045
+    ) {
+      playerTargetX +=
+        lateralPower *
+        3.0 *
+        player.preset.handling *
+        (
+          0.48 +
+          forwardPower * 0.52
+        ) *
+        dt;
+    } else {
+      playerTargetX =
+        THREE.MathUtils.damp(
+          playerTargetX,
+          nearestLaneX(
+            playerTargetX
+          ),
+          2.2,
+          dt
+        );
+    }
+
+    if (laneLimit) {
+      const half =
+        TRACK.width / 2 -
+        0.38;
+
+      playerTargetX =
+        THREE.MathUtils.clamp(
+          playerTargetX,
+          -half,
+          half
+        );
+    }
+
+    const previousX =
+      player.root.position.x;
+
+    player.root.position.x =
+      THREE.MathUtils.damp(
+        player.root.position.x,
+        playerTargetX,
+        8.8,
+        dt
+      );
+
+    const lateralVelocity =
+      (
+        player.root.position.x -
+        previousX
+      ) /
+      Math.max(
+        dt,
+        0.001
+      );
+
+    const targetYaw =
+      THREE.MathUtils.clamp(
+        -lateralVelocity *
+        0.045,
+        -0.19,
+        0.19
+      );
+
+    player.root.rotation.y =
+      dampAngle(
+        player.root.rotation.y,
+        targetYaw,
+        10,
+        dt
+      );
+
+    const speedRatio =
+      THREE.MathUtils.clamp(
+        currentSpeed /
+        player.preset.speed,
+        0,
+        1
+      );
+
     player.runPhase +=
       dt *
-      (4.45 + currentSpeed * 0.70);
+      (
+        4.4 +
+        currentSpeed * 0.70
+      );
 
-    animateRun(player, elapsed, speedRatio);
+    animateRun(
+      player,
+      elapsed,
+      speedRatio,
+      dt
+    );
   } else {
-    setIdlePose(player, elapsed);
+    setIdlePose(
+      player,
+      elapsed,
+      1 -
+      Math.exp(
+        -10 * dt
+      )
+    );
   }
 
   if (
-    player.root.position.z <= TRACK.finishZ &&
+    player.root.position.z <=
+    TRACK.finishZ &&
     !raceFinished
   ) {
     finishPlayerRace();
   }
 }
 
-function updateOpponents(dt, elapsed) {
-  racers.forEach(racer => {
-    if (racer.isPlayer || racer.finished) return;
+function updateOpponents(
+  dt,
+  elapsed
+) {
+  if (!modelsReady) return;
 
-    if (!raceStarted || raceTime < racer.reactionTime) {
-      setIdlePose(racer, elapsed);
+  racers.forEach(racer => {
+    if (
+      racer.isPlayer ||
+      racer.finished
+    ) return;
+
+    if (
+      !raceStarted ||
+      raceTime <
+      racer.reactionTime
+    ) {
+      setIdlePose(
+        racer,
+        elapsed,
+        1 -
+        Math.exp(
+          -10 * dt
+        )
+      );
       return;
     }
 
-    racer.currentSpeed = THREE.MathUtils.damp(
-      racer.currentSpeed,
-      racer.targetSpeed,
-      3.0,
-      dt
-    );
+    racer.currentSpeed =
+      THREE.MathUtils.damp(
+        racer.currentSpeed,
+        racer.targetSpeed,
+        3,
+        dt
+      );
 
     const variation =
       0.985 +
-      Math.sin(elapsed * 0.55 + racer.index * 1.7) *
+      Math.sin(
+        elapsed * 0.55 +
+        racer.laneIndex * 1.7
+      ) *
       0.018;
 
     const effectiveSpeed =
@@ -2241,23 +3250,38 @@ function updateOpponents(dt, elapsed) {
 
     racer.runPhase +=
       dt *
-      (4.4 + effectiveSpeed * 0.68);
+      (
+        4.35 +
+        effectiveSpeed * 0.68
+      );
 
     animateRun(
       racer,
       elapsed,
       THREE.MathUtils.clamp(
-        effectiveSpeed / racer.preset.speed,
+        effectiveSpeed /
+        racer.preset.speed,
         0,
         1
-      )
+      ),
+      dt
     );
 
-    if (racer.root.position.z <= TRACK.finishZ) {
-      racer.root.position.z = TRACK.finishZ;
+    if (
+      racer.root.position.z <=
+      TRACK.finishZ
+    ) {
+      racer.root.position.z =
+        TRACK.finishZ;
+
       racer.finished = true;
       racer.currentSpeed = 0;
-      setIdlePose(racer, elapsed);
+
+      setIdlePose(
+        racer,
+        elapsed,
+        1
+      );
     }
   });
 }
@@ -2268,12 +3292,15 @@ function getPlayerPosition() {
   let ahead = 0;
 
   racers.forEach(racer => {
-    if (racer === player) return;
+    if (
+      racer === player
+    ) return;
 
     if (
       racer.finished ||
       racer.root.position.z <
-      player.root.position.z - 0.08
+      player.root.position.z -
+      0.08
     ) {
       ahead++;
     }
@@ -2287,28 +3314,58 @@ function finishPlayerRace() {
   currentSpeed = 0;
   targetSpeed = 0;
 
-  player.root.position.z = TRACK.finishZ;
-  player.finished = true;
-  setIdlePose(player, clock.elapsedTime);
+  player.root.position.z =
+    TRACK.finishZ;
 
-  const position = getPlayerPosition();
+  player.finished = true;
+
+  setIdlePose(
+    player,
+    clock.elapsedTime,
+    1
+  );
+
+  const position =
+    getPlayerPosition();
 
   finishText.textContent =
     `${player.preset.name} • ${raceTime.toFixed(2)} detik • Posisi ${position} dari 5`;
 
-  finishBanner.classList.add('show');
-  statusText.textContent = `Finish posisi ${position}/5`;
+  finishBanner.classList.add(
+    'show'
+  );
+
+  statusText.textContent =
+    `Finish posisi ${position}/5`;
 }
 
-function dampAngle(current, target, lambda, dt) {
+function dampAngle(
+  current,
+  target,
+  lambda,
+  dt
+) {
   let delta =
-    (target - current + Math.PI) %
-    (Math.PI * 2) -
+    (
+      target -
+      current +
+      Math.PI
+    ) %
+    (
+      Math.PI * 2
+    ) -
     Math.PI;
 
-  return current +
+  return (
+    current +
     delta *
-    (1 - Math.exp(-lambda * dt));
+    (
+      1 -
+      Math.exp(
+        -lambda * dt
+      )
+    )
+  );
 }
 
 function updateCamera(dt) {
@@ -2318,32 +3375,71 @@ function updateCamera(dt) {
     let desiredPosition;
     let desiredTarget;
 
-    if (!raceStarted || !characterSelector.classList.contains('hidden')) {
+    if (
+      !raceStarted ||
+      !characterSelector
+        .classList
+        .contains('hidden')
+    ) {
       desiredPosition =
-        player.root.position.clone()
-          .add(new THREE.Vector3(4.7, 3.15, -5.3));
+        player.root.position
+          .clone()
+          .add(
+            new THREE.Vector3(
+              4.6,
+              3.15,
+              -5.3
+            )
+          );
 
       desiredTarget =
-        player.root.position.clone()
-          .add(new THREE.Vector3(0, 1.38, 0));
+        player.root.position
+          .clone()
+          .add(
+            new THREE.Vector3(
+              0,
+              1.38,
+              0
+            )
+          );
     } else {
       desiredPosition =
-        player.root.position.clone()
-          .add(new THREE.Vector3(3.0, 2.85, 5.3));
+        player.root.position
+          .clone()
+          .add(
+            new THREE.Vector3(
+              3.0,
+              2.85,
+              5.3
+            )
+          );
 
       desiredTarget =
-        player.root.position.clone()
-          .add(new THREE.Vector3(0, 1.18, -2.35));
+        player.root.position
+          .clone()
+          .add(
+            new THREE.Vector3(
+              0,
+              1.18,
+              -2.35
+            )
+          );
     }
 
     camera.position.lerp(
       desiredPosition,
-      1 - Math.exp(-5.4 * dt)
+      1 -
+      Math.exp(
+        -5.4 * dt
+      )
     );
 
     orbit.target.lerp(
       desiredTarget,
-      1 - Math.exp(-7.2 * dt)
+      1 -
+      Math.exp(
+        -7.2 * dt
+      )
     );
   }
 
@@ -2364,7 +3460,9 @@ function updateHud() {
       TRACK.length
     );
 
-  const progress = distance / TRACK.length;
+  const progress =
+    distance /
+    TRACK.length;
 
   speedText.textContent =
     `${(currentSpeed * 3.6).toFixed(1)} km/j`;
@@ -2378,7 +3476,10 @@ function updateHud() {
   progressBar.style.width =
     `${progress * 100}%`;
 
-  if (raceStarted && !raceFinished) {
+  if (
+    raceStarted &&
+    !raceFinished
+  ) {
     statusText.textContent =
       `${player.preset.name} • Posisi ${getPlayerPosition()}/5`;
   }
@@ -2387,47 +3488,118 @@ function updateHud() {
 function animate() {
   requestAnimationFrame(animate);
 
-  const dt = Math.min(clock.getDelta(), 0.05);
-  const elapsed = clock.elapsedTime;
-  const input = getSmoothedInput(dt);
+  const dt =
+    Math.min(
+      clock.getDelta(),
+      0.05
+    );
 
-  updatePlayer(dt, elapsed, input);
+  const elapsed =
+    clock.elapsedTime;
 
-  if (raceStarted && !raceFinished) {
+  const input =
+    getSmoothedInput(dt);
+
+  updatePlayer(
+    dt,
+    elapsed,
+    input
+  );
+
+  if (
+    raceStarted &&
+    !raceFinished
+  ) {
     raceTime += dt;
   }
 
-  updateOpponents(dt, elapsed);
+  updateOpponents(
+    dt,
+    elapsed
+  );
+
+  racers.forEach(racer => {
+    racer.vrm?.update(dt);
+  });
+
   updateCamera(dt);
   updateHud();
 
-  renderer.render(scene, camera);
+  renderer.render(
+    scene,
+    camera
+  );
 }
 
 function setJoystick(x, y) {
-  joystick.x = THREE.MathUtils.clamp(x, -1, 1);
-  joystick.y = THREE.MathUtils.clamp(y, -1, 1);
+  joystick.x =
+    THREE.MathUtils.clamp(
+      x,
+      -1,
+      1
+    );
 
-  const radius = joystickZone.clientWidth * 0.31;
+  joystick.y =
+    THREE.MathUtils.clamp(
+      y,
+      -1,
+      1
+    );
+
+  const radius =
+    joystickZone.clientWidth *
+    0.31;
 
   joystickKnob.style.transform =
     `translate(calc(-50% + ${joystick.x * radius}px), calc(-50% + ${joystick.y * radius}px))`;
 }
 
-function updateJoystickFromEvent(event) {
-  const rect = joystickZone.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
+function updateJoystickFromEvent(
+  event
+) {
+  const rect =
+    joystickZone
+      .getBoundingClientRect();
 
-  let dx = event.clientX - centerX;
-  let dy = event.clientY - centerY;
+  const centerX =
+    rect.left +
+    rect.width / 2;
 
-  const maxRadius = rect.width * 0.31;
-  const distance = Math.hypot(dx, dy);
+  const centerY =
+    rect.top +
+    rect.height / 2;
 
-  if (distance > maxRadius) {
-    dx = dx / distance * maxRadius;
-    dy = dy / distance * maxRadius;
+  let dx =
+    event.clientX -
+    centerX;
+
+  let dy =
+    event.clientY -
+    centerY;
+
+  const maxRadius =
+    rect.width *
+    0.31;
+
+  const distance =
+    Math.hypot(
+      dx,
+      dy
+    );
+
+  if (
+    distance >
+    maxRadius
+  ) {
+    dx =
+      dx /
+      distance *
+      maxRadius;
+
+    dy =
+      dy /
+      distance *
+      maxRadius;
   }
 
   setJoystick(
@@ -2436,112 +3608,228 @@ function updateJoystickFromEvent(event) {
   );
 }
 
-joystickZone.addEventListener('pointerdown', event => {
-  joystick.active = true;
-  joystick.pointerId = event.pointerId;
-  joystickZone.setPointerCapture(event.pointerId);
-  joystickZone.classList.add('active');
-  updateJoystickFromEvent(event);
-});
+joystickZone.addEventListener(
+  'pointerdown',
+  event => {
+    joystick.active = true;
 
-joystickZone.addEventListener('pointermove', event => {
+    joystick.pointerId =
+      event.pointerId;
+
+    joystickZone
+      .setPointerCapture(
+        event.pointerId
+      );
+
+    joystickZone
+      .classList
+      .add('active');
+
+    updateJoystickFromEvent(
+      event
+    );
+  }
+);
+
+joystickZone.addEventListener(
+  'pointermove',
+  event => {
+    if (
+      !joystick.active ||
+      event.pointerId !==
+      joystick.pointerId
+    ) return;
+
+    updateJoystickFromEvent(
+      event
+    );
+  }
+);
+
+function releaseJoystick(
+  event
+) {
   if (
-    !joystick.active ||
-    event.pointerId !== joystick.pointerId
-  ) return;
-
-  updateJoystickFromEvent(event);
-});
-
-function releaseJoystick(event) {
-  if (
-    joystick.pointerId !== null &&
-    event.pointerId !== joystick.pointerId
+    joystick.pointerId !==
+    null &&
+    event.pointerId !==
+    joystick.pointerId
   ) return;
 
   joystick.active = false;
   joystick.pointerId = null;
-  joystickZone.classList.remove('active');
+
+  joystickZone
+    .classList
+    .remove('active');
+
   setJoystick(0, 0);
 }
 
-joystickZone.addEventListener('pointerup', releaseJoystick);
-joystickZone.addEventListener('pointercancel', releaseJoystick);
+joystickZone.addEventListener(
+  'pointerup',
+  releaseJoystick
+);
 
-addEventListener('keydown', event => {
-  const key =
-    event.key.length === 1
-      ? event.key.toLowerCase()
-      : event.key;
+joystickZone.addEventListener(
+  'pointercancel',
+  releaseJoystick
+);
 
-  if (key in keys) {
-    keys[key] = true;
-    event.preventDefault();
+addEventListener(
+  'keydown',
+  event => {
+    const key =
+      event.key.length === 1
+        ? event.key.toLowerCase()
+        : event.key;
+
+    if (key in keys) {
+      keys[key] = true;
+      event.preventDefault();
+    }
   }
-});
+);
 
-addEventListener('keyup', event => {
-  const key =
-    event.key.length === 1
-      ? event.key.toLowerCase()
-      : event.key;
+addEventListener(
+  'keyup',
+  event => {
+    const key =
+      event.key.length === 1
+        ? event.key.toLowerCase()
+        : event.key;
 
-  if (key in keys) {
-    keys[key] = false;
-    event.preventDefault();
+    if (key in keys) {
+      keys[key] = false;
+      event.preventDefault();
+    }
   }
-});
+);
 
-selectCharacterBtn.addEventListener('click', () => {
-  characterSelector.classList.remove('hidden');
-});
+function chooseCharacter(index) {
+  if (
+    index ===
+    selectedPresetIndex
+  ) {
+    characterSelector
+      .classList
+      .add('hidden');
 
-closeSelectorBtn.addEventListener('click', () => {
-  characterSelector.classList.add('hidden');
-});
-
-characterSelector.addEventListener('click', event => {
-  if (event.target === characterSelector) {
-    characterSelector.classList.add('hidden');
+    return;
   }
-});
 
-resetBtn.addEventListener('click', resetRace);
-finishResetBtn.addEventListener('click', resetRace);
+  selectedPresetIndex = index;
 
-cameraBtn.addEventListener('click', () => {
-  cameraFollow = !cameraFollow;
-  cameraBtn.textContent =
-    `KAMERA: ${cameraFollow ? 'FOLLOW' : 'BEBAS'}`;
-});
-
-laneBtn.addEventListener('click', () => {
-  laneLimit = !laneLimit;
-  laneBtn.textContent =
-    `BATAS JALUR: ${laneLimit ? 'ON' : 'OFF'}`;
-});
-
-addEventListener('resize', () => {
-  camera.aspect =
-    innerWidth /
-    innerHeight;
-
-  camera.updateProjectionMatrix();
-
-  renderer.setPixelRatio(
-    Math.min(devicePixelRatio, 1.75)
+  localStorage.setItem(
+    'real_vrm_runner_index',
+    String(index)
   );
 
-  renderer.setSize(
-    innerWidth,
-    innerHeight
-  );
+  location.reload();
+}
 
-  setJoystick(
-    joystick.x,
-    joystick.y
-  );
-});
+selectCharacterBtn.addEventListener(
+  'click',
+  () => {
+    if (!modelsReady) return;
+
+    characterSelector
+      .classList
+      .remove('hidden');
+  }
+);
+
+closeSelectorBtn.addEventListener(
+  'click',
+  () => {
+    characterSelector
+      .classList
+      .add('hidden');
+  }
+);
+
+characterSelector.addEventListener(
+  'click',
+  event => {
+    if (
+      event.target ===
+      characterSelector
+    ) {
+      characterSelector
+        .classList
+        .add('hidden');
+    }
+  }
+);
+
+resetBtn.addEventListener(
+  'click',
+  resetRace
+);
+
+finishResetBtn.addEventListener(
+  'click',
+  resetRace
+);
+
+cameraBtn.addEventListener(
+  'click',
+  () => {
+    cameraFollow =
+      !cameraFollow;
+
+    cameraBtn.textContent =
+      `KAMERA: ${
+        cameraFollow
+          ? 'FOLLOW'
+          : 'BEBAS'
+      }`;
+  }
+);
+
+laneBtn.addEventListener(
+  'click',
+  () => {
+    laneLimit =
+      !laneLimit;
+
+    laneBtn.textContent =
+      `BATAS JALUR: ${
+        laneLimit
+          ? 'ON'
+          : 'OFF'
+      }`;
+  }
+);
+
+addEventListener(
+  'resize',
+  () => {
+    camera.aspect =
+      innerWidth /
+      innerHeight;
+
+    camera
+      .updateProjectionMatrix();
+
+    renderer.setPixelRatio(
+      Math.min(
+        devicePixelRatio,
+        1.55
+      )
+    );
+
+    renderer.setSize(
+      innerWidth,
+      innerHeight
+    );
+
+    setJoystick(
+      joystick.x,
+      joystick.y
+    );
+  }
+);
 
 </script>
 </body>
