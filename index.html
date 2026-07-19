@@ -3,220 +3,456 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0b101b" />
-  <title>Human Runner Spoon Marble V4 No Character Loading</title>
+  <meta name="theme-color" content="#090b18" />
+  <title>Human Runner Spoon Marble V3</title>
   <style>
     :root{
-      --bg:#0b101b;
-      --panel:rgba(8,13,24,.88);
-      --line:rgba(119,220,255,.22);
-      --cyan:#70e8ff;
-      --orange:#ffab56;
-      --green:#70f0a2;
-      --text:#eef9ff;
-      --muted:#a8bccb;
+      --bg:#080b14;
+      --panel:rgba(10,15,28,.86);
+      --line:rgba(102,235,255,.22);
+      --cyan:#66ebff;
+      --orange:#ff9b43;
+      --text:#f2fbff;
+      --muted:#9fb6c6;
+      --danger:#ff8f8f;
     }
+
     *{box-sizing:border-box}
+
     html,body{
-      width:100%;height:100%;margin:0;overflow:hidden;
-      background:var(--bg);color:var(--text);
+      width:100%;
+      height:100%;
+      margin:0;
+      overflow:hidden;
+      background:var(--bg);
+      color:var(--text);
       font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     }
+
     button{font:inherit}
+
     #app{
-      position:relative;width:100%;height:100%;
+      position:relative;
+      width:100%;
+      height:100%;
       background:
-        radial-gradient(circle at 50% 17%,rgba(86,205,255,.14),transparent 30%),
-        radial-gradient(circle at 84% 26%,rgba(255,171,86,.10),transparent 22%),
-        linear-gradient(180deg,#14243d 0%,#0b101b 74%);
+        radial-gradient(circle at 50% 20%,rgba(65,201,255,.12),transparent 34%),
+        linear-gradient(180deg,#11172a 0%,#080b14 72%);
     }
-    #viewport{position:absolute;inset:0;touch-action:none}
-    #viewport canvas{display:block;width:100%;height:100%}
+
+    #viewport{
+      position:absolute;
+      inset:0;
+      touch-action:none;
+    }
+
+    #viewport canvas{
+      display:block;
+      width:100%;
+      height:100%;
+    }
 
     .topbar{
-      position:absolute;top:14px;left:14px;right:14px;z-index:6;
-      display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+      position:absolute;
+      top:14px;
+      left:14px;
+      right:14px;
+      z-index:6;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
       pointer-events:none;
     }
-    .brand,.status-pill,.hud-card,.controls-card,.model-note{
+
+    .brand,
+    .status-pill,
+    .hud-card,
+    .controls-card{
       border:1px solid var(--line);
       background:var(--panel);
       backdrop-filter:blur(14px);
       box-shadow:0 18px 55px rgba(0,0,0,.30);
     }
+
     .brand{
-      max-width:min(650px,78vw);padding:13px 15px;border-radius:17px;pointer-events:auto;
+      max-width:min(560px,76vw);
+      padding:13px 15px;
+      border-radius:17px;
+      pointer-events:auto;
     }
+
     .brand h1{
-      margin:0;font-size:clamp(18px,2.7vw,28px);
-      line-height:1.05;letter-spacing:.035em;font-weight:950;
+      margin:0;
+      font-size:clamp(18px,2.7vw,28px);
+      line-height:1.05;
+      letter-spacing:.035em;
+      font-weight:950;
     }
+
     .brand h1 span{color:var(--cyan)}
+
     .brand p{
-      margin:7px 0 0;color:var(--muted);
-      font-size:12px;line-height:1.45;
+      margin:7px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
     }
+
     .status-pill{
-      display:flex;align-items:center;gap:8px;
-      min-height:42px;padding:10px 13px;border-radius:999px;
-      pointer-events:auto;white-space:nowrap;font-size:12px;font-weight:850;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-height:43px;
+      padding:10px 13px;
+      border-radius:999px;
+      pointer-events:auto;
+      white-space:nowrap;
+      font-size:12px;
+      font-weight:850;
     }
+
     .status-dot{
-      width:9px;height:9px;border-radius:50%;
-      background:var(--green);box-shadow:0 0 18px var(--green);
+      width:9px;
+      height:9px;
+      border-radius:50%;
+      background:var(--cyan);
+      box-shadow:0 0 18px var(--cyan);
       animation:pulse 1.55s infinite;
     }
+
     @keyframes pulse{
       0%,100%{transform:scale(.82);opacity:.55}
       50%{transform:scale(1.15);opacity:1}
     }
 
-    .model-note{
-      position:absolute;top:78px;right:14px;z-index:5;
-      max-width:300px;padding:10px 12px;border-radius:13px;
-      color:var(--muted);font-size:10px;line-height:1.45;pointer-events:none;
-    }
-    .model-note b{color:var(--green)}
-
     .hud{
-      position:absolute;top:92px;left:14px;z-index:5;
-      display:grid;grid-template-columns:repeat(4,minmax(92px,1fr));
-      gap:8px;width:min(520px,calc(100% - 28px));pointer-events:none;
+      position:absolute;
+      top:92px;
+      left:14px;
+      z-index:5;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(95px,1fr));
+      gap:8px;
+      width:min(390px,calc(100% - 28px));
+      pointer-events:none;
     }
-    .hud-card{padding:10px 11px;border-radius:13px}
+
+    .hud-card{
+      padding:10px 11px;
+      border-radius:13px;
+    }
+
     .hud-label{
-      color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.07em;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.07em;
     }
+
     .hud-value{
-      margin-top:3px;color:var(--text);font-size:18px;font-weight:950;
+      margin-top:3px;
+      color:var(--text);
+      font-size:18px;
+      font-weight:950;
     }
+
     .hud-value.accent{color:var(--cyan)}
     .hud-value.orange{color:var(--orange)}
-    .hud-value.green{color:var(--green)}
 
     .progress-shell{
-      position:absolute;top:167px;left:14px;z-index:5;
-      width:min(520px,calc(100% - 28px));height:12px;padding:2px;
-      border:1px solid var(--line);border-radius:999px;
-      background:rgba(5,10,19,.70);overflow:hidden;pointer-events:none;
+      position:absolute;
+      top:167px;
+      left:14px;
+      z-index:5;
+      width:min(390px,calc(100% - 28px));
+      height:12px;
+      padding:2px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(5,10,19,.70);
+      overflow:hidden;
+      pointer-events:none;
     }
+
     .progress-bar{
-      width:0%;height:100%;border-radius:999px;
+      width:0%;
+      height:100%;
+      border-radius:999px;
       background:linear-gradient(90deg,var(--cyan),var(--orange));
       transition:width .08s linear;
     }
 
     .joystick-zone{
-      position:absolute;left:18px;bottom:max(22px,env(safe-area-inset-bottom));
-      z-index:8;width:150px;height:150px;touch-action:none;user-select:none;
+      position:absolute;
+      left:18px;
+      bottom:max(22px,env(safe-area-inset-bottom));
+      z-index:8;
+      width:150px;
+      height:150px;
+      touch-action:none;
+      user-select:none;
     }
+
     .joystick-base{
-      position:absolute;inset:0;border:2px solid rgba(102,235,255,.25);
+      position:absolute;
+      inset:0;
+      border:2px solid rgba(102,235,255,.25);
       border-radius:50%;
       background:
         radial-gradient(circle,rgba(102,235,255,.12) 0 20%,rgba(255,255,255,.035) 21% 54%,rgba(4,10,18,.62) 55%);
-      box-shadow:inset 0 0 25px rgba(102,235,255,.08),0 14px 40px rgba(0,0,0,.35);
+      box-shadow:
+        inset 0 0 25px rgba(102,235,255,.08),
+        0 14px 40px rgba(0,0,0,.35);
       backdrop-filter:blur(8px);
     }
-    .joystick-cross::before,.joystick-cross::after{
-      content:"";position:absolute;left:50%;top:50%;
-      background:rgba(255,255,255,.11);transform:translate(-50%,-50%);
+
+    .joystick-cross::before,
+    .joystick-cross::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:50%;
+      background:rgba(255,255,255,.11);
+      transform:translate(-50%,-50%);
       pointer-events:none;
     }
+
     .joystick-cross::before{width:2px;height:76%}
     .joystick-cross::after{width:76%;height:2px}
+
     .joystick-knob{
-      position:absolute;left:50%;top:50%;width:64px;height:64px;border-radius:50%;
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:64px;
+      height:64px;
+      border-radius:50%;
       transform:translate(-50%,-50%);
       border:2px solid rgba(255,255,255,.45);
       background:linear-gradient(180deg,#91f8ff,#43d8f3);
       box-shadow:0 0 26px rgba(67,216,243,.36);
-      transition:box-shadow .12s ease;pointer-events:none;
+      transition:box-shadow .12s ease;
+      pointer-events:none;
     }
+
     .joystick-zone.active .joystick-knob{
       box-shadow:0 0 34px rgba(67,216,243,.60);
     }
+
     .joystick-label{
-      position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);
-      color:var(--muted);font-size:10px;font-weight:850;white-space:nowrap;letter-spacing:.07em;
+      position:absolute;
+      left:50%;
+      bottom:-24px;
+      transform:translateX(-50%);
+      color:var(--muted);
+      font-size:10px;
+      font-weight:850;
+      white-space:nowrap;
+      letter-spacing:.07em;
     }
 
     .controls-card{
-      position:absolute;right:16px;bottom:max(18px,env(safe-area-inset-bottom));
-      z-index:8;display:grid;gap:8px;width:210px;padding:11px;border-radius:17px;
+      position:absolute;
+      right:16px;
+      bottom:max(18px,env(safe-area-inset-bottom));
+      z-index:8;
+      display:grid;
+      gap:8px;
+      width:178px;
+      padding:11px;
+      border-radius:17px;
     }
+
     .control-btn{
-      appearance:none;min-height:42px;padding:8px 10px;
-      border:1px solid rgba(255,255,255,.11);border-radius:12px;
-      background:rgba(255,255,255,.05);color:var(--text);
-      cursor:pointer;font-size:11px;font-weight:900;transition:.17s ease;
+      appearance:none;
+      min-height:42px;
+      padding:8px 10px;
+      border:1px solid rgba(255,255,255,.11);
+      border-radius:12px;
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      cursor:pointer;
+      font-size:11px;
+      font-weight:900;
+      transition:.17s ease;
     }
+
     .control-btn:hover{
       border-color:rgba(102,235,255,.42);
       background:rgba(102,235,255,.11);
     }
+
     .control-btn.primary{
-      color:#06141b;border-color:transparent;
+      color:#06141b;
+      border-color:transparent;
       background:linear-gradient(180deg,#a4fbff,#55e2f8);
     }
-    .hint{color:var(--muted);font-size:10px;line-height:1.4;text-align:center}
+
+    .hint{
+      color:var(--muted);
+      font-size:10px;
+      line-height:1.4;
+      text-align:center;
+    }
+
+    .loader{
+      position:absolute;
+      inset:0;
+      z-index:20;
+      display:grid;
+      place-items:center;
+      padding:20px;
+      background:
+        radial-gradient(circle at center,rgba(44,181,222,.18),transparent 35%),
+        rgba(4,7,13,.90);
+      transition:opacity .42s ease,visibility .42s ease;
+    }
+
+    .loader.hidden{
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+    }
+
+    .loader-card{
+      width:min(410px,92vw);
+      padding:24px;
+      border:1px solid var(--line);
+      border-radius:21px;
+      background:rgba(8,14,26,.94);
+      text-align:center;
+      box-shadow:0 25px 85px rgba(0,0,0,.46);
+    }
+
+    .loader-ring{
+      width:62px;
+      height:62px;
+      margin:0 auto 15px;
+      border:3px solid rgba(102,235,255,.14);
+      border-top-color:var(--cyan);
+      border-right-color:var(--orange);
+      border-radius:50%;
+      animation:spin .9s linear infinite;
+    }
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .loader h2{
+      margin:0;
+      font-size:20px;
+    }
+
+    .loader p{
+      min-height:36px;
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
 
     .finish-banner{
-      position:absolute;left:50%;top:50%;z-index:15;
+      position:absolute;
+      left:50%;
+      top:50%;
+      z-index:15;
       transform:translate(-50%,-50%) scale(.92);
-      width:min(430px,88vw);padding:24px;border:1px solid rgba(255,220,90,.42);
-      border-radius:22px;background:rgba(13,16,29,.95);
-      text-align:center;box-shadow:0 24px 100px rgba(0,0,0,.55);
-      opacity:0;visibility:hidden;transition:.25s ease;
+      width:min(430px,88vw);
+      padding:24px;
+      border:1px solid rgba(255,220,90,.42);
+      border-radius:22px;
+      background:rgba(13,16,29,.94);
+      text-align:center;
+      box-shadow:0 24px 100px rgba(0,0,0,.55);
+      opacity:0;
+      visibility:hidden;
+      transition:.25s ease;
     }
+
     .finish-banner.show{
-      opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1);
+      opacity:1;
+      visibility:visible;
+      transform:translate(-50%,-50%) scale(1);
     }
-    .finish-banner h2{margin:0;color:#ffe16b;font-size:28px}
-    .finish-banner p{margin:8px 0 16px;color:var(--muted)}
+
+    .finish-banner h2{
+      margin:0;
+      color:#ffe16b;
+      font-size:28px;
+    }
+
+    .finish-banner p{
+      margin:8px 0 16px;
+      color:var(--muted);
+    }
 
     @media(max-width:720px){
       .topbar{top:9px;left:9px;right:9px}
       .brand{padding:11px 13px;border-radius:15px}
-      .brand p,.model-note{display:none}
+      .brand p{display:none}
       .status-pill{min-height:38px;padding:8px 10px}
+
       .hud{
-        top:67px;left:8px;width:calc(100% - 16px);
-        grid-template-columns:repeat(2,1fr);gap:6px;
+        top:67px;
+        left:8px;
+        width:calc(100% - 16px);
+        grid-template-columns:repeat(3,1fr);
+        gap:6px;
       }
-      .hud-card{padding:8px 9px}
+
+      .hud-card{
+        padding:8px 9px;
+      }
+
       .hud-value{font-size:16px}
-      .progress-shell{top:163px;left:8px;width:calc(100% - 16px)}
+
+      .progress-shell{
+        top:133px;
+        left:8px;
+        width:calc(100% - 16px);
+      }
+
       .joystick-zone{
-        left:12px;bottom:max(16px,env(safe-area-inset-bottom));width:132px;height:132px;
+        left:12px;
+        bottom:max(16px,env(safe-area-inset-bottom));
+        width:132px;
+        height:132px;
       }
-      .joystick-knob{width:56px;height:56px}
+
+      .joystick-knob{
+        width:56px;
+        height:56px;
+      }
+
       .controls-card{
-        right:10px;bottom:max(12px,env(safe-area-inset-bottom));width:165px;padding:8px;
+        right:10px;
+        bottom:max(12px,env(safe-area-inset-bottom));
+        width:148px;
+        padding:8px;
       }
-      .control-btn{min-height:38px;padding:7px 8px}
+
+      .control-btn{
+        min-height:38px;
+        padding:7px 8px;
+      }
     }
   </style>
 </head>
 <body>
 <main id="app">
-  <div id="viewport" aria-label="Lomba lari manusia dengan sendok dan kelereng"></div>
+  <div id="viewport" aria-label="Game lari 3D dengan analog"></div>
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER SPOON MARBLE V4</span></h1>
-      <p>Versi final tanpa loading karakter. Karakter manusia langsung jadi dari kode saat halaman dibuka, dengan bentuk tubuh lebih menyatu dan sendok tergigit di mulut.</p>
+      <h1>HUMAN <span>RUNNER SPOON MARBLE V3</span></h1>
+      <p>Versi lintasan dan analog yang sama, tetapi karakter diganti menjadi manusia casual dengan sendok digigit dan kelereng di atasnya.</p>
     </section>
+
     <div class="status-pill" aria-live="polite">
       <span class="status-dot"></span>
-      <span id="statusText">Karakter siap</span>
+      <span id="statusText">Menyiapkan manusia...</span>
     </div>
   </header>
-
-  <aside class="model-note">
-    <b>NO CHARACTER LOADING</b><br>
-    Tidak ada proses memuat model manusia dari internet. Karakter langsung muncul karena dibangun dari kode.
-  </aside>
 
   <section class="hud" aria-label="Informasi lomba">
     <div class="hud-card">
@@ -230,10 +466,6 @@
     <div class="hud-card">
       <div class="hud-label">WAKTU</div>
       <div id="timeText" class="hud-value orange">0.00 s</div>
-    </div>
-    <div class="hud-card">
-      <div class="hud-label">KELERENG</div>
-      <div id="spoonText" class="hud-value green">STABIL</div>
     </div>
   </section>
 
@@ -249,9 +481,9 @@
 
   <section class="controls-card">
     <button id="resetBtn" type="button" class="control-btn primary">RESET LOMBA</button>
-    <button id="cameraBtn" type="button" class="control-btn">KAMERA: DEPAN</button>
+    <button id="cameraBtn" type="button" class="control-btn">KAMERA: FOLLOW</button>
     <button id="laneBtn" type="button" class="control-btn">BATAS JALUR: ON</button>
-    <div class="hint">WASD / tombol panah • Tidak ada loading karakter lagi</div>
+    <div class="hint">Keyboard: WASD atau tombol panah</div>
   </section>
 
   <section id="finishBanner" class="finish-banner">
@@ -259,893 +491,1246 @@
     <p id="finishText">Waktu lomba: 0.00 detik</p>
     <button id="finishResetBtn" type="button" class="control-btn primary">LARI LAGI</button>
   </section>
+
+  <div id="loader" class="loader">
+    <div class="loader-card">
+      <div class="loader-ring"></div>
+      <h2>Menyiapkan pelari manusia</h2>
+      <p id="loaderText">Membuat karakter manusia casual, sendok, dan kelereng.</p>
+    </div>
+  </div>
 </main>
 
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
 
-const TRACK = {
-  width: 9.6,
-  laneCount: 6,
-  startZ: 46,
-  finishZ: -54,
-  length: 100
-};
+  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/+esm';
+  import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js/+esm';
 
-const viewport = document.getElementById('viewport');
-const statusText = document.getElementById('statusText');
-const speedText = document.getElementById('speedText');
-const distanceText = document.getElementById('distanceText');
-const timeText = document.getElementById('timeText');
-const spoonText = document.getElementById('spoonText');
-const progressBar = document.getElementById('progressBar');
-const resetBtn = document.getElementById('resetBtn');
-const cameraBtn = document.getElementById('cameraBtn');
-const laneBtn = document.getElementById('laneBtn');
-const finishBanner = document.getElementById('finishBanner');
-const finishText = document.getElementById('finishText');
-const finishResetBtn = document.getElementById('finishResetBtn');
-const joystickZone = document.getElementById('joystickZone');
-const joystickKnob = document.getElementById('joystickKnob');
+  const TRACK = {
+    width: 9.6,
+    laneCount: 6,
+    startZ: 46,
+    finishZ: -54,
+    length: 100
+  };
 
-const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x0b1020, 0.013);
+  const viewport = document.getElementById('viewport');
+  const loader = document.getElementById('loader');
+  const loaderText = document.getElementById('loaderText');
+  const statusText = document.getElementById('statusText');
+  const speedText = document.getElementById('speedText');
+  const distanceText = document.getElementById('distanceText');
+  const timeText = document.getElementById('timeText');
+  const progressBar = document.getElementById('progressBar');
+  const resetBtn = document.getElementById('resetBtn');
+  const cameraBtn = document.getElementById('cameraBtn');
+  const laneBtn = document.getElementById('laneBtn');
+  const finishBanner = document.getElementById('finishBanner');
+  const finishText = document.getElementById('finishText');
+  const finishResetBtn = document.getElementById('finishResetBtn');
+  const joystickZone = document.getElementById('joystickZone');
+  const joystickKnob = document.getElementById('joystickKnob');
 
-const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, 0.1, 400);
-camera.position.set(3.6, 2.8, 42);
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x0b1020, 0.013);
 
-const renderer = new THREE.WebGLRenderer({
-  antialias: true,
-  alpha: true,
-  powerPreference: 'high-performance'
-});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
-renderer.setSize(innerWidth, innerHeight);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-viewport.appendChild(renderer.domElement);
-
-const orbit = new OrbitControls(camera, renderer.domElement);
-orbit.enableDamping = true;
-orbit.dampingFactor = 0.065;
-orbit.target.set(0, 1.3, TRACK.startZ);
-orbit.enablePan = false;
-orbit.minDistance = 3.2;
-orbit.maxDistance = 18;
-orbit.maxPolarAngle = Math.PI * 0.52;
-
-const clock = new THREE.Clock();
-
-let runner = new THREE.Group();
-let human = null;
-let cameraMode = 'front';
-let laneLimit = true;
-let raceStarted = false;
-let raceFinished = false;
-let raceTime = 0;
-let currentSpeed = 0;
-let targetSpeed = 0;
-let currentDirection = new THREE.Vector3(0, 0, -1);
-let runCycle = 0;
-
-scene.add(runner);
-
-const joystick = { active:false, pointerId:null, x:0, y:0 };
-const keys = {
-  ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false,
-  w:false, a:false, s:false, d:false
-};
-
-setupLights();
-createTrack();
-createRunner();
-resetRace();
-animate();
-
-function setupLights() {
-  scene.add(new THREE.HemisphereLight(0xe6f7ff, 0x15111f, 2.2));
-
-  const sun = new THREE.DirectionalLight(0xffffff, 4.6);
-  sun.position.set(8, 14, 8);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.camera.left = -14;
-  sun.shadow.camera.right = 14;
-  sun.shadow.camera.top = 18;
-  sun.shadow.camera.bottom = -8;
-  scene.add(sun);
-
-  const fill = new THREE.DirectionalLight(0x77ddff, 1.7);
-  fill.position.set(-8, 5, 6);
-  scene.add(fill);
-
-  const warm = new THREE.PointLight(0xffa055, 7, 28, 2);
-  warm.position.set(0, 4, -12);
-  scene.add(warm);
-}
-
-function createTrack() {
-  const grass = new THREE.Mesh(
-    new THREE.PlaneGeometry(80, 180),
-    new THREE.MeshStandardMaterial({ color:0x10291d, roughness:0.95, metalness:0 })
+  const camera = new THREE.PerspectiveCamera(
+    44,
+    innerWidth / innerHeight,
+    0.1,
+    400
   );
-  grass.rotation.x = -Math.PI / 2;
-  grass.position.set(0, -0.025, -4);
-  grass.receiveShadow = true;
-  scene.add(grass);
+  camera.position.set(4.4, 3.1, 42.2);
 
-  const track = new THREE.Mesh(
-    new THREE.PlaneGeometry(TRACK.width, 120),
-    new THREE.MeshStandardMaterial({ color:0xc66e72, roughness:0.88, metalness:0.01 })
-  );
-  track.rotation.x = -Math.PI / 2;
-  track.position.set(0, 0, -4);
-  track.receiveShadow = true;
-  scene.add(track);
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    powerPreference: 'high-performance'
+  });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.12;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  viewport.appendChild(renderer.domElement);
 
-  const laneWidth = TRACK.width / TRACK.laneCount;
-  const lineMaterial = new THREE.MeshBasicMaterial({ color:0xfaf3e6 });
-  for (let i = 0; i <= TRACK.laneCount; i++) {
-    const x = -TRACK.width / 2 + i * laneWidth;
-    const line = new THREE.Mesh(
-      new THREE.BoxGeometry(0.035, 0.012, 120),
-      lineMaterial
+  const orbit = new OrbitControls(camera, renderer.domElement);
+  orbit.enableDamping = true;
+  orbit.dampingFactor = 0.065;
+  orbit.target.set(0, 1.25, TRACK.startZ - 2);
+  orbit.enablePan = false;
+  orbit.minDistance = 3.5;
+  orbit.maxDistance = 18;
+  orbit.maxPolarAngle = Math.PI * 0.50;
+
+  const clock = new THREE.Clock();
+
+  let runner = null;
+  let rig = null;
+  let cameraFollow = true;
+  let laneLimit = true;
+  let raceStarted = false;
+  let raceFinished = false;
+  let raceTime = 0;
+  let currentSpeed = 0;
+  let targetSpeed = 0;
+  let runPhase = 0;
+  let currentDirection = new THREE.Vector3(0, 0, -1);
+
+  const joystick = {
+    active: false,
+    pointerId: null,
+    x: 0,
+    y: 0
+  };
+
+  const keys = {
+    ArrowUp: false,
+    ArrowDown: false,
+    ArrowLeft: false,
+    ArrowRight: false,
+    w: false,
+    a: false,
+    s: false,
+    d: false
+  };
+
+  setupLights();
+  createTrack();
+  createHumanRunner();
+  resetRace();
+  loader.classList.add('hidden');
+  statusText.textContent = 'Manusia casual siap';
+  animate();
+
+  function setupLights() {
+    scene.add(new THREE.HemisphereLight(0xdff6ff, 0x151121, 2.2));
+
+    const sun = new THREE.DirectionalLight(0xffffff, 4.5);
+    sun.position.set(8, 14, 8);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = -14;
+    sun.shadow.camera.right = 14;
+    sun.shadow.camera.top = 18;
+    sun.shadow.camera.bottom = -8;
+    scene.add(sun);
+
+    const cyan = new THREE.DirectionalLight(0x50dfff, 2.1);
+    cyan.position.set(-8, 5, 6);
+    scene.add(cyan);
+
+    const orange = new THREE.PointLight(0xff7e32, 10, 28, 2);
+    orange.position.set(0, 4, -12);
+    scene.add(orange);
+  }
+
+  function createTrack() {
+    const grass = new THREE.Mesh(
+      new THREE.PlaneGeometry(80, 180),
+      new THREE.MeshStandardMaterial({
+        color: 0x10291d,
+        roughness: 0.95,
+        metalness: 0
+      })
     );
-    line.position.set(x, 0.012, -4);
+    grass.rotation.x = -Math.PI / 2;
+    grass.position.set(0, -0.025, -4);
+    grass.receiveShadow = true;
+    scene.add(grass);
+
+    const track = new THREE.Mesh(
+      new THREE.PlaneGeometry(TRACK.width, 120),
+      new THREE.MeshStandardMaterial({
+        color: 0x8c2d35,
+        roughness: 0.86,
+        metalness: 0.03
+      })
+    );
+    track.rotation.x = -Math.PI / 2;
+    track.position.set(0, 0, -4);
+    track.receiveShadow = true;
+    scene.add(track);
+
+    const laneWidth = TRACK.width / TRACK.laneCount;
+    const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xf8f3e5 });
+
+    for (let i = 0; i <= TRACK.laneCount; i++) {
+      const x = -TRACK.width / 2 + i * laneWidth;
+      const line = new THREE.Mesh(
+        new THREE.BoxGeometry(0.035, 0.012, 120),
+        lineMaterial
+      );
+      line.position.set(x, 0.012, -4);
+      scene.add(line);
+    }
+
+    for (let lane = 0; lane < TRACK.laneCount; lane++) {
+      const x = -TRACK.width / 2 + laneWidth * (lane + 0.5);
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 128, 128);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 78px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(lane + 1), 64, 67);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+
+      const number = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.8, 0.8),
+        new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          side: THREE.DoubleSide
+        })
+      );
+      number.rotation.x = -Math.PI / 2;
+      number.position.set(x, 0.025, TRACK.startZ + 2.2);
+      scene.add(number);
+    }
+
+    createTrackLine(TRACK.startZ, 0xffffff, 0.18);
+    createTrackLine(TRACK.finishZ, 0xffffff, 0.25);
+
+    const tileSize = TRACK.width / 12;
+    for (let i = 0; i < 12; i++) {
+      const tile = new THREE.Mesh(
+        new THREE.BoxGeometry(tileSize, 0.018, 0.45),
+        new THREE.MeshBasicMaterial({
+          color: i % 2 === 0 ? 0xffffff : 0x111111
+        })
+      );
+      tile.position.set(
+        -TRACK.width / 2 + tileSize * (i + 0.5),
+        0.025,
+        TRACK.finishZ
+      );
+      scene.add(tile);
+    }
+
+    const standMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1b2638,
+      roughness: 0.74,
+      metalness: 0.18
+    });
+
+    [-1, 1].forEach(side => {
+      for (let row = 0; row < 5; row++) {
+        const stand = new THREE.Mesh(
+          new THREE.BoxGeometry(4.2, 0.4, 112),
+          standMaterial
+        );
+        stand.position.set(
+          side * (7.2 + row * 0.45),
+          0.2 + row * 0.38,
+          -4
+        );
+        stand.castShadow = true;
+        stand.receiveShadow = true;
+        scene.add(stand);
+      }
+    });
+
+    const gateMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1b324d,
+      emissive: 0x0b3150,
+      emissiveIntensity: 0.45,
+      roughness: 0.38,
+      metalness: 0.45
+    });
+
+    [-TRACK.width / 2 - 0.55, TRACK.width / 2 + 0.55].forEach(x => {
+      const pole = new THREE.Mesh(
+        new THREE.BoxGeometry(0.22, 4.8, 0.22),
+        gateMaterial
+      );
+      pole.position.set(x, 2.4, TRACK.finishZ);
+      pole.castShadow = true;
+      scene.add(pole);
+    });
+
+    const finishTop = new THREE.Mesh(
+      new THREE.BoxGeometry(TRACK.width + 1.35, 0.45, 0.28),
+      gateMaterial
+    );
+    finishTop.position.set(0, 4.7, TRACK.finishZ);
+    scene.add(finishTop);
+
+    const finishSign = makeTextBoard('FINISH', 1024, 220);
+    finishSign.position.set(0, 4.7, TRACK.finishZ + 0.16);
+    scene.add(finishSign);
+  }
+
+  function createTrackLine(z, color, depth) {
+    const line = new THREE.Mesh(
+      new THREE.BoxGeometry(TRACK.width, 0.02, depth),
+      new THREE.MeshBasicMaterial({ color })
+    );
+    line.position.set(0, 0.025, z);
     scene.add(line);
   }
 
-  for (let lane = 0; lane < TRACK.laneCount; lane++) {
-    const x = -TRACK.width / 2 + laneWidth * (lane + 0.5);
+  function makeTextBoard(text, width, height) {
     const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 128;
+    canvas.width = width;
+    canvas.height = height;
+
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, 128, 128);
+    ctx.fillStyle = '#0a1524';
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = '#65eaff';
+    ctx.lineWidth = 18;
+    ctx.strokeRect(9, 9, width - 18, height - 18);
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 78px Arial';
+    ctx.font = '900 132px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(lane + 1), 64, 67);
+    ctx.fillText(text, width / 2, height / 2 + 7);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
-    const number = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.8, 0.8),
-      new THREE.MeshBasicMaterial({ map:texture, transparent:true, side:THREE.DoubleSide })
+
+    return new THREE.Mesh(
+      new THREE.PlaneGeometry(5.1, 1.1),
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide
+      })
     );
-    number.rotation.x = -Math.PI / 2;
-    number.position.set(x, 0.025, TRACK.startZ + 2.2);
-    scene.add(number);
   }
 
-  createTrackLine(TRACK.startZ, 0xffffff, 0.18);
-  createTrackLine(TRACK.finishZ, 0xffffff, 0.25);
-
-  const tileSize = TRACK.width / 12;
-  for (let i = 0; i < 12; i++) {
-    const tile = new THREE.Mesh(
-      new THREE.BoxGeometry(tileSize, 0.018, 0.45),
-      new THREE.MeshBasicMaterial({ color:i % 2 === 0 ? 0xffffff : 0x111111 })
-    );
-    tile.position.set(-TRACK.width / 2 + tileSize * (i + 0.5), 0.025, TRACK.finishZ);
-    scene.add(tile);
+  function material(color, roughness = 0.78, metalness = 0.03) {
+    return new THREE.MeshStandardMaterial({
+      color,
+      roughness,
+      metalness,
+      transparent: false,
+      opacity: 1,
+      depthWrite: true
+    });
   }
 
-  const standMaterial = new THREE.MeshStandardMaterial({
-    color:0x1b2638, roughness:0.74, metalness:0.18
-  });
-  [-1, 1].forEach(side => {
-    for (let row = 0; row < 5; row++) {
-      const stand = new THREE.Mesh(
-        new THREE.BoxGeometry(4.2, 0.4, 112),
-        standMaterial
+  function addMesh(parent, geometry, mat, position, rotation, scale) {
+    const mesh = new THREE.Mesh(geometry, mat);
+    mesh.position.set(...position);
+    mesh.rotation.set(...rotation);
+    mesh.scale.set(...scale);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+  }
+
+  function createHumanRunner() {
+    runner = new THREE.Group();
+    scene.add(runner);
+
+    const shadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.42, 32),
+      new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.28
+      })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.014;
+    runner.add(shadow);
+
+    rig = buildSmoothHuman();
+    rig.root.scale.setScalar(0.88);
+    runner.add(rig.root);
+  }
+
+  function buildSmoothHuman() {
+    const skin = material(0xf0bea0, 0.82, 0.01);
+    const skinShade = material(0xd99b7b, 0.84, 0.01);
+    const shirt = material(0x2e73e5, 0.78, 0.01);
+    const shirtDark = material(0x17499d, 0.82, 0.01);
+    const shorts = material(0x25345b, 0.82, 0.01);
+    const shoes = material(0xf4f5f7, 0.54, 0.08);
+    const sole = material(0xb9c5d1, 0.68, 0.05);
+    const hair = material(0x3b2116, 0.90, 0.0);
+    const eyeWhite = material(0xffffff, 0.72, 0.0);
+    const iris = material(0x1d4f7f, 0.48, 0.0);
+    const lip = material(0xc75d68, 0.82, 0.0);
+    const blush = material(0xee9ca5, 0.92, 0.0);
+
+    const spoonMetal = new THREE.MeshStandardMaterial({
+      color: 0xe5eaed,
+      emissive: 0x151719,
+      emissiveIntensity: 0.06,
+      roughness: 0.22,
+      metalness: 0.88,
+      side: THREE.DoubleSide
+    });
+
+    const marbleMat = new THREE.MeshStandardMaterial({
+      color: 0x42caff,
+      emissive: 0x075b91,
+      emissiveIntensity: 0.44,
+      roughness: 0.13,
+      metalness: 0.22
+    });
+
+    const root = new THREE.Group();
+
+    const hips = new THREE.Group();
+    hips.position.y = 1.15;
+    root.add(hips);
+
+    addMesh(
+      hips,
+      new THREE.SphereGeometry(0.24, 28, 22),
+      shorts,
+      [0, 0.01, 0],
+      [0, 0, 0],
+      [1.25, 0.82, 0.96]
+    );
+
+    const spine = new THREE.Group();
+    spine.position.y = 0.08;
+    hips.add(spine);
+
+    addMesh(
+      spine,
+      new THREE.CapsuleGeometry(0.19, 0.22, 10, 18),
+      shirtDark,
+      [0, 0.26, 0],
+      [0, 0, 0],
+      [1.02, 1, 0.92]
+    );
+
+    addMesh(
+      spine,
+      new THREE.CapsuleGeometry(0.25, 0.42, 12, 20),
+      shirt,
+      [0, 0.62, 0],
+      [0, 0, 0],
+      [1.04, 1, 0.94]
+    );
+
+    addMesh(
+      spine,
+      new THREE.TorusGeometry(0.12, 0.024, 10, 24),
+      shirtDark,
+      [0, 0.92, -0.01],
+      [Math.PI / 2, 0, 0],
+      [1, 1, 1]
+    );
+
+    addMesh(
+      spine,
+      new THREE.CylinderGeometry(0.062, 0.068, 0.12, 18),
+      skin,
+      [0, 1.02, 0],
+      [0, 0, 0],
+      [1, 1, 1]
+    );
+
+    const head = new THREE.Group();
+    head.position.set(0, 1.25, 0);
+    spine.add(head);
+
+    addMesh(
+      head,
+      new THREE.SphereGeometry(0.235, 32, 26),
+      skin,
+      [0, 0, 0],
+      [0, 0, 0],
+      [0.98, 1.08, 0.96]
+    );
+
+    addMesh(
+      head,
+      new THREE.SphereGeometry(
+        0.245,
+        30,
+        22,
+        0,
+        Math.PI * 2,
+        0,
+        Math.PI * 0.61
+      ),
+      hair,
+      [0, 0.045, 0],
+      [0, 0, 0],
+      [1.01, 0.80, 1.01]
+    );
+
+    addMesh(
+      head,
+      new THREE.BoxGeometry(0.30, 0.075, 0.055),
+      hair,
+      [0, 0.075, -0.185],
+      [0, 0, 0],
+      [1, 1, 1]
+    );
+
+    [-1, 1].forEach(side => {
+      addMesh(
+        head,
+        new THREE.SphereGeometry(0.037, 16, 12),
+        eyeWhite,
+        [side * 0.073, 0.025, -0.218],
+        [0, 0, 0],
+        [1.16, 0.70, 0.34]
       );
-      stand.position.set(side * (7.2 + row * 0.45), 0.2 + row * 0.38, -4);
-      stand.castShadow = true;
-      stand.receiveShadow = true;
-      scene.add(stand);
+
+      addMesh(
+        head,
+        new THREE.SphereGeometry(0.016, 14, 12),
+        iris,
+        [side * 0.073, 0.024, -0.235],
+        [0, 0, 0],
+        [1, 1, 0.38]
+      );
+
+      addMesh(
+        head,
+        new THREE.BoxGeometry(0.075, 0.012, 0.012),
+        hair,
+        [side * 0.073, 0.088, -0.205],
+        [0, 0, side < 0 ? 0.12 : -0.12],
+        [1, 1, 1]
+      );
+
+      addMesh(
+        head,
+        new THREE.SphereGeometry(0.021, 12, 10),
+        blush,
+        [side * 0.135, -0.045, -0.202],
+        [0, 0, 0],
+        [1.5, 0.58, 0.28]
+      );
+
+      addMesh(
+        head,
+        new THREE.SphereGeometry(0.042, 16, 12),
+        skinShade,
+        [side * 0.224, -0.005, 0],
+        [0, 0, 0],
+        [0.38, 1.1, 0.75]
+      );
+    });
+
+    addMesh(
+      head,
+      new THREE.ConeGeometry(0.020, 0.052, 12),
+      skinShade,
+      [0, -0.015, -0.242],
+      [-Math.PI / 2, 0, 0],
+      [1, 1, 1]
+    );
+
+    addMesh(
+      head,
+      new THREE.TorusGeometry(0.031, 0.006, 8, 22, Math.PI),
+      lip,
+      [0, -0.082, -0.222],
+      [Math.PI, 0, 0],
+      [1, 0.72, 1]
+    );
+
+    const spoon = new THREE.Group();
+    spoon.position.set(0, -0.073, -0.225);
+    head.add(spoon);
+
+    // Bibir atas dan bawah menjepit gagang sendok.
+    addMesh(
+      spoon,
+      new THREE.CapsuleGeometry(0.011, 0.060, 6, 12),
+      lip,
+      [0, 0.016, 0],
+      [0, 0, Math.PI / 2],
+      [1, 1, 1]
+    );
+
+    addMesh(
+      spoon,
+      new THREE.CapsuleGeometry(0.011, 0.060, 6, 12),
+      lip,
+      [0, -0.016, 0],
+      [0, 0, Math.PI / 2],
+      [1, 1, 1]
+    );
+
+    addMesh(
+      spoon,
+      new THREE.CylinderGeometry(0.012, 0.014, 0.38, 18),
+      spoonMetal,
+      [0, 0, -0.19],
+      [Math.PI / 2, 0, 0],
+      [1, 1, 1]
+    );
+
+    addMesh(
+      spoon,
+      new THREE.CylinderGeometry(0.016, 0.022, 0.12, 18),
+      spoonMetal,
+      [0, 0, -0.43],
+      [Math.PI / 2, 0, 0],
+      [1, 1, 1]
+    );
+
+    addMesh(
+      spoon,
+      new THREE.SphereGeometry(0.088, 26, 20),
+      spoonMetal,
+      [0, -0.004, -0.52],
+      [0, 0, 0],
+      [0.78, 0.20, 1.18]
+    );
+
+    addMesh(
+      spoon,
+      new THREE.SphereGeometry(0.071, 24, 18),
+      material(0xaab4bb, 0.34, 0.68),
+      [0, 0.014, -0.523],
+      [0, 0, 0],
+      [0.74, 0.11, 1.10]
+    );
+
+    const marble = addMesh(
+      spoon,
+      new THREE.SphereGeometry(0.052, 26, 22),
+      marbleMat,
+      [0, 0.074, -0.523],
+      [0, 0, 0],
+      [1, 1, 1]
+    );
+
+    function buildArm(side) {
+      const shoulder = new THREE.Group();
+      shoulder.position.set(side * 0.36, 0.79, 0);
+      spine.add(shoulder);
+
+      addMesh(
+        shoulder,
+        new THREE.SphereGeometry(0.105, 20, 16),
+        shirt,
+        [side * 0.018, 0, 0],
+        [0, 0, 0],
+        [1.02, 0.96, 0.96]
+      );
+
+      addMesh(
+        shoulder,
+        new THREE.CapsuleGeometry(0.075, 0.34, 9, 16),
+        skin,
+        [0, -0.255, 0],
+        [0, 0, 0],
+        [1, 1, 1]
+      );
+
+      const elbow = new THREE.Group();
+      elbow.position.y = -0.50;
+      shoulder.add(elbow);
+
+      addMesh(
+        elbow,
+        new THREE.SphereGeometry(0.074, 18, 14),
+        skin,
+        [0, 0, 0],
+        [0, 0, 0],
+        [1, 1, 1]
+      );
+
+      addMesh(
+        elbow,
+        new THREE.CapsuleGeometry(0.062, 0.30, 9, 16),
+        skin,
+        [0, -0.225, 0],
+        [0, 0, 0],
+        [1, 1, 1]
+      );
+
+      const wrist = new THREE.Group();
+      wrist.position.y = -0.44;
+      elbow.add(wrist);
+
+      addMesh(
+        wrist,
+        new THREE.SphereGeometry(0.064, 18, 14),
+        skin,
+        [0, 0, 0],
+        [0, 0, 0],
+        [0.88, 1.04, 0.68]
+      );
+
+      return { shoulder, elbow, wrist };
+    }
+
+    function buildLeg(side) {
+      const hip = new THREE.Group();
+      hip.position.set(side * 0.16, 0, 0);
+      hips.add(hip);
+
+      addMesh(
+        hip,
+        new THREE.CapsuleGeometry(0.105, 0.43, 10, 18),
+        shorts,
+        [0, -0.315, 0],
+        [0, 0, 0],
+        [1, 1, 1]
+      );
+
+      const knee = new THREE.Group();
+      knee.position.y = -0.62;
+      hip.add(knee);
+
+      addMesh(
+        knee,
+        new THREE.SphereGeometry(0.088, 20, 16),
+        skin,
+        [0, 0, 0],
+        [0, 0, 0],
+        [1, 1, 1]
+      );
+
+      addMesh(
+        knee,
+        new THREE.CapsuleGeometry(0.083, 0.37, 10, 18),
+        skin,
+        [0, -0.28, 0],
+        [0, 0, 0],
+        [1, 1, 1]
+      );
+
+      const ankle = new THREE.Group();
+      ankle.position.y = -0.54;
+      knee.add(ankle);
+
+      addMesh(
+        ankle,
+        new THREE.CapsuleGeometry(0.095, 0.25, 10, 18),
+        shoes,
+        [0, -0.01, -0.105],
+        [Math.PI / 2, 0, 0],
+        [1.0, 1.0, 0.90]
+      );
+
+      addMesh(
+        ankle,
+        new THREE.BoxGeometry(0.19, 0.035, 0.37),
+        sole,
+        [0, -0.09, -0.10],
+        [0, 0, 0],
+        [1, 1, 1]
+      );
+
+      return { hip, knee, ankle };
+    }
+
+    const leftArm = buildArm(-1);
+    const rightArm = buildArm(1);
+    const leftLeg = buildLeg(-1);
+    const rightLeg = buildLeg(1);
+
+    return {
+      root,
+      hips,
+      spine,
+      head,
+      spoon,
+      marble,
+      leftArm,
+      rightArm,
+      leftLeg,
+      rightLeg
+    };
+  }
+
+  function setIdlePose(elapsed) {
+    if (!rig) return;
+
+    const breath = Math.sin(elapsed * 2.0);
+
+    rig.root.position.y = breath * 0.012;
+    rig.hips.rotation.set(0, 0, 0);
+    rig.spine.rotation.set(-0.025 + breath * 0.008, 0, 0);
+    rig.head.rotation.set(0.018, Math.sin(elapsed * 0.6) * 0.025, 0);
+
+    rig.leftArm.shoulder.rotation.set(0.10, 0, 0.08);
+    rig.rightArm.shoulder.rotation.set(0.10, 0, -0.08);
+    rig.leftArm.elbow.rotation.set(-0.15, 0, 0);
+    rig.rightArm.elbow.rotation.set(-0.15, 0, 0);
+
+    rig.leftLeg.hip.rotation.set(-0.035, 0, 0);
+    rig.rightLeg.hip.rotation.set(-0.035, 0, 0);
+    rig.leftLeg.knee.rotation.set(-0.07, 0, 0);
+    rig.rightLeg.knee.rotation.set(-0.07, 0, 0);
+    rig.leftLeg.ankle.rotation.set(0.02, 0, 0);
+    rig.rightLeg.ankle.rotation.set(0.02, 0, 0);
+
+    rig.spoon.rotation.set(0, 0, 0);
+    rig.marble.position.set(0, 0.074, -0.523);
+  }
+
+  function animateHumanRun(elapsed, speedRatio) {
+    if (!rig) return;
+
+    const stride = Math.sin(runPhase);
+    const doubleStep = Math.sin(runPhase * 2);
+    const bounce = Math.abs(doubleStep) * (0.035 + speedRatio * 0.035);
+    const legAmplitude = 0.58 + speedRatio * 0.42;
+    const armAmplitude = 0.52 + speedRatio * 0.32;
+
+    rig.root.position.y = bounce;
+    rig.hips.rotation.x = -0.025 + doubleStep * 0.025;
+    rig.hips.rotation.z = stride * 0.035;
+    rig.spine.rotation.x = -0.10 - speedRatio * 0.045;
+    rig.spine.rotation.z = -stride * 0.022;
+    rig.head.rotation.x = 0.055;
+    rig.head.rotation.z = stride * 0.018;
+
+    // Karakter menghadap lokal -Z. Rotasi X positif menggerakkan kaki ke depan.
+    rig.leftLeg.hip.rotation.set(stride * legAmplitude, 0, 0.025);
+    rig.rightLeg.hip.rotation.set(-stride * legAmplitude, 0, -0.025);
+
+    const leftKneeBend = Math.max(0, -stride) * (0.90 + speedRatio * 0.34);
+    const rightKneeBend = Math.max(0, stride) * (0.90 + speedRatio * 0.34);
+
+    // Rotasi negatif membuat tumit bergerak ke belakang, seperti lutut manusia berlari.
+    rig.leftLeg.knee.rotation.set(-leftKneeBend, 0, 0);
+    rig.rightLeg.knee.rotation.set(-rightKneeBend, 0, 0);
+
+    rig.leftLeg.ankle.rotation.set(
+      0.10 - Math.max(0, stride) * 0.26,
+      0,
+      0
+    );
+    rig.rightLeg.ankle.rotation.set(
+      0.10 - Math.max(0, -stride) * 0.26,
+      0,
+      0
+    );
+
+    // Tangan berlawanan dengan kaki.
+    rig.leftArm.shoulder.rotation.set(
+      -stride * armAmplitude,
+      0,
+      0.10
+    );
+    rig.rightArm.shoulder.rotation.set(
+      stride * armAmplitude,
+      0,
+      -0.10
+    );
+
+    rig.leftArm.elbow.rotation.set(
+      -0.42 - Math.max(0, stride) * 0.16,
+      0,
+      0
+    );
+    rig.rightArm.elbow.rotation.set(
+      -0.42 - Math.max(0, -stride) * 0.16,
+      0,
+      0
+    );
+
+    // Sendok tetap tergigit dan kelereng hanya bergeser sedikit di dalam mangkuk.
+    const wobble = speedRatio;
+    rig.spoon.rotation.x =
+      Math.sin(elapsed * 7.2) * 0.009 * wobble;
+
+    rig.spoon.rotation.z =
+      Math.cos(elapsed * 5.8) * 0.012 * wobble;
+
+    rig.marble.position.set(
+      Math.sin(elapsed * 6.0) * 0.005 * wobble,
+      0.074 + Math.abs(Math.sin(elapsed * 7.0)) * 0.003 * wobble,
+      -0.523 + Math.cos(elapsed * 5.2) * 0.004 * wobble
+    );
+  }
+
+  function resetRace() {
+    if (!runner) return;
+
+    raceStarted = false;
+    raceFinished = false;
+    raceTime = 0;
+    currentSpeed = 0;
+    targetSpeed = 0;
+    runPhase = 0;
+    currentDirection.set(0, 0, -1);
+
+    runner.position.set(0, 0, TRACK.startZ + 1.4);
+    runner.rotation.set(0, 0, 0);
+
+    finishBanner.classList.remove('show');
+    setJoystick(0, 0);
+    setIdlePose(clock.elapsedTime);
+    updateHud();
+    statusText.textContent = 'Siap di garis start';
+  }
+
+  function getInputVector() {
+    let x = joystick.x;
+    let y = joystick.y;
+
+    const keyboardX =
+      (keys.ArrowRight || keys.d ? 1 : 0) -
+      (keys.ArrowLeft || keys.a ? 1 : 0);
+
+    const keyboardY =
+      (keys.ArrowDown || keys.s ? 1 : 0) -
+      (keys.ArrowUp || keys.w ? 1 : 0);
+
+    if (keyboardX !== 0 || keyboardY !== 0) {
+      x = keyboardX;
+      y = keyboardY;
+    }
+
+    const length = Math.hypot(x, y);
+    if (length > 1) {
+      x /= length;
+      y /= length;
+    }
+
+    return {
+      x,
+      y,
+      magnitude: Math.min(1, Math.hypot(x, y))
+    };
+  }
+
+  function updateRunner(dt, elapsed) {
+    if (!runner || raceFinished) return;
+
+    const input = getInputVector();
+    const deadZone = 0.08;
+    const moving = input.magnitude > deadZone;
+
+    if (moving && !raceStarted) {
+      raceStarted = true;
+      statusText.textContent = 'Lomba dimulai';
+    }
+
+    const maxSpeed = 9.2;
+    targetSpeed = moving
+      ? maxSpeed * Math.pow(input.magnitude, 0.72)
+      : 0;
+
+    const acceleration = targetSpeed > currentSpeed ? 8.5 : 12.5;
+    currentSpeed = THREE.MathUtils.damp(
+      currentSpeed,
+      targetSpeed,
+      acceleration,
+      dt
+    );
+
+    if (moving) {
+      const direction = new THREE.Vector3(
+        input.x,
+        0,
+        input.y
+      ).normalize();
+
+      currentDirection
+        .lerp(direction, 1 - Math.exp(-8.5 * dt))
+        .normalize();
+
+      runner.position.addScaledVector(
+        currentDirection,
+        currentSpeed * dt
+      );
+
+      // Rig manusia menghadap lokal -Z sehingga arah tidak terbalik.
+      const targetYaw = Math.atan2(
+        -currentDirection.x,
+        -currentDirection.z
+      );
+
+      runner.rotation.y = dampAngle(
+        runner.rotation.y,
+        targetYaw,
+        13,
+        dt
+      );
+
+      const speedRatio = THREE.MathUtils.clamp(
+        currentSpeed / maxSpeed,
+        0,
+        1
+      );
+
+      runPhase += dt * (5.0 + currentSpeed * 0.70);
+      animateHumanRun(elapsed, speedRatio);
+    } else {
+      setIdlePose(elapsed);
+    }
+
+    if (laneLimit) {
+      const half = TRACK.width / 2 - 0.24;
+      runner.position.x = THREE.MathUtils.clamp(
+        runner.position.x,
+        -half,
+        half
+      );
+    }
+
+    runner.position.z = THREE.MathUtils.clamp(
+      runner.position.z,
+      TRACK.finishZ - 4,
+      TRACK.startZ + 5
+    );
+
+    if (raceStarted) {
+      raceTime += dt;
+    }
+
+    if (
+      runner.position.z <= TRACK.finishZ &&
+      !raceFinished
+    ) {
+      finishRace();
+    }
+  }
+
+  function finishRace() {
+    raceFinished = true;
+    currentSpeed = 0;
+    targetSpeed = 0;
+    setIdlePose(clock.elapsedTime);
+
+    finishText.textContent =
+      `Waktu lomba: ${raceTime.toFixed(2)} detik`;
+
+    finishBanner.classList.add('show');
+    statusText.textContent = 'Finish!';
+  }
+
+  function dampAngle(current, target, lambda, dt) {
+    let delta =
+      (target - current + Math.PI) %
+      (Math.PI * 2) -
+      Math.PI;
+
+    return current +
+      delta *
+      (1 - Math.exp(-lambda * dt));
+  }
+
+  function updateCamera(dt) {
+    if (!runner) return;
+
+    const forward = currentDirection.clone();
+    if (forward.lengthSq() < 0.001) {
+      forward.set(0, 0, -1);
+    }
+
+    if (cameraFollow) {
+      let desiredPosition;
+      let desiredTarget;
+
+      if (!raceStarted) {
+        // Preview dari depan sebelum lomba agar wajah, sendok, dan kelereng terlihat.
+        const side = new THREE.Vector3(
+          -forward.z,
+          0,
+          forward.x
+        );
+
+        desiredPosition = runner.position.clone()
+          .addScaledVector(forward, 4.5)
+          .addScaledVector(side, 2.5)
+          .add(new THREE.Vector3(0, 2.6, 0));
+
+        desiredTarget = runner.position.clone()
+          .add(new THREE.Vector3(0, 1.35, 0));
+      } else {
+        desiredPosition = runner.position.clone()
+          .addScaledVector(forward, -5.2)
+          .add(new THREE.Vector3(2.8, 2.8, 0));
+
+        desiredTarget = runner.position.clone()
+          .add(new THREE.Vector3(0, 1.05, 0))
+          .addScaledVector(forward, 2.3);
+      }
+
+      camera.position.lerp(
+        desiredPosition,
+        1 - Math.exp(-5.5 * dt)
+      );
+
+      orbit.target.lerp(
+        desiredTarget,
+        1 - Math.exp(-7.5 * dt)
+      );
+    }
+
+    orbit.update();
+  }
+
+  function updateHud() {
+    if (!runner) return;
+
+    const rawDistance =
+      TRACK.startZ - runner.position.z;
+
+    const distance = THREE.MathUtils.clamp(
+      rawDistance,
+      0,
+      TRACK.length
+    );
+
+    const progress = distance / TRACK.length;
+
+    speedText.textContent =
+      `${(currentSpeed * 3.6).toFixed(1)} km/j`;
+
+    distanceText.textContent =
+      `${distance.toFixed(1)} m`;
+
+    timeText.textContent =
+      `${raceTime.toFixed(2)} s`;
+
+    progressBar.style.width =
+      `${progress * 100}%`;
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const elapsed = clock.elapsedTime;
+
+    updateRunner(dt, elapsed);
+    updateCamera(dt);
+    updateHud();
+    renderer.render(scene, camera);
+  }
+
+  function setJoystick(x, y) {
+    joystick.x = THREE.MathUtils.clamp(x, -1, 1);
+    joystick.y = THREE.MathUtils.clamp(y, -1, 1);
+
+    const radius = joystickZone.clientWidth * 0.31;
+
+    joystickKnob.style.transform =
+      `translate(calc(-50% + ${joystick.x * radius}px), calc(-50% + ${joystick.y * radius}px))`;
+  }
+
+  function updateJoystickFromEvent(event) {
+    const rect = joystickZone.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    let dx = event.clientX - centerX;
+    let dy = event.clientY - centerY;
+
+    const maxRadius = rect.width * 0.31;
+    const distance = Math.hypot(dx, dy);
+
+    if (distance > maxRadius) {
+      dx = dx / distance * maxRadius;
+      dy = dy / distance * maxRadius;
+    }
+
+    setJoystick(
+      dx / maxRadius,
+      dy / maxRadius
+    );
+  }
+
+  joystickZone.addEventListener('pointerdown', event => {
+    joystick.active = true;
+    joystick.pointerId = event.pointerId;
+    joystickZone.setPointerCapture(event.pointerId);
+    joystickZone.classList.add('active');
+    updateJoystickFromEvent(event);
+  });
+
+  joystickZone.addEventListener('pointermove', event => {
+    if (
+      !joystick.active ||
+      event.pointerId !== joystick.pointerId
+    ) return;
+
+    updateJoystickFromEvent(event);
+  });
+
+  function releaseJoystick(event) {
+    if (
+      joystick.pointerId !== null &&
+      event.pointerId !== joystick.pointerId
+    ) return;
+
+    joystick.active = false;
+    joystick.pointerId = null;
+    joystickZone.classList.remove('active');
+    setJoystick(0, 0);
+  }
+
+  joystickZone.addEventListener('pointerup', releaseJoystick);
+  joystickZone.addEventListener('pointercancel', releaseJoystick);
+
+  addEventListener('keydown', event => {
+    const key = event.key.length === 1
+      ? event.key.toLowerCase()
+      : event.key;
+
+    if (key in keys) {
+      keys[key] = true;
+      event.preventDefault();
     }
   });
 
-  const gateMaterial = new THREE.MeshStandardMaterial({
-    color:0x1b324d, emissive:0x0b3150, emissiveIntensity:0.45,
-    roughness:0.38, metalness:0.45
-  });
-  [-TRACK.width / 2 - 0.55, TRACK.width / 2 + 0.55].forEach(x => {
-    const pole = new THREE.Mesh(
-      new THREE.BoxGeometry(0.22, 4.8, 0.22), gateMaterial
-    );
-    pole.position.set(x, 2.4, TRACK.finishZ);
-    pole.castShadow = true;
-    scene.add(pole);
+  addEventListener('keyup', event => {
+    const key = event.key.length === 1
+      ? event.key.toLowerCase()
+      : event.key;
+
+    if (key in keys) {
+      keys[key] = false;
+      event.preventDefault();
+    }
   });
 
-  const finishTop = new THREE.Mesh(
-    new THREE.BoxGeometry(TRACK.width + 1.35, 0.45, 0.28), gateMaterial
-  );
-  finishTop.position.set(0, 4.7, TRACK.finishZ);
-  scene.add(finishTop);
+  resetBtn.addEventListener('click', resetRace);
+  finishResetBtn.addEventListener('click', resetRace);
 
-  const finishSign = makeTextBoard('FINISH', 1024, 220);
-  finishSign.position.set(0, 4.7, TRACK.finishZ + 0.16);
-  scene.add(finishSign);
-}
+  cameraBtn.addEventListener('click', () => {
+    cameraFollow = !cameraFollow;
 
-function createTrackLine(z, color, depth) {
-  const line = new THREE.Mesh(
-    new THREE.BoxGeometry(TRACK.width, 0.02, depth),
-    new THREE.MeshBasicMaterial({ color })
-  );
-  line.position.set(0, 0.025, z);
-  scene.add(line);
-}
-
-function makeTextBoard(text, width, height) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#0a1524';
-  ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = '#65eaff';
-  ctx.lineWidth = 18;
-  ctx.strokeRect(9, 9, width - 18, height - 18);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '900 132px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, width / 2, height / 2 + 7);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return new THREE.Mesh(
-    new THREE.PlaneGeometry(5.1, 1.1),
-    new THREE.MeshBasicMaterial({ map:texture, side:THREE.DoubleSide })
-  );
-}
-
-function mat(color, roughness=0.8, metalness=0.04) {
-  return new THREE.MeshStandardMaterial({ color, roughness, metalness });
-}
-
-function createRunner() {
-  const shadow = new THREE.Mesh(
-    new THREE.CircleGeometry(0.42, 24),
-    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.25 })
-  );
-  shadow.rotation.x = -Math.PI / 2;
-  shadow.position.y = 0.01;
-  runner.add(shadow);
-
-  human = buildSmoothHuman();
-  runner.add(human.root);
-}
-
-function buildSmoothHuman() {
-  const skin = mat(0xf1c5a7, 0.82, 0.02);
-  const shirt = mat(0x2f6fe8, 0.78, 0.02);
-  const pants = mat(0x232f53, 0.82, 0.02);
-  const shoes = mat(0xf0f2f5, 0.60, 0.10);
-  const hairMat = mat(0x3f2418, 0.90, 0.00);
-  const spoonMat = new THREE.MeshStandardMaterial({
-    color:0xe8edf1, emissive:0x17191b, emissiveIntensity:0.07,
-    roughness:0.22, metalness:0.88, side:THREE.DoubleSide
+    cameraBtn.textContent =
+      `KAMERA: ${cameraFollow ? 'FOLLOW' : 'BEBAS'}`;
   });
-  const marbleMat = new THREE.MeshStandardMaterial({
-    color:0x3bc8ff, emissive:0x075c91, emissiveIntensity:0.45,
-    roughness:0.13, metalness:0.22
+
+  laneBtn.addEventListener('click', () => {
+    laneLimit = !laneLimit;
+
+    laneBtn.textContent =
+      `BATAS JALUR: ${laneLimit ? 'ON' : 'OFF'}`;
   });
-  const lipMat = mat(0xd86f79, 0.8, 0.0);
 
-  const root = new THREE.Group();
-  const hips = new THREE.Group();
-  hips.position.y = 0.92;
-  root.add(hips);
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
 
-  const torso = new THREE.Group();
-  torso.position.y = 0.08;
-  hips.add(torso);
-
-  const pelvis = new THREE.Mesh(
-    new THREE.SphereGeometry(0.19, 24, 18),
-    pants
-  );
-  pelvis.scale.set(1.25, 0.82, 0.95);
-  pelvis.position.y = 0.03;
-  pelvis.castShadow = true;
-  torso.add(pelvis);
-
-  const abdomen = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.16, 0.20, 10, 16),
-    shirt
-  );
-  abdomen.position.y = 0.28;
-  abdomen.castShadow = true;
-  torso.add(abdomen);
-
-  const chest = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.21, 0.34, 12, 18),
-    shirt
-  );
-  chest.position.y = 0.55;
-  chest.castShadow = true;
-  torso.add(chest);
-
-  const collar = new THREE.Mesh(
-    new THREE.TorusGeometry(0.11, 0.022, 10, 20),
-    shirt
-  );
-  collar.rotation.x = Math.PI / 2;
-  collar.position.y = 0.77;
-  torso.add(collar);
-
-  const neck = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.06, 0.065, 0.11, 16),
-    skin
-  );
-  neck.position.y = 0.82;
-  neck.castShadow = true;
-  torso.add(neck);
-
-  const headPivot = new THREE.Group();
-  headPivot.position.set(0, 0.96, 0);
-  torso.add(headPivot);
-
-  const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.205, 30, 24),
-    skin
-  );
-  head.scale.set(0.98, 1.08, 0.97);
-  head.castShadow = true;
-  headPivot.add(head);
-
-  const chin = new THREE.Mesh(
-    new THREE.SphereGeometry(0.075, 20, 16),
-    skin
-  );
-  chin.position.set(0, -0.11, -0.04);
-  chin.scale.set(1.1, 0.75, 0.85);
-  chin.castShadow = true;
-  headPivot.add(chin);
-
-  const hairCap = new THREE.Mesh(
-    new THREE.SphereGeometry(0.214, 30, 24, 0, Math.PI * 2, 0, Math.PI * 0.62),
-    hairMat
-  );
-  hairCap.rotation.x = Math.PI;
-  hairCap.position.y = 0.04;
-  hairCap.scale.set(1.02, 0.76, 1.02);
-  hairCap.castShadow = true;
-  headPivot.add(hairCap);
-
-  const fringe = new THREE.Mesh(
-    new THREE.BoxGeometry(0.27, 0.08, 0.06),
-    hairMat
-  );
-  fringe.position.set(0, 0.07, -0.145);
-  fringe.castShadow = true;
-  headPivot.add(fringe);
-
-  function makeEye(x) {
-    const eyeWhite = new THREE.Mesh(
-      new THREE.SphereGeometry(0.036, 12, 10),
-      mat(0xffffff, 0.7, 0.0)
+    renderer.setPixelRatio(
+      Math.min(devicePixelRatio, 1.8)
     );
-    eyeWhite.position.set(x, 0.02, -0.165);
-    eyeWhite.scale.set(1.15, 0.68, 0.35);
-    headPivot.add(eyeWhite);
 
-    const pupil = new THREE.Mesh(
-      new THREE.SphereGeometry(0.015, 10, 8),
-      mat(0x1a2d4d, 0.4, 0.0)
+    renderer.setSize(
+      innerWidth,
+      innerHeight
     );
-    pupil.position.set(x, 0.018, -0.183);
-    pupil.scale.set(1.0, 1.0, 0.35);
-    headPivot.add(pupil);
 
-    const brow = new THREE.Mesh(
-      new THREE.BoxGeometry(0.07, 0.012, 0.012),
-      hairMat
+    setJoystick(
+      joystick.x,
+      joystick.y
     );
-    brow.position.set(x, 0.08, -0.155);
-    brow.rotation.z = x < 0 ? 0.12 : -0.12;
-    headPivot.add(brow);
+  });
 
-    const cheek = new THREE.Mesh(
-      new THREE.SphereGeometry(0.020, 10, 8),
-      mat(0xf2a8a8, 1.0, 0.0)
-    );
-    cheek.position.set(x * 1.4, -0.04, -0.155);
-    cheek.scale.set(1.5, 0.6, 0.3);
-    headPivot.add(cheek);
-  }
-  makeEye(-0.06);
-  makeEye(0.06);
-
-  const nose = new THREE.Mesh(
-    new THREE.ConeGeometry(0.020, 0.05, 10),
-    skin
-  );
-  nose.position.set(0, -0.01, -0.18);
-  nose.rotation.x = -Math.PI / 2;
-  nose.castShadow = true;
-  headPivot.add(nose);
-
-  const mouth = new THREE.Mesh(
-    new THREE.TorusGeometry(0.028, 0.006, 8, 18, Math.PI),
-    mat(0xbd5c64, 0.8, 0.0)
-  );
-  mouth.position.set(0, -0.07, -0.165);
-  mouth.rotation.x = Math.PI;
-  headPivot.add(mouth);
-
-  // Spoon digigit.
-  const spoonGroup = new THREE.Group();
-  spoonGroup.position.set(0.0, -0.05, -0.17);
-  headPivot.add(spoonGroup);
-
-  const upperLip = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.015, 0.055, 6, 12),
-    lipMat
-  );
-  upperLip.rotation.z = Math.PI / 2;
-  upperLip.position.set(0, 0.018, -0.002);
-  spoonGroup.add(upperLip);
-
-  const lowerLip = upperLip.clone();
-  lowerLip.position.y = -0.018;
-  spoonGroup.add(lowerLip);
-
-  const spoonHandle = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.012, 0.014, 0.28, 16),
-    spoonMat
-  );
-  spoonHandle.rotation.x = Math.PI / 2;
-  spoonHandle.position.z = -0.14;
-  spoonHandle.castShadow = true;
-  spoonGroup.add(spoonHandle);
-
-  const spoonNeck = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.016, 0.022, 0.13, 18),
-    spoonMat
-  );
-  spoonNeck.rotation.x = Math.PI / 2;
-  spoonNeck.position.z = -0.40;
-  spoonNeck.castShadow = true;
-  spoonGroup.add(spoonNeck);
-
-  const spoonBowl = new THREE.Mesh(
-    new THREE.SphereGeometry(0.092, 28, 20),
-    spoonMat
-  );
-  spoonBowl.scale.set(0.78, 0.20, 1.22);
-  spoonBowl.position.set(0, -0.004, -0.50);
-  spoonBowl.castShadow = true;
-  spoonGroup.add(spoonBowl);
-
-  const spoonInner = new THREE.Mesh(
-    new THREE.SphereGeometry(0.075, 24, 18),
-    new THREE.MeshStandardMaterial({
-      color:0xa9b3ba, roughness:0.35, metalness:0.68
-    })
-  );
-  spoonInner.scale.set(0.75, 0.12, 1.15);
-  spoonInner.position.set(0, 0.015, -0.505);
-  spoonGroup.add(spoonInner);
-
-  const marble = new THREE.Mesh(
-    new THREE.SphereGeometry(0.055, 28, 22),
-    marbleMat
-  );
-  marble.position.set(0, 0.075, -0.505);
-  marble.castShadow = true;
-  spoonGroup.add(marble);
-
-  function createArm(side=1) {
-    const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.25, 0.60, 0);
-    torso.add(shoulder);
-
-    const shoulderCap = new THREE.Mesh(
-      new THREE.SphereGeometry(0.085, 20, 16),
-      shirt
-    );
-    shoulderCap.scale.set(1.05, 0.95, 0.95);
-    shoulderCap.castShadow = true;
-    shoulderCap.position.set(side * 0.03, -0.01, 0);
-    shoulder.add(shoulderCap);
-
-    const upperArm = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.060, 0.20, 8, 14),
-      skin
-    );
-    upperArm.position.y = -0.16;
-    upperArm.castShadow = true;
-    shoulder.add(upperArm);
-
-    const elbow = new THREE.Group();
-    elbow.position.y = -0.31;
-    shoulder.add(elbow);
-
-    const elbowCap = new THREE.Mesh(
-      new THREE.SphereGeometry(0.055, 14, 12),
-      skin
-    );
-    elbowCap.castShadow = true;
-    elbow.add(elbowCap);
-
-    const foreArm = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.050, 0.18, 8, 14),
-      skin
-    );
-    foreArm.position.y = -0.14;
-    foreArm.castShadow = true;
-    elbow.add(foreArm);
-
-    const wrist = new THREE.Group();
-    wrist.position.y = -0.28;
-    elbow.add(wrist);
-
-    const hand = new THREE.Mesh(
-      new THREE.SphereGeometry(0.05, 14, 12),
-      skin
-    );
-    hand.scale.set(0.90, 1.0, 0.65);
-    hand.castShadow = true;
-    wrist.add(hand);
-
-    return { shoulder, elbow, wrist };
-  }
-
-  function createLeg(side=1) {
-    const hip = new THREE.Group();
-    hip.position.set(side * 0.12, 0, 0);
-    hips.add(hip);
-
-    const upperThigh = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.078, 0.22, 8, 16),
-      pants
-    );
-    upperThigh.position.y = -0.20;
-    upperThigh.castShadow = true;
-    hip.add(upperThigh);
-
-    const knee = new THREE.Group();
-    knee.position.y = -0.38;
-    hip.add(knee);
-
-    const kneeCap = new THREE.Mesh(
-      new THREE.SphereGeometry(0.065, 16, 14),
-      pants
-    );
-    kneeCap.castShadow = true;
-    knee.add(kneeCap);
-
-    const shin = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.065, 0.20, 8, 16),
-      pants
-    );
-    shin.position.y = -0.16;
-    shin.castShadow = true;
-    knee.add(shin);
-
-    const ankle = new THREE.Group();
-    ankle.position.y = -0.31;
-    knee.add(ankle);
-
-    const foot = new THREE.Mesh(
-      new THREE.BoxGeometry(0.13, 0.08, 0.28),
-      shoes
-    );
-    foot.position.set(0, -0.03, 0.08);
-    foot.castShadow = true;
-    ankle.add(foot);
-
-    return { hip, knee, ankle };
-  }
-
-  const leftArm = createArm(-1);
-  const rightArm = createArm(1);
-  const leftLeg = createLeg(-1);
-  const rightLeg = createLeg(1);
-
-  return {
-    root, hips, torso, headPivot, spoonGroup, marble,
-    leftArm, rightArm, leftLeg, rightLeg
-  };
-}
-
-function resetRace() {
-  raceStarted = false;
-  raceFinished = false;
-  raceTime = 0;
-  currentSpeed = 0;
-  targetSpeed = 0;
-  currentDirection.set(0, 0, -1);
-  runCycle = 0;
-
-  runner.position.set(0, 0, TRACK.startZ + 1.4);
-  runner.rotation.set(0, 0, 0);
-
-  finishBanner.classList.remove('show');
-  setJoystick(0, 0);
-  setIdlePose(0);
-  updateHud();
-  statusText.textContent = 'Karakter siap';
-}
-
-function getInputVector() {
-  let x = joystick.x;
-  let y = joystick.y;
-
-  const keyboardX = (keys.ArrowRight || keys.d ? 1 : 0) - (keys.ArrowLeft || keys.a ? 1 : 0);
-  const keyboardY = (keys.ArrowDown || keys.s ? 1 : 0) - (keys.ArrowUp || keys.w ? 1 : 0);
-
-  if (keyboardX !== 0 || keyboardY !== 0) {
-    x = keyboardX;
-    y = keyboardY;
-  }
-
-  const length = Math.hypot(x, y);
-  if (length > 1) {
-    x /= length;
-    y /= length;
-  }
-  return { x, y, magnitude:Math.min(1, Math.hypot(x, y)) };
-}
-
-function updateRunner(dt, elapsed) {
-  const input = getInputVector();
-  const moving = input.magnitude > 0.08;
-
-  if (moving && !raceStarted) {
-    raceStarted = true;
-    statusText.textContent = 'Lomba dimulai';
-  }
-
-  const maxSpeed = 8.2;
-  targetSpeed = moving ? maxSpeed * Math.pow(input.magnitude, 0.75) : 0;
-  const acceleration = targetSpeed > currentSpeed ? 8.2 : 12.0;
-  currentSpeed = THREE.MathUtils.damp(currentSpeed, targetSpeed, acceleration, dt);
-
-  if (!raceFinished && moving) {
-    const direction = new THREE.Vector3(input.x, 0, input.y).normalize();
-    currentDirection.lerp(direction, 1 - Math.exp(-8.5 * dt)).normalize();
-
-    runner.position.addScaledVector(currentDirection, currentSpeed * dt);
-
-    const desiredYaw = Math.atan2(-currentDirection.x, -currentDirection.z);
-    runner.rotation.y = dampAngle(runner.rotation.y, desiredYaw, 14, dt);
-
-    runCycle += dt * (4.6 + currentSpeed * 0.62);
-    animateRun(runCycle, Math.min(currentSpeed / maxSpeed, 1), elapsed);
-  } else {
-    setIdlePose(elapsed);
-  }
-
-  if (laneLimit) {
-    const half = TRACK.width / 2 - 0.24;
-    runner.position.x = THREE.MathUtils.clamp(runner.position.x, -half, half);
-  }
-
-  runner.position.z = THREE.MathUtils.clamp(runner.position.z, TRACK.finishZ - 4, TRACK.startZ + 5);
-
-  if (!raceFinished && raceStarted) raceTime += dt;
-  if (!raceFinished && runner.position.z <= TRACK.finishZ) finishRace();
-}
-
-function setIdlePose(elapsed) {
-  const bob = Math.sin(elapsed * 2.2) * 0.015;
-  human.root.position.y = bob;
-  human.hips.rotation.set(0, 0, 0);
-  human.torso.rotation.set(0.03, 0, 0);
-  human.headPivot.rotation.set(0, 0, 0);
-
-  human.leftArm.shoulder.rotation.set(0.14, 0, 0.08);
-  human.rightArm.shoulder.rotation.set(0.14, 0, -0.08);
-  human.leftArm.elbow.rotation.set(-0.12, 0, 0);
-  human.rightArm.elbow.rotation.set(-0.12, 0, 0);
-
-  human.leftLeg.hip.rotation.set(-0.06, 0, 0);
-  human.rightLeg.hip.rotation.set(-0.06, 0, 0);
-  human.leftLeg.knee.rotation.set(0.12, 0, 0);
-  human.rightLeg.knee.rotation.set(0.12, 0, 0);
-  human.leftLeg.ankle.rotation.set(-0.04, 0, 0);
-  human.rightLeg.ankle.rotation.set(-0.04, 0, 0);
-
-  human.spoonGroup.rotation.x = 0.04 + Math.sin(elapsed * 2.5) * 0.01;
-  human.spoonGroup.rotation.z = 0;
-  human.marble.position.set(0, 0.075, -0.505);
-  spoonText.textContent = 'STABIL';
-}
-
-function animateRun(t, speedNorm, elapsed) {
-  const arm = Math.sin(t) * (0.52 + speedNorm * 0.38);
-  const leg = Math.sin(t) * (0.72 + speedNorm * 0.48);
-  const kneeBendL = Math.max(0, -Math.sin(t)) * (0.9 + speedNorm * 0.28);
-  const kneeBendR = Math.max(0, Math.sin(t)) * (0.9 + speedNorm * 0.28);
-  const bounce = Math.abs(Math.sin(t * 2)) * (0.05 + speedNorm * 0.05);
-
-  human.root.position.y = bounce;
-  human.hips.rotation.x = Math.sin(t * 2) * 0.04;
-  human.torso.rotation.x = 0.08 + Math.sin(t * 2) * 0.03;
-  human.headPivot.rotation.x = -0.03;
-  human.headPivot.rotation.z = Math.sin(t * 2) * 0.02;
-
-  human.leftArm.shoulder.rotation.set(arm, 0, 0.10);
-  human.rightArm.shoulder.rotation.set(-arm, 0, -0.10);
-  human.leftArm.elbow.rotation.set(-0.28 + Math.max(0, arm) * 0.25, 0, 0);
-  human.rightArm.elbow.rotation.set(-0.28 + Math.max(0, -arm) * 0.25, 0, 0);
-
-  human.leftLeg.hip.rotation.set(-leg, 0, 0);
-  human.rightLeg.hip.rotation.set(leg, 0, 0);
-  human.leftLeg.knee.rotation.set(kneeBendL, 0, 0);
-  human.rightLeg.knee.rotation.set(kneeBendR, 0, 0);
-  human.leftLeg.ankle.rotation.set(-0.18 + Math.max(0, leg) * 0.28, 0, 0);
-  human.rightLeg.ankle.rotation.set(-0.18 + Math.max(0, -leg) * 0.28, 0, 0);
-
-  // Sendok tetap tergigit dan tidak terbalik.
-  const sway = speedNorm;
-  human.spoonGroup.rotation.x = 0.04 + Math.sin(elapsed * 7.4) * 0.012 * (0.4 + sway);
-  human.spoonGroup.rotation.z = Math.cos(elapsed * 6.2) * 0.018 * sway;
-  human.marble.position.x = Math.sin(elapsed * 5.4) * 0.006 * sway;
-  human.marble.position.y = 0.075 + Math.abs(Math.sin(elapsed * 7.4)) * 0.004 * sway;
-  human.marble.position.z = -0.505 + Math.cos(elapsed * 4.6) * 0.004 * sway;
-
-  spoonText.textContent = sway > 0.82 ? 'GOYANG' : (sway > 0.28 ? 'HATI-HATI' : 'STABIL');
-}
-
-function finishRace() {
-  raceFinished = true;
-  currentSpeed = 0;
-  targetSpeed = 0;
-  finishText.textContent = `Waktu lomba: ${raceTime.toFixed(2)} detik`;
-  finishBanner.classList.add('show');
-  statusText.textContent = 'Finish!';
-}
-
-function dampAngle(current, target, lambda, dt) {
-  let delta = (target - current + Math.PI) % (Math.PI * 2) - Math.PI;
-  return current + delta * (1 - Math.exp(-lambda * dt));
-}
-
-function updateCamera(dt) {
-  const forward = currentDirection.clone();
-  if (forward.lengthSq() < 0.001) forward.set(0, 0, -1);
-
-  const side = new THREE.Vector3(-forward.z, 0, forward.x);
-  let desiredPosition;
-  let desiredTarget;
-
-  if (cameraMode === 'front') {
-    desiredPosition = runner.position.clone()
-      .addScaledVector(forward, 4.6)
-      .addScaledVector(side, 2.4)
-      .add(new THREE.Vector3(0, 2.45, 0));
-    desiredTarget = runner.position.clone()
-      .add(new THREE.Vector3(0, 1.35, 0))
-      .addScaledVector(forward, -0.35);
-  } else {
-    desiredPosition = runner.position.clone()
-      .addScaledVector(forward, -5.1)
-      .addScaledVector(side, 2.5)
-      .add(new THREE.Vector3(0, 2.7, 0));
-    desiredTarget = runner.position.clone()
-      .add(new THREE.Vector3(0, 1.25, 0))
-      .addScaledVector(forward, 2.1);
-  }
-
-  camera.position.lerp(desiredPosition, 1 - Math.exp(-5.4 * dt));
-  orbit.target.lerp(desiredTarget, 1 - Math.exp(-7.2 * dt));
-  orbit.update();
-}
-
-function updateHud() {
-  const rawDistance = TRACK.startZ - runner.position.z;
-  const distance = THREE.MathUtils.clamp(rawDistance, 0, TRACK.length);
-  const progress = distance / TRACK.length;
-
-  speedText.textContent = `${(currentSpeed * 3.6).toFixed(1)} km/j`;
-  distanceText.textContent = `${distance.toFixed(1)} m`;
-  timeText.textContent = `${raceTime.toFixed(2)} s`;
-  progressBar.style.width = `${progress * 100}%`;
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.05);
-  const elapsed = clock.elapsedTime;
-  updateRunner(dt, elapsed);
-  updateCamera(dt);
-  updateHud();
-  renderer.render(scene, camera);
-}
-
-function setJoystick(x, y) {
-  joystick.x = THREE.MathUtils.clamp(x, -1, 1);
-  joystick.y = THREE.MathUtils.clamp(y, -1, 1);
-  const radius = joystickZone.clientWidth * 0.31;
-  joystickKnob.style.transform =
-    `translate(calc(-50% + ${joystick.x * radius}px), calc(-50% + ${joystick.y * radius}px))`;
-}
-
-function updateJoystickFromEvent(event) {
-  const rect = joystickZone.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-
-  let dx = event.clientX - centerX;
-  let dy = event.clientY - centerY;
-
-  const maxRadius = rect.width * 0.31;
-  const distance = Math.hypot(dx, dy);
-  if (distance > maxRadius) {
-    dx = dx / distance * maxRadius;
-    dy = dy / distance * maxRadius;
-  }
-  setJoystick(dx / maxRadius, dy / maxRadius);
-}
-
-joystickZone.addEventListener('pointerdown', event => {
-  joystick.active = true;
-  joystick.pointerId = event.pointerId;
-  joystickZone.setPointerCapture(event.pointerId);
-  joystickZone.classList.add('active');
-  updateJoystickFromEvent(event);
-});
-
-joystickZone.addEventListener('pointermove', event => {
-  if (!joystick.active || event.pointerId !== joystick.pointerId) return;
-  updateJoystickFromEvent(event);
-});
-
-function releaseJoystick(event) {
-  if (joystick.pointerId !== null && event.pointerId !== joystick.pointerId) return;
-  joystick.active = false;
-  joystick.pointerId = null;
-  joystickZone.classList.remove('active');
-  setJoystick(0, 0);
-}
-joystickZone.addEventListener('pointerup', releaseJoystick);
-joystickZone.addEventListener('pointercancel', releaseJoystick);
-
-addEventListener('keydown', event => {
-  const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-  if (key in keys) {
-    keys[key] = true;
-    event.preventDefault();
-  }
-});
-addEventListener('keyup', event => {
-  const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-  if (key in keys) {
-    keys[key] = false;
-    event.preventDefault();
-  }
-});
-
-resetBtn.addEventListener('click', resetRace);
-finishResetBtn.addEventListener('click', resetRace);
-cameraBtn.addEventListener('click', () => {
-  cameraMode = cameraMode === 'front' ? 'back' : 'front';
-  cameraBtn.textContent = `KAMERA: ${cameraMode === 'front' ? 'DEPAN' : 'BELAKANG'}`;
-});
-laneBtn.addEventListener('click', () => {
-  laneLimit = !laneLimit;
-  laneBtn.textContent = `BATAS JALUR: ${laneLimit ? 'ON' : 'OFF'}`;
-});
-
-addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
-  renderer.setSize(innerWidth, innerHeight);
-  setJoystick(joystick.x, joystick.y);
-});
 </script>
 </body>
 </html>
