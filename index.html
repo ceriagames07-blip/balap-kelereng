@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V12 Public</title>
+  <title>Anime Runner VRM V12.1 Fixed</title>
   <style>
     :root{
       --bg:#080b14;
@@ -768,8 +768,8 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER VRM V12 PUBLIC</span></h1>
-      <p>Versi publik satu file HTML. Avatar VRM dan library 3D dimuat langsung dari CDN saat pengunjung membuka game.</p>
+      <h1>HUMAN <span>RUNNER VRM V12.1 FIXED</span></h1>
+      <p>Versi publik satu file HTML dengan perbaikan runtime bayangan karakter. Avatar VRM dan library 3D dimuat langsung dari CDN.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
@@ -3093,9 +3093,7 @@ async function loadAllRacers() {
       'Karakter anime gagal dimuat.';
 
     loaderError.textContent =
-      `${error?.name || 'Error'}: ${error?.message || error}
-
-Pastikan internet aktif, lalu tekan COBA MUAT ULANG.`;
+      `${error?.name || 'Error'}: ${error?.message || error}${error?.stack ? '\n\n' + error.stack.split('\n').slice(0, 3).join('\n') : ''}\n\nTekan COBA MUAT ULANG.`;
 
     retryLoadBtn.style.display = 'block';
   }
@@ -3348,30 +3346,6 @@ function setIdlePose(
       breath * 0.004
     );
 
-  if (racer.contactShadow) {
-    const shadowScale =
-      1 -
-      verticalBounce * 2.4;
-
-    racer.contactShadow.scale.set(
-      THREE.MathUtils.clamp(
-        shadowScale,
-        0.82,
-        1
-      ),
-      THREE.MathUtils.clamp(
-        shadowScale,
-        0.82,
-        1
-      ),
-      1
-    );
-
-    racer.contactShadow.material.opacity =
-      racer.isPlayer
-        ? 0.72 - verticalBounce * 2.2
-        : 0.56 - verticalBounce * 1.8;
-  }
 
   if (racer.contactShadow) {
     racer.contactShadow.scale.set(
@@ -3483,6 +3457,25 @@ function animateRun(
 
   racer.root.position.y =
     verticalBounce;
+
+  // Bayangan mengikuti tinggi badan saat berlari.
+  // verticalBounce hanya digunakan di dalam animateRun, tempat nilainya didefinisikan.
+  if (racer.contactShadow) {
+    const shadowScale =
+      1 -
+      verticalBounce * 2.4;
+
+    racer.contactShadow.scale.set(
+      THREE.MathUtils.clamp(shadowScale, 0.82, 1),
+      THREE.MathUtils.clamp(shadowScale, 0.82, 1),
+      1
+    );
+
+    racer.contactShadow.material.opacity =
+      racer.isPlayer
+        ? 0.72 - verticalBounce * 2.2
+        : 0.56 - verticalBounce * 1.8;
+  }
 
   poseBone(
     racer,
