@@ -3279,65 +3279,61 @@ function poseRunningArm(
     ? 'leftHand'
     : 'rightHand';
 
-  // Gerak bahu dibuat maju-mundur dari sendi bahu,
-  // bukan mengepak ke samping.
-  const forwardSwing = Math.max(0, swing);
-  const backwardSwing = Math.max(0, -swing);
+  // Bahu dibuat benar-benar maju-mundur (protraksi/retraksi),
+  // bukan naik-turun atau membuka ke samping.
+  const shoulderForwardBack =
+    swing * (0.105 + speedRatio * 0.035);
 
-  const shoulderPitch =
-    -0.018 +
-    forwardSwing * (0.28 + speedRatio * 0.08) -
-    backwardSwing * (0.16 + speedRatio * 0.05);
+  const armForwardBack =
+    swing * (0.56 + speedRatio * 0.14);
 
-  const upperArmPitch =
-    -0.024 +
-    forwardSwing * (0.58 + speedRatio * 0.15) -
-    backwardSwing * (0.40 + speedRatio * 0.10);
-
-  // Sudut lengan turun di samping badan dibuat hampir konstan
-  // agar tidak terlihat mengepak ke kanan-kiri.
-  const upperArmDrop =
-    mirror * 1.18;
-
+  // Rotasi utama bahu ada pada sumbu Y lokal.
+  // Tanda mirror membuat bahu kiri dan kanan sama-sama bergerak
+  // ke arah depan ketika lengannya maju.
   poseBone(
     racer,
     shoulderName,
-    shoulderPitch,
-    0,
+    -0.012,
+    -mirror * shoulderForwardBack,
     mirror * 0.002,
     smoothing * 0.94,
     'XYZ'
   );
 
+  // Lengan atas tetap turun di sisi badan dan mengayun maju-mundur.
+  // Nilai Z dibuat konstan supaya tidak terlihat mengepak.
   poseBone(
     racer,
     upperName,
-    upperArmPitch,
+    -0.020 + armForwardBack,
     0,
-    upperArmDrop,
+    mirror * 1.18,
     smoothing,
     'ZXY'
   );
 
+  const forwardSwing = Math.max(0, swing);
+  const backwardSwing = Math.max(0, -swing);
+
   const elbowBend =
-    0.50 +
-    forwardSwing * (0.12 + speedRatio * 0.04) +
-    backwardSwing * 0.10;
+    0.48 +
+    forwardSwing * (0.12 + speedRatio * 0.035) +
+    backwardSwing * 0.08;
 
   poseBentElbow(
     racer,
     side,
     elbowBend,
-    swing * 0.16,
+    swing * 0.12,
     smoothing * 0.90
   );
 
   poseBone(
     racer,
     handName,
-    0.002 - swing * 0.040,
+    0.002 - swing * 0.035,
     0,
-    mirror * -0.003,
+    mirror * -0.002,
     smoothing * 0.84,
     'XYZ'
   );
