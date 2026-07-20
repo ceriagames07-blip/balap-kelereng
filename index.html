@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V14.1 Real VRM Costumes</title>
+  <title>game kejar kejaran</title>
   <style>
     :root{
       --bg:#080b14;
@@ -768,8 +768,8 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER VRM V14.1</span></h1>
-      <p>Memakai karakter VRM berkostum anime asli: hoodie, jaket, rok atau celana, kaus kaki, dan sepatu sudah menyatu dengan model.</p>
+      <h1>HUMAN <span>RUNNER VRM V14 FULL</span></h1>
+      <p>Versi lengkap satu file HTML: memakai rambut dan pakaian bawaan VRM, animasi bernapas, lari natural, bayangan, sendok, kelereng, dan lima pemain.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
@@ -893,29 +893,31 @@ const MAX_FRAME_DELTA = 1 / 30;
 
 /*
 ==============================================================
-MODEL KOSTUM VRM YANG DIGUNAKAN
+CARA MENGGANTI KARAKTER DENGAN VRM BERPAKAIAN ANIME MILIK ANDA
 ==============================================================
 
-Versi ini memakai:
-- AvatarSample_A.vrm
-- AvatarSample_B.vrm
-- AvatarSample_C.vrm
+1. Buat folder:
+   assets/
 
-Pakaian sudah menyatu di dalam model VRM:
-- hoodie atau jaket
-- atasan
-- rok atau celana
-- kaus kaki
-- sepatu
+2. Masukkan file:
+   assets/kai.vrm
+   assets/ren.vrm
+   assets/mika.vrm
+   assets/yuna.vrm
+   assets/sora.vrm
 
-Tidak ada baju kotak, capsule, sphere, atau pakaian tempelan.
+3. Pada setiap karakter di CHARACTER_PRESETS, ganti:
 
-Untuk memakai karakter milik sendiri, ganti nilai primary dan fallback
-pada masing-masing karakter dengan file VRM lengkap, contohnya:
+   primary: 'https://...'
 
-primary: './assets/kai.vrm'
-fallback: './assets/kai.vrm'
+   menjadi:
 
+   primary: './assets/kai.vrm'
+
+Fallback online boleh dibiarkan atau disamakan dengan primary.
+
+Pakaian, rambut, wajah, dan tubuh harus sudah menyatu di dalam file VRM.
+HTML ini tidak membuat pakaian buatan dari geometri.
 ==============================================================
 */
 
@@ -923,14 +925,14 @@ const CHARACTER_PRESETS = [
   {
     id: 'kai',
     name: 'KAI',
-    type: 'Male Anime • Hoodie Runner',
+    type: 'Male Anime • Balanced',
     gender: 'male',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    // Ganti primary dengan './assets/kai.vrm' jika sudah punya model VRM berpakaian sendiri.
     model: {
       primary:
-        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm',
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/masc_vroid.vrm',
       fallback:
-        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_C.vrm'
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/masc_vroid.vrm'
     },
     accent: 0x36e5f2,
     accentCss: '#36e5f2',
@@ -951,14 +953,14 @@ const CHARACTER_PRESETS = [
   {
     id: 'ren',
     name: 'REN',
-    type: 'Male Anime • Red Hoodie',
+    type: 'Male Anime • Speed',
     gender: 'male',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    // Ganti primary dengan './assets/ren.vrm' jika sudah punya model VRM berpakaian sendiri.
     model: {
       primary:
-        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm',
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/masc_vroid.vrm',
       fallback:
-        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_C.vrm'
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/masc_vroid.vrm'
     },
     accent: 0xff5c4f,
     accentCss: '#ff5c4f',
@@ -979,14 +981,14 @@ const CHARACTER_PRESETS = [
   {
     id: 'mika',
     name: 'MIKA',
-    type: 'Female Anime • Street Jacket',
+    type: 'Female Anime • Smooth',
     gender: 'female',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    // Ganti primary dengan './assets/mika.vrm' jika sudah punya model VRM berpakaian sendiri.
     model: {
       primary:
-        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_A.vrm',
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/fem_vroid.vrm',
       fallback:
-        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_A.vrm'
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/fem_vroid.vrm'
     },
     accent: 0xb76cff,
     accentCss: '#b76cff',
@@ -1007,14 +1009,14 @@ const CHARACTER_PRESETS = [
   {
     id: 'yuna',
     name: 'YUNA',
-    type: 'Female Anime • Fashion Outfit',
+    type: 'Female Anime • Control',
     gender: 'female',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    // Ganti primary dengan './assets/yuna.vrm' jika sudah punya model VRM berpakaian sendiri.
     model: {
       primary:
-        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_B.vrm',
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/fem_vroid.vrm',
       fallback:
-        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_B.vrm'
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/fem_vroid.vrm'
     },
     accent: 0x43e899,
     accentCss: '#43e899',
@@ -1035,14 +1037,14 @@ const CHARACTER_PRESETS = [
   {
     id: 'sora',
     name: 'SORA',
-    type: 'Male Anime • Gold Hoodie',
+    type: 'Male Anime • Power',
     gender: 'male',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    // Ganti primary dengan './assets/sora.vrm' jika sudah punya model VRM berpakaian sendiri.
     model: {
       primary:
-        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm',
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/masc_vroid.vrm',
       fallback:
-        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_C.vrm'
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/masc_vroid.vrm'
     },
     accent: 0xffd44a,
     accentCss: '#ffd44a',
@@ -1861,6 +1863,30 @@ function tintAvatarMaterials(
       preset.skinCss
     );
 
+  function stableHash(
+    value
+  ) {
+    let hash = 0;
+
+    for (
+      let index = 0;
+      index < value.length;
+      index++
+    ) {
+      hash =
+        (
+          hash * 31 +
+          value.charCodeAt(
+            index
+          )
+        ) | 0;
+    }
+
+    return Math.abs(
+      hash
+    );
+  }
+
   vrm.scene.traverse(object => {
     if (!object.isMesh) return;
 
@@ -1876,7 +1902,10 @@ function tintAvatarMaterials(
         : [object.material];
 
     materials.forEach(
-      material => {
+      (
+        material,
+        materialIndex
+      ) => {
         if (!material) return;
 
         const materialName =
@@ -1886,80 +1915,88 @@ function tintAvatarMaterials(
             ''
           ).toLowerCase();
 
-        const isHair =
-          materialName.includes('hair') ||
-          materialName.includes('bang') ||
-          materialName.includes('lash') ||
-          materialName.includes('brow');
-
-        const isFace =
-          materialName.includes('face') ||
+        const isFacePart =
           materialName.includes('eye') ||
-          materialName.includes('iris') ||
           materialName.includes('mouth') ||
           materialName.includes('lip') ||
           materialName.includes('teeth') ||
-          materialName.includes('tongue');
-
-        const isSkin =
-          materialName.includes('skin');
-
-        const isBottom =
-          materialName.includes('pants') ||
-          materialName.includes('bottom') ||
-          materialName.includes('skirt') ||
-          materialName.includes('short');
-
-        const isShoes =
-          materialName.includes('shoe') ||
-          materialName.includes('boot') ||
-          materialName.includes('sole');
-
-        const isClothing =
-          materialName.includes('cloth') ||
-          materialName.includes('shirt') ||
-          materialName.includes('top') ||
-          materialName.includes('jacket') ||
-          materialName.includes('coat') ||
-          materialName.includes('hood') ||
-          materialName.includes('dress') ||
-          materialName.includes('uniform') ||
-          isBottom ||
-          isShoes;
+          materialName.includes('tongue') ||
+          materialName.includes('face');
 
         if (
-          isHair
+          findHairMaterialName(
+            materialName
+          )
         ) {
-          // Pertahankan tekstur rambut asli, hanya beri warna ringan.
           material.color?.lerp(
             hairColor,
-            0.18
+            0.42
           );
         } else if (
-          isFace
-        ) {
-          // Wajah, mata, dan mulut asli tidak diwarnai.
-        } else if (
-          isSkin
+          findSkinMaterialName(
+            materialName
+          )
         ) {
           material.color?.lerp(
             skinColor,
-            0.10
+            0.24
           );
         } else if (
-          isClothing &&
+          isFacePart
+        ) {
+          // Mata dan wajah bawaan VRM tidak diubah.
+        } else if (
           material.color
         ) {
-          const target =
-            isBottom ||
-            isShoes
-              ? secondaryColor
-              : primaryColor;
+          let target;
 
-          // Tint ringan supaya pola dan detail kostum asli tetap terlihat.
+          if (
+            materialName.includes('shoe') ||
+            materialName.includes('boot') ||
+            materialName.includes('sole')
+          ) {
+            target =
+              secondaryColor
+                .clone()
+                .multiplyScalar(
+                  0.58
+                );
+          } else if (
+            materialName.includes('pants') ||
+            materialName.includes('bottom') ||
+            materialName.includes('skirt') ||
+            materialName.includes('short') ||
+            materialName.includes('leg')
+          ) {
+            target =
+              secondaryColor;
+          } else if (
+            materialName.includes('shirt') ||
+            materialName.includes('top') ||
+            materialName.includes('jacket') ||
+            materialName.includes('coat') ||
+            materialName.includes('cloth') ||
+            materialName.includes('body')
+          ) {
+            target =
+              primaryColor;
+          } else {
+            const paletteIndex =
+              stableHash(
+                `${materialName}-${materialIndex}`
+              ) % 3;
+
+            target =
+              paletteIndex === 0
+                ? primaryColor
+                : paletteIndex === 1
+                  ? secondaryColor
+                  : trimColor;
+          }
+
           material.color.lerp(
             target,
-            0.32
+            0.82
           );
 
           if (
@@ -1975,14 +2012,6 @@ function tintAvatarMaterials(
             material.metalness =
               0.03;
           }
-        } else if (
-          material.color
-        ) {
-          // Material tidak dikenal dipertahankan hampir sepenuhnya.
-          material.color.lerp(
-            trimColor,
-            0.06
-          );
         }
 
         material.needsUpdate = true;
@@ -2511,10 +2540,11 @@ function createHairStyle(
 function createOutfit(
   racer
 ) {
-  // Kostum tidak dibuat lewat Three.js.
-  // Hoodie, jaket, rok/celana, kaus kaki, dan sepatu
-  // sudah menjadi bagian dari mesh AvatarSample_A/B/C.
-  racer.outfit = racer.vrm.scene;
+  // Pakaian berasal dari mesh bawaan file VRM.
+  // Fungsi tintAvatarMaterials hanya mengubah warnanya.
+  // Tidak ada BoxGeometry, CapsuleGeometry, SphereGeometry,
+  // RoundedBoxGeometry, armor, atau gumpalan pakaian tambahan.
+  racer.outfit = null;
 }
 
 function lockForwardDirection(
