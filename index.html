@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V14.1 Real VRM Costumes</title>
+  <title>Anime Runner VRM V14.1 Mobile Lite</title>
   <style>
     :root{
       --bg:#080b14;
@@ -760,6 +760,43 @@
       display: none;
     }
 
+
+  @media (max-width: 1024px) {
+    .brand,
+    .status-pill,
+    .hud-card,
+    .controls-card,
+    .character-selector,
+    .selector-panel,
+    .loader-card,
+    .finish-banner,
+    .joystick-base {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+      box-shadow: none !important;
+    }
+
+    .status-dot,
+    .loader-ring,
+    .avatar-glow {
+      animation: none !important;
+      filter: none !important;
+    }
+
+    .control-btn,
+    .character-card,
+    .progress-bar,
+    .joystick-knob,
+    .loader,
+    .finish-banner {
+      transition: none !important;
+    }
+
+    .character-card:hover {
+      transform: none !important;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -768,8 +805,8 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER VRM V14.1</span></h1>
-      <p>Memakai karakter VRM berkostum anime asli: hoodie, jaket, rok atau celana, kaus kaki, dan sepatu sudah menyatu dengan model.</p>
+      <h1>HUMAN <span>RUNNER VRM V14.1 LITE</span></h1>
+      <p>Model dan kostum tetap sama. Render, bayangan, HUD, dan animasi lawan diringankan untuk ponsel standar.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
@@ -1087,6 +1124,48 @@ const characterSelector = document.getElementById('characterSelector');
 const characterGrid = document.getElementById('characterGrid');
 const closeSelectorBtn = document.getElementById('closeSelectorBtn');
 
+const LOW_POWER_MODE =
+  matchMedia(
+    '(max-width: 1024px)'
+  ).matches ||
+  (
+    navigator.hardwareConcurrency &&
+    navigator.hardwareConcurrency <= 4
+  ) ||
+  (
+    navigator.deviceMemory &&
+    navigator.deviceMemory <= 4
+  );
+
+const PIXEL_RATIO_LIMIT =
+  LOW_POWER_MODE
+    ? 0.68
+    : 1.00;
+
+const TARGET_FPS =
+  LOW_POWER_MODE
+    ? 30
+    : 45;
+
+const HUD_UPDATE_DIVISOR =
+  LOW_POWER_MODE
+    ? 3
+    : 1;
+
+const OPPONENT_POSE_DIVISOR =
+  LOW_POWER_MODE
+    ? 2
+    : 1;
+
+const OPPONENT_VRM_DIVISOR =
+  LOW_POWER_MODE
+    ? 4
+    : 2;
+
+// URL model yang sama tidak diminta berulang dalam satu sesi.
+// KAI, REN, dan SORA memakai AvatarSample_C yang sama.
+THREE.Cache.enabled = true;
+
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x0b1020, 0.013);
 
@@ -1099,22 +1178,49 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(5.8, 3.3, 53);
 
 const renderer = new THREE.WebGLRenderer({
-  antialias: true,
+  antialias: !LOW_POWER_MODE,
   alpha: true,
-  powerPreference: 'high-performance'
+  powerPreference: 'high-performance',
+  stencil: false,
+  preserveDrawingBuffer: false
 });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.55));
-renderer.setSize(innerWidth, innerHeight);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+renderer.setPixelRatio(
+  Math.min(
+    devicePixelRatio,
+    PIXEL_RATIO_LIMIT
+  )
+);
+
+renderer.setSize(
+  innerWidth,
+  innerHeight
+);
+
+renderer.outputColorSpace =
+  THREE.SRGBColorSpace;
+
+renderer.toneMapping =
+  LOW_POWER_MODE
+    ? THREE.NoToneMapping
+    : THREE.ACESFilmicToneMapping;
+
+renderer.toneMappingExposure =
+  LOW_POWER_MODE
+    ? 1
+    : 1.06;
+
+// Di ponsel cukup memakai contact shadow ringan.
+renderer.shadowMap.enabled =
+  !LOW_POWER_MODE;
+
+renderer.shadowMap.type =
+  THREE.BasicShadowMap;
 viewport.appendChild(renderer.domElement);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
-orbit.enableDamping = true;
-orbit.dampingFactor = 0.065;
+orbit.enableDamping = !LOW_POWER_MODE;
+orbit.dampingFactor = LOW_POWER_MODE ? 0 : 0.055;
 orbit.target.set(0, 1.25, TRACK.startZ - 2);
 orbit.enablePan = false;
 orbit.minDistance = 3.5;
@@ -1155,6 +1261,7 @@ let playerTargetX = 0;
 let smoothInputX = 0;
 let smoothInputY = 0;
 let modelsReady = false;
+let performanceFrame = 0;
 
 const joystick = {
   active: false,
@@ -1196,33 +1303,35 @@ function setupLights() {
     );
 
   sun.position.set(8, 14, 8);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.castShadow = !LOW_POWER_MODE;
+  sun.shadow.mapSize.set(512, 512);
   sun.shadow.camera.left = -14;
   sun.shadow.camera.right = 14;
   sun.shadow.camera.top = 18;
   sun.shadow.camera.bottom = -8;
   scene.add(sun);
 
-  const fill =
-    new THREE.DirectionalLight(
-      0x6fdcff,
-      1.8
-    );
+  if (!LOW_POWER_MODE) {
+    const fill =
+      new THREE.DirectionalLight(
+        0x6fdcff,
+        1.45
+      );
 
-  fill.position.set(-8, 5, 6);
-  scene.add(fill);
+    fill.position.set(-8, 5, 6);
+    scene.add(fill);
 
-  const warm =
-    new THREE.PointLight(
-      0xff8c43,
-      7,
-      28,
-      2
-    );
+    const warm =
+      new THREE.PointLight(
+        0xff8c43,
+        4.5,
+        26,
+        2
+      );
 
-  warm.position.set(0, 4, -12);
-  scene.add(warm);
+    warm.position.set(0, 4, -12);
+    scene.add(warm);
+  }
 }
 
 function createTrack() {
@@ -1403,7 +1512,12 @@ function createTrack() {
   [-1, 1].forEach(side => {
     for (
       let row = 0;
-      row < 5;
+      row <
+      (
+        LOW_POWER_MODE
+          ? 2
+          : 5
+      );
       row++
     ) {
       const stand =
@@ -1423,8 +1537,8 @@ function createTrack() {
         -4
       );
 
-      stand.castShadow = true;
-      stand.receiveShadow = true;
+      stand.castShadow = !LOW_POWER_MODE;
+      stand.receiveShadow = !LOW_POWER_MODE;
       scene.add(stand);
     }
   });
@@ -1458,7 +1572,7 @@ function createTrack() {
       TRACK.finishZ
     );
 
-    pole.castShadow = true;
+    pole.castShadow = !LOW_POWER_MODE;
     scene.add(pole);
   });
 
@@ -1864,9 +1978,13 @@ function tintAvatarMaterials(
   vrm.scene.traverse(object => {
     if (!object.isMesh) return;
 
-    object.castShadow = true;
-    object.receiveShadow = true;
-    object.frustumCulled = false;
+    object.castShadow =
+      !LOW_POWER_MODE;
+
+    object.receiveShadow =
+      !LOW_POWER_MODE;
+
+    object.frustumCulled = true;
 
     const materials =
       Array.isArray(
@@ -2196,7 +2314,9 @@ function createSpoon(
         0.005,
         0.0065,
         0.18,
-        16
+        LOW_POWER_MODE
+          ? 8
+          : 16
       ),
       spoonMaterial
     );
@@ -2210,15 +2330,19 @@ function createSpoon(
     -0.09
   );
 
-  handle.castShadow = true;
+  handle.castShadow = !LOW_POWER_MODE;
   group.add(handle);
 
   const bowl =
     new THREE.Mesh(
       new THREE.SphereGeometry(
         0.034,
-        22,
-        18
+        LOW_POWER_MODE
+          ? 10
+          : 22,
+        LOW_POWER_MODE
+          ? 8
+          : 18
       ),
       spoonMaterial
     );
@@ -2235,7 +2359,7 @@ function createSpoon(
     -0.19
   );
 
-  bowl.castShadow = true;
+  bowl.castShadow = !LOW_POWER_MODE;
   group.add(bowl);
 
   // Kelereng menjadi anak dari bowl, sehingga selalu berada
@@ -2244,8 +2368,12 @@ function createSpoon(
     new THREE.Mesh(
       new THREE.SphereGeometry(
         0.017,
-        20,
-        16
+        LOW_POWER_MODE
+          ? 8
+          : 20,
+        LOW_POWER_MODE
+          ? 6
+          : 16
       ),
       marbleMaterial
     );
@@ -2256,7 +2384,7 @@ function createSpoon(
     0
   );
 
-  marble.castShadow = true;
+  marble.castShadow = !LOW_POWER_MODE;
   bowl.add(marble);
 
   scene.add(group);
@@ -2339,26 +2467,41 @@ function createAccentAccessories(
   racer.accessories = null;
 }
 
-function createContactShadow(
-  racer
-) {
+let sharedContactShadowTexture =
+  null;
+
+function getContactShadowTexture() {
+  if (
+    sharedContactShadowTexture
+  ) {
+    return sharedContactShadowTexture;
+  }
+
   const canvas =
     document.createElement('canvas');
 
-  canvas.width = 256;
-  canvas.height = 256;
+  const size =
+    LOW_POWER_MODE
+      ? 64
+      : 128;
+
+  canvas.width = size;
+  canvas.height = size;
 
   const context =
     canvas.getContext('2d');
 
+  const center =
+    size / 2;
+
   const gradient =
     context.createRadialGradient(
-      128,
-      128,
-      8,
-      128,
-      128,
-      120
+      center,
+      center,
+      size * 0.04,
+      center,
+      center,
+      size * 0.47
     );
 
   gradient.addColorStop(
@@ -2382,18 +2525,25 @@ function createContactShadow(
   context.fillRect(
     0,
     0,
-    256,
-    256
+    size,
+    size
   );
 
-  const texture =
+  sharedContactShadowTexture =
     new THREE.CanvasTexture(
       canvas
     );
 
+  return sharedContactShadowTexture;
+}
+
+function createContactShadow(
+  racer
+) {
   const material =
     new THREE.MeshBasicMaterial({
-      map: texture,
+      map:
+        getContactShadowTexture(),
       transparent: true,
       depthWrite: false,
       opacity:
@@ -2419,7 +2569,7 @@ function createContactShadow(
     -Math.PI / 2;
 
   shadow.renderOrder = 2;
-  shadow.frustumCulled = false;
+  shadow.frustumCulled = true;
 
   scene.add(shadow);
 
@@ -2627,23 +2777,22 @@ async function createRacer(
     racer
   );
 
-  const label =
-    createLabelSprite(
-      `PEMAIN • ${preset.name}`,
-      preset.accentCss
+  if (isPlayer) {
+    const label =
+      createLabelSprite(
+        `PEMAIN • ${preset.name}`,
+        preset.accentCss
+      );
+
+    label.position.set(
+      0,
+      2.95,
+      0
     );
 
-  label.position.set(
-    0,
-    2.95,
-    0
-  );
-
-  label.visible =
-    isPlayer;
-
-  root.add(label);
-  racer.label = label;
+    root.add(label);
+    racer.label = label;
+  }
 
   setIdlePose(
     racer,
@@ -2736,7 +2885,7 @@ async function loadAllRacers() {
     resetRace();
 
     statusText.textContent =
-      '5 avatar hidup • outfit warna berbeda';
+      '5 avatar siap • mode ringan aktif';
   } catch (error) {
     console.error(error);
 
@@ -4039,6 +4188,17 @@ function updateOpponents(
   if (!modelsReady) return;
 
   racers.forEach(racer => {
+    const updatePose =
+      !LOW_POWER_MODE ||
+      (
+        performanceFrame %
+        OPPONENT_POSE_DIVISOR
+      ) ===
+      (
+        racer.laneIndex %
+        OPPONENT_POSE_DIVISOR
+      );
+
     if (
       racer.isPlayer ||
       racer.finished
@@ -4049,14 +4209,18 @@ function updateOpponents(
       raceTime <
       racer.reactionTime
     ) {
-      setIdlePose(
-        racer,
-        elapsed,
-        1 -
-        Math.exp(
-          -10 * dt
-        )
-      );
+      if (updatePose) {
+        setIdlePose(
+          racer,
+          elapsed,
+          1 -
+          Math.exp(
+            -10 *
+            dt *
+            OPPONENT_POSE_DIVISOR
+          )
+        );
+      }
       return;
     }
 
@@ -4100,17 +4264,20 @@ function updateOpponents(
         dt
       );
 
-    animateRun(
-      racer,
-      elapsed,
-      THREE.MathUtils.clamp(
-        effectiveSpeed /
-        racer.preset.speed,
-        0,
-        1
-      ),
-      dt
-    );
+    if (updatePose) {
+      animateRun(
+        racer,
+        elapsed,
+        THREE.MathUtils.clamp(
+          effectiveSpeed /
+          racer.preset.speed,
+          0,
+          1
+        ),
+        dt *
+        OPPONENT_POSE_DIVISOR
+      );
+    }
 
     if (
       racer.root.position.z <=
@@ -4367,14 +4534,39 @@ function updateHud() {
   }
 }
 
+let renderAccumulator = 0;
+
 function animate() {
-  requestAnimationFrame(animate);
+  requestAnimationFrame(
+    animate
+  );
+
+  const rawDelta =
+    clock.getDelta();
+
+  // Saat tab tidak terlihat, jangan melakukan render berat.
+  if (document.hidden) {
+    return;
+  }
+
+  renderAccumulator +=
+    rawDelta;
+
+  if (
+    renderAccumulator <
+    1 /
+    TARGET_FPS
+  ) {
+    return;
+  }
 
   const dt =
     Math.min(
-      clock.getDelta(),
+      renderAccumulator,
       MAX_FRAME_DELTA
     );
+
+  renderAccumulator = 0;
 
   const elapsed =
     clock.elapsedTime;
@@ -4400,30 +4592,75 @@ function animate() {
     elapsed
   );
 
-  racers.forEach(racer => {
-    racer.vrm?.update(dt);
-
-    updateMouthAttachment(
-      racer
-    );
-
-    // Tetap dipanggil setelah finish agar bayangan tidak menghilang.
-    updateGroundShadow(
+  racers.forEach(
+    (
       racer,
-      Math.max(
-        0,
-        racer.root.position.y
-      )
-    );
-  });
+      racerIndex
+    ) => {
+      const isPlayer =
+        racer === player;
 
-  updateCamera(dt);
-  updateHud();
+      const updateVrm =
+        isPlayer ||
+        !LOW_POWER_MODE ||
+        (
+          performanceFrame %
+          OPPONENT_VRM_DIVISOR
+        ) ===
+        (
+          racerIndex %
+          OPPONENT_VRM_DIVISOR
+        );
+
+      if (updateVrm) {
+        racer.vrm?.update(
+          isPlayer
+            ? dt
+            : dt *
+              OPPONENT_VRM_DIVISOR
+        );
+      }
+
+      const updateAccessory =
+        isPlayer ||
+        !LOW_POWER_MODE ||
+        performanceFrame % 2 ===
+        racerIndex % 2;
+
+      if (updateAccessory) {
+        updateMouthAttachment(
+          racer
+        );
+      }
+
+      updateGroundShadow(
+        racer,
+        Math.max(
+          0,
+          racer.root.position.y
+        )
+      );
+    }
+  );
+
+  updateCamera(
+    dt
+  );
+
+  if (
+    performanceFrame %
+    HUD_UPDATE_DIVISOR ===
+    0
+  ) {
+    updateHud();
+  }
 
   renderer.render(
     scene,
     camera
   );
+
+  performanceFrame++;
 }
 
 function setJoystick(x, y) {
@@ -4717,7 +4954,7 @@ addEventListener(
     renderer.setPixelRatio(
       Math.min(
         devicePixelRatio,
-        1.55
+        PIXEL_RATIO_LIMIT
       )
     );
 
