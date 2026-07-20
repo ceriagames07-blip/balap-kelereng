@@ -2828,58 +2828,56 @@ function poseRunningArm(
     ? 'leftHand'
     : 'rightHand';
 
-  // Rumus sengaja dibuat sederhana agar stabil pada berbagai rig VRM.
-  // Nilai swing positif berarti lengan maju, negatif berarti ke belakang.
+  // Fokus gerak lengan ke depan-belakang, bukan membuka ke samping.
   const armAmplitude =
-    0.42 + speedRatio * 0.34;
+    0.56 + speedRatio * 0.22;
 
-  const shoulderAmplitude =
-    0.045 + speedRatio * 0.035;
+  const forwardLift =
+    Math.max(0, swing) * (0.06 + speedRatio * 0.03);
 
   poseBone(
     racer,
     shoulderName,
-    swing * shoulderAmplitude,
-    mirror * swing * 0.018,
-    mirror * (0.035 + speedRatio * 0.012),
-    smoothing * 0.86,
+    swing * (0.055 + speedRatio * 0.025),
+    0,
+    mirror * 0.008,
+    smoothing * 0.88,
     'XYZ'
   );
 
-  // Z menurunkan lengan dari T-pose, sedangkan X mengayunkan
-  // tangan ke depan dan belakang. Kiri dan kanan memakai swing lawan.
+  // Z dijaga tetap besar agar lengan tetap turun di samping badan.
+  // Ayunan utama ada di sumbu X sehingga terlihat maju-mundur.
   poseBone(
     racer,
     upperName,
-    0.055 + swing * armAmplitude,
-    mirror * swing * 0.025,
-    mirror * (1.02 + speedRatio * 0.025),
+    0.015 + swing * armAmplitude - forwardLift,
+    0,
+    mirror * (1.24 - forwardLift * 0.18),
     smoothing,
     'ZXY'
   );
 
-  // Siku tidak dikunci. Tekukan bertambah saat tangan berada di depan.
   const elbowBend =
-    0.68 +
-    Math.abs(swing) * 0.24 +
+    0.40 +
+    Math.abs(swing) * 0.20 +
     Math.max(0, swing) *
-      (0.18 + speedRatio * 0.08);
+      (0.14 + speedRatio * 0.05);
 
   poseBentElbow(
     racer,
     side,
     elbowBend,
-    swing,
+    swing * 0.45,
     smoothing * 0.90
   );
 
   poseBone(
     racer,
     handName,
-    -0.055 - swing * 0.035,
-    mirror * swing * 0.035,
-    mirror * -0.025,
-    smoothing * 0.76,
+    -0.020 - swing * 0.060,
+    0,
+    mirror * -0.008,
+    smoothing * 0.78,
     'XYZ'
   );
 }
