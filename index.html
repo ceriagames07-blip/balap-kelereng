@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V14.3 Relaxed Idle Mesh Ground</title>
+  <title>Anime Runner VRM V14.4 Lite Performance</title>
   <style>
     :root{
       --bg:#080b14;
@@ -768,8 +768,8 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER VRM V14.3</span></h1>
-      <p>Kostum tetap dipertahankan, tangan berdiri lebih santai dan bebas, serta telapak sepatu dikunci langsung ke permukaan lintasan.</p>
+      <h1>HUMAN <span>RUNNER VRM V14.4 LITE</span></h1>
+      <p>Versi ringan: kostum tetap ada, pose santai tetap aktif, tetapi perhitungan berat dan shadow map dikurangi agar lebih lancar.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
@@ -1108,18 +1108,55 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(5.8, 3.3, 53);
 
+const LOW_POWER_MODE =
+  matchMedia(
+    '(max-width: 900px)'
+  ).matches ||
+  (
+    navigator.hardwareConcurrency &&
+    navigator.hardwareConcurrency <= 4
+  );
+
+const PIXEL_RATIO_LIMIT =
+  LOW_POWER_MODE
+    ? 0.90
+    : 1.10;
+
+const TARGET_FPS =
+  LOW_POWER_MODE
+    ? 36
+    : 48;
+
 const renderer = new THREE.WebGLRenderer({
-  antialias: true,
+  antialias: !LOW_POWER_MODE,
   alpha: true,
   powerPreference: 'high-performance'
 });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.55));
-renderer.setSize(innerWidth, innerHeight);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+renderer.setPixelRatio(
+  Math.min(
+    devicePixelRatio,
+    PIXEL_RATIO_LIMIT
+  )
+);
+
+renderer.setSize(
+  innerWidth,
+  innerHeight
+);
+
+renderer.outputColorSpace =
+  THREE.SRGBColorSpace;
+
+renderer.toneMapping =
+  THREE.ACESFilmicToneMapping;
+
+renderer.toneMappingExposure =
+  1.04;
+
+// Bayangan karakter memakai contact shadow ringan.
+// Shadow map WebGL dimatikan karena sangat berat untuk lima VRM.
+renderer.shadowMap.enabled = false;
 viewport.appendChild(renderer.domElement);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
@@ -1206,7 +1243,7 @@ function setupLights() {
     );
 
   sun.position.set(8, 14, 8);
-  sun.castShadow = true;
+  sun.castShadow = false;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.left = -14;
   sun.shadow.camera.right = 14;
@@ -1874,9 +1911,10 @@ function tintAvatarMaterials(
   vrm.scene.traverse(object => {
     if (!object.isMesh) return;
 
-    object.castShadow = true;
-    object.receiveShadow = true;
-    object.frustumCulled = false;
+    // Shadow map dimatikan; hanya contact shadow yang dipakai.
+    object.castShadow = false;
+    object.receiveShadow = false;
+    object.frustumCulled = true;
 
     const materials =
       Array.isArray(
@@ -2226,7 +2264,7 @@ function createSpoon(
     -0.09
   );
 
-  handle.castShadow = true;
+  handle.castShadow = false;
   group.add(handle);
 
   const bowl =
@@ -2251,7 +2289,7 @@ function createSpoon(
     -0.19
   );
 
-  bowl.castShadow = true;
+  bowl.castShadow = false;
   group.add(bowl);
 
   // Kelereng menjadi anak dari bowl, sehingga selalu berada
@@ -2272,7 +2310,7 @@ function createSpoon(
     0
   );
 
-  marble.castShadow = true;
+  marble.castShadow = false;
   bowl.add(marble);
 
   scene.add(group);
@@ -2615,6 +2653,7 @@ async function createRacer(
     rests,
     restScales,
     visualBounds: new THREE.Box3(),
+    soleOffset: 0,
     groundLift: 0,
     groundCorrection: 0,
     spoon: null,
@@ -2762,7 +2801,7 @@ async function loadAllRacers() {
     resetRace();
 
     statusText.textContent =
-      '5 avatar siap • relaxed idle • mesh grounded';
+      '5 avatar siap • mode ringan aktif';
   } catch (error) {
     console.error(error);
 
@@ -2898,25 +2937,49 @@ function resetBreathingScale(
 const TRACK_SURFACE_Y =
   0.006;
 
-function getVisualModelMinY(
+function getLowestFootBoneY(
   racer
 ) {
-  if (
-    !racer ||
-    !racer.vrm
-  ) {
-    return Infinity;
-  }
+  const footNames = [
+    'leftFoot',
+    'rightFoot',
+    'leftToes',
+    'rightToes'
+  ];
 
-  // Sinkronkan normalized bones ke skeleton asli sebelum
-  // menghitung batas kostum dan sepatu.
-  try {
-    racer.vrm.humanoid
-      ?.update();
-  } catch (error) {
-    // Tetap lanjut jika versi VRM tidak menyediakan update langsung.
-  }
+  const worldPosition =
+    new THREE.Vector3();
 
+  let lowest =
+    Infinity;
+
+  racer.root.updateMatrixWorld(
+    true
+  );
+
+  footNames.forEach(name => {
+    const bone =
+      racer.bones[name];
+
+    if (!bone) return;
+
+    bone.getWorldPosition(
+      worldPosition
+    );
+
+    lowest =
+      Math.min(
+        lowest,
+        worldPosition.y
+      );
+  });
+
+  return lowest;
+}
+
+function getVisualModelMinYOnce(
+  racer
+) {
   racer.root.updateMatrixWorld(
     true
   );
@@ -2941,6 +3004,41 @@ function captureGroundReference(
   racer.root.position.y = 0;
   racer.groundCorrection = 0;
 
+  try {
+    racer.vrm.humanoid
+      ?.update();
+  } catch (error) {
+    // Tidak masalah jika update humanoid langsung tidak tersedia.
+  }
+
+  const meshMinY =
+    getVisualModelMinYOnce(
+      racer
+    );
+
+  const footBoneY =
+    getLowestFootBoneY(
+      racer
+    );
+
+  if (
+    Number.isFinite(
+      meshMinY
+    ) &&
+    Number.isFinite(
+      footBoneY
+    )
+  ) {
+    // Selisih ini menyimpan jarak ankle/toes ke sol sepatu.
+    // Box3 hanya dihitung satu kali saat loading, bukan setiap frame.
+    racer.soleOffset =
+      footBoneY -
+      meshMinY;
+  } else {
+    racer.soleOffset =
+      0.075;
+  }
+
   keepFeetGrounded(
     racer,
     0,
@@ -2953,20 +3051,22 @@ function keepFeetGrounded(
   desiredLift = 0,
   forceSnap = false
 ) {
-  const currentMinY =
-    getVisualModelMinY(
+  const lowestFootBoneY =
+    getLowestFootBoneY(
       racer
     );
 
   if (
     !Number.isFinite(
-      currentMinY
+      lowestFootBoneY
     )
   ) return;
 
-  // Target dihitung dari permukaan lintasan, bukan dari tinggi awal bone.
-  // Karena memakai batas mesh, sol sepatu/kostum paling bawah yang menapak.
-  const targetMinY =
+  const estimatedSoleY =
+    lowestFootBoneY -
+    racer.soleOffset;
+
+  const targetSoleY =
     TRACK_SURFACE_Y +
     (
       racer.preset.groundBias ||
@@ -2978,14 +3078,14 @@ function keepFeetGrounded(
     );
 
   const rawCorrection =
-    targetMinY -
-    currentMinY;
+    targetSoleY -
+    estimatedSoleY;
 
   const safeCorrection =
     THREE.MathUtils.clamp(
       rawCorrection,
-      -0.20,
-      0.20
+      -0.16,
+      0.16
     );
 
   const correction =
@@ -2995,7 +3095,7 @@ function keepFeetGrounded(
           racer.groundCorrection ||
           0,
           safeCorrection,
-          0.72
+          0.58
         );
 
   racer.root.position.y +=
@@ -3009,10 +3109,6 @@ function keepFeetGrounded(
       0,
       desiredLift
     );
-
-  racer.root.updateMatrixWorld(
-    true
-  );
 
   updateGroundShadow(
     racer,
@@ -4996,14 +5092,39 @@ function updateHud() {
   }
 }
 
+let frameCounter = 0;
+let frameAccumulator = 0;
+
 function animate() {
-  requestAnimationFrame(animate);
+  requestAnimationFrame(
+    animate
+  );
+
+  const rawDelta =
+    clock.getDelta();
+
+  frameAccumulator +=
+    rawDelta;
+
+  const minimumFrameTime =
+    1 /
+    TARGET_FPS;
+
+  // Batasi update/render agar GPU dan CPU tidak dipaksa 60–144 FPS.
+  if (
+    frameAccumulator <
+    minimumFrameTime
+  ) {
+    return;
+  }
 
   const dt =
     Math.min(
-      clock.getDelta(),
+      frameAccumulator,
       MAX_FRAME_DELTA
     );
+
+  frameAccumulator = 0;
 
   const elapsed =
     clock.elapsedTime;
@@ -5029,22 +5150,50 @@ function animate() {
     elapsed
   );
 
-  racers.forEach(racer => {
-    racer.vrm?.update(dt);
-
-    updateMouthAttachment(
-      racer
-    );
-
-    // Bayangan memakai lift animasi, bukan posisi root hasil koreksi kaki.
-    updateGroundShadow(
+  racers.forEach(
+    (
       racer,
-      racer.groundLift ||
-      0
-    );
-  });
+      racerIndex
+    ) => {
+      // Player diperbarui tiap frame.
+      // Rambut/spring bone lawan diperbarui bergantian untuk mengurangi beban.
+      const shouldUpdateVrm =
+        racer === player ||
+        (
+          frameCounter % 2
+        ) ===
+        (
+          racerIndex % 2
+        );
 
-  updateCamera(dt);
+      if (
+        shouldUpdateVrm
+      ) {
+        racer.vrm?.update(
+          racer === player
+            ? dt
+            : dt * 2
+        );
+      }
+
+      updateMouthAttachment(
+        racer
+      );
+
+      updateGroundShadow(
+        racer,
+        racer.groundLift ||
+        0
+      );
+    }
+  );
+
+  frameCounter++;
+
+  updateCamera(
+    dt
+  );
+
   updateHud();
 
   renderer.render(
@@ -5344,7 +5493,7 @@ addEventListener(
     renderer.setPixelRatio(
       Math.min(
         devicePixelRatio,
-        1.55
+        PIXEL_RATIO_LIMIT
       )
     );
 
