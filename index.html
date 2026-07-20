@@ -53,16 +53,7 @@
     }
 
     .topbar{
-      position:absolute;
-      top:14px;
-      left:14px;
-      right:14px;
-      z-index:6;
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      pointer-events:none;
+      display:none;
     }
 
     .brand,
@@ -128,7 +119,7 @@
 
     .hud{
       position:absolute;
-      top:92px;
+      top:14px;
       left:14px;
       z-index:5;
       display:grid;
@@ -162,7 +153,7 @@
 
     .progress-shell{
       position:absolute;
-      top:167px;
+      top:88px;
       left:14px;
       z-index:5;
       width:min(390px,calc(100% - 28px));
@@ -387,13 +378,8 @@
     }
 
     @media(max-width:720px){
-      .topbar{top:9px;left:9px;right:9px}
-      .brand{padding:11px 13px;border-radius:15px}
-      .brand p{display:none}
-      .status-pill{min-height:38px;padding:8px 10px}
-
       .hud{
-        top:67px;
+        top:8px;
         left:8px;
         width:calc(100% - 16px);
         grid-template-columns:repeat(3,1fr);
@@ -407,7 +393,7 @@
       .hud-value{font-size:16px}
 
       .progress-shell{
-        top:133px;
+        top:74px;
         left:8px;
         width:calc(100% - 16px);
       }
@@ -1039,24 +1025,24 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(5.8, 3.3, 53);
 
+const IS_MOBILE = matchMedia('(max-width: 720px)').matches || ('ontouchstart' in window);
 const renderer = new THREE.WebGLRenderer({
-  antialias: true,
+  antialias: !IS_MOBILE,
   alpha: true,
   powerPreference: 'high-performance'
 });
-const IS_MOBILE = matchMedia('(max-width: 720px)').matches;
-renderer.setPixelRatio(Math.min(devicePixelRatio, IS_MOBILE ? 1.15 : 1.4));
+renderer.setPixelRatio(Math.min(devicePixelRatio, IS_MOBILE ? 0.9 : 1.25));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMappingExposure = 1.04;
+renderer.shadowMap.enabled = !IS_MOBILE;
+renderer.shadowMap.type = IS_MOBILE ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
 viewport.appendChild(renderer.domElement);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
-orbit.enableDamping = true;
-orbit.dampingFactor = 0.065;
+orbit.enableDamping = !IS_MOBILE;
+orbit.dampingFactor = IS_MOBILE ? 0.05 : 0.065;
 orbit.target.set(0, 1.25, TRACK.startZ - 2);
 orbit.enablePan = false;
 orbit.minDistance = 3.5;
@@ -1140,7 +1126,7 @@ function setupLights() {
 
   sun.position.set(8, 14, 8);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.mapSize.set(IS_MOBILE ? 512 : 1024, IS_MOBILE ? 512 : 1024);
   sun.shadow.camera.left = -14;
   sun.shadow.camera.right = 14;
   sun.shadow.camera.top = 18;
@@ -2582,8 +2568,7 @@ async function createRacer(
     0
   );
 
-  label.visible =
-    isPlayer;
+  label.visible = false;
 
   root.add(label);
   racer.label = label;
@@ -2968,83 +2953,83 @@ function setIdlePose(
     soft
   );
 
-  // Tangan menggantung santai dan bergerak sangat kecil secara bergantian.
-  const leftArm = armSway * 0.085 + breath * 0.018;
-  const rightArm = -armSway * 0.085 + breath * 0.018;
+  // Tangan lurus turun di samping badan, dengan napas halus agar tidak seperti robot.
+  const leftArm = armSway * 0.020 + breath * 0.010;
+  const rightArm = -armSway * 0.020 + breath * 0.010;
 
   poseBone(
     racer,
     'leftShoulder',
-    leftArm * 0.18,
-    -leftArm * 0.08,
-    0.038,
-    soft * 0.88,
+    -0.030 + breath * 0.006,
+    0.010,
+    0.010,
+    soft * 0.90,
     'XYZ'
   );
 
   poseBone(
     racer,
     'rightShoulder',
-    rightArm * 0.18,
-    -rightArm * 0.08,
-    -0.038,
-    soft * 0.88,
+    -0.030 + breath * 0.006,
+    -0.010,
+    -0.010,
+    soft * 0.90,
     'XYZ'
   );
 
   poseBone(
     racer,
     'leftUpperArm',
-    0.065 + leftArm,
-    -0.020,
-    1.01,
-    soft * 0.90,
+    0.010 + leftArm,
+    0.000,
+    1.28,
+    soft * 0.92,
     'ZXY'
   );
 
   poseBone(
     racer,
     'rightUpperArm',
-    0.065 + rightArm,
-    0.020,
-    -1.01,
-    soft * 0.90,
+    0.010 + rightArm,
+    0.000,
+    -1.28,
+    soft * 0.92,
     'ZXY'
   );
 
   poseBentElbow(
     racer,
     'left',
-    0.55 + Math.max(0, leftArm) * 0.16,
-    leftArm,
-    soft * 0.86
+    0.22 + Math.max(0, leftArm) * 0.08,
+    leftArm * 0.35,
+    soft * 0.84
   );
 
   poseBentElbow(
     racer,
     'right',
-    0.55 + Math.max(0, rightArm) * 0.16,
-    rightArm,
-    soft * 0.86
+    0.22 + Math.max(0, rightArm) * 0.08,
+    rightArm * 0.35,
+    soft * 0.84
   );
 
   poseBone(
     racer,
     'leftHand',
-    -0.055 + leftArm * 0.05,
-    leftArm * 0.05,
-    -0.025,
-    soft * 0.72,
+    -0.015 + leftArm * 0.02,
+    0,
+    -0.008,
+    soft * 0.74,
     'XYZ'
   );
 
   poseBone(
     racer,
     'rightHand',
-    -0.055 + rightArm * 0.05,
-    -rightArm * 0.05,
-    0.025,
-    soft * 0.72,
+    -0.015 + rightArm * 0.02,
+    0,
+    0.008,
+    soft * 0.74,
     'XYZ'
   );
 
@@ -3452,8 +3437,8 @@ function updatePlayer(
   const acceleration =
     targetSpeed >
     currentSpeed
-      ? 8.5
-      : 12.5;
+      ? (IS_MOBILE ? 7.2 : 8.5)
+      : (IS_MOBILE ? 10.5 : 12.5);
 
   currentSpeed =
     THREE.MathUtils.damp(
@@ -3478,7 +3463,7 @@ function updatePlayer(
     currentDirection
       .lerp(
         direction,
-        1 - Math.exp(-10 * dt)
+        1 - Math.exp(-(IS_MOBILE ? 8.5 : 10) * dt)
       )
       .normalize();
 
@@ -3859,7 +3844,7 @@ function updateCamera(dt) {
       desiredPosition,
       1 -
       Math.exp(
-        -5.5 *
+        -(IS_MOBILE ? 4.2 : 5.5) *
         dt
       )
     );
@@ -3868,7 +3853,7 @@ function updateCamera(dt) {
       desiredTarget,
       1 -
       Math.exp(
-        -7.5 *
+        -(IS_MOBILE ? 5.2 : 7.5) *
         dt
       )
     );
@@ -3929,7 +3914,7 @@ function animate() {
     clock.elapsedTime;
 
   const rawInput = getInputVector();
-  const inputSmooth = 1 - Math.exp(-13 * dt);
+  const inputSmooth = 1 - Math.exp(-(IS_MOBILE ? 10 : 13) * dt);
 
   smoothInputX = THREE.MathUtils.lerp(
     smoothInputX,
@@ -4291,7 +4276,7 @@ addEventListener(
     renderer.setPixelRatio(
       Math.min(
         devicePixelRatio,
-        IS_MOBILE ? 1.15 : 1.4
+        IS_MOBILE ? 0.9 : 1.25
       )
     );
 
