@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V14.1 Mobile Lite</title>
+  <title>Anime Runner VRM V14.1 - 3 Karakter Ringan</title>
   <style>
     :root{
       --bg:#080b14;
@@ -522,7 +522,7 @@
 
     .character-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
     }
 
@@ -760,43 +760,6 @@
       display: none;
     }
 
-
-  @media (max-width: 1024px) {
-    .brand,
-    .status-pill,
-    .hud-card,
-    .controls-card,
-    .character-selector,
-    .selector-panel,
-    .loader-card,
-    .finish-banner,
-    .joystick-base {
-      -webkit-backdrop-filter: none !important;
-      backdrop-filter: none !important;
-      box-shadow: none !important;
-    }
-
-    .status-dot,
-    .loader-ring,
-    .avatar-glow {
-      animation: none !important;
-      filter: none !important;
-    }
-
-    .control-btn,
-    .character-card,
-    .progress-bar,
-    .joystick-knob,
-    .loader,
-    .finish-banner {
-      transition: none !important;
-    }
-
-    .character-card:hover {
-      transform: none !important;
-    }
-  }
-
 </style>
 </head>
 <body>
@@ -805,8 +768,8 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER VRM V14.1 LITE</span></h1>
-      <p>Model dan kostum tetap sama. Render, bayangan, HUD, dan animasi lawan diringankan untuk ponsel standar.</p>
+      <h1>HUMAN <span>RUNNER VRM • 3 KARAKTER</span></h1>
+      <p>Memakai karakter VRM berkostum anime asli: hoodie, jaket, rok atau celana, kaus kaki, dan sepatu sudah menyatu dengan model.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
@@ -855,7 +818,7 @@
       <div class="selector-head">
         <div>
           <h2>PILIH <span>KARAKTER PEMAIN</span></h2>
-          <p>Kelima karakter memakai avatar VRM anime dengan mesh tubuh menyatu, tekstur wajah dan rambut asli. Pemilihan karakter akan mereset lomba.</p>
+          <p>Tiga karakter memakai avatar VRM anime dengan mesh tubuh menyatu, tekstur wajah dan rambut asli. Pemilihan karakter akan mereset lomba.</p>
           <div class="reference-chip">REAL VRM AVATAR • SKINNED MESH • SKELETON ANIMATION</div>
         </div>
         <button id="closeSelectorBtn" class="selector-close" type="button">✕</button>
@@ -916,13 +879,13 @@ import {
 
 const TRACK = {
   width: 9.6,
-  laneCount: 5,
+  laneCount: 3,
   startZ: 46,
   finishZ: -54,
   length: 100
 };
 
-const PLAYER_LANE_INDEX = 2;
+const PLAYER_LANE_INDEX = 1;
 
 const AVATAR_FORWARD_YAW = 0;
 const RUN_FORWARD_Z = -1;
@@ -962,7 +925,6 @@ const CHARACTER_PRESETS = [
     name: 'KAI',
     type: 'Male Anime • Hoodie Runner',
     gender: 'male',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
     model: {
       primary:
         'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm',
@@ -986,39 +948,10 @@ const CHARACTER_PRESETS = [
     hairStyle: 'spiky'
   },
   {
-    id: 'ren',
-    name: 'REN',
-    type: 'Male Anime • Red Hoodie',
-    gender: 'male',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
-    model: {
-      primary:
-        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm',
-      fallback:
-        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_C.vrm'
-    },
-    accent: 0xff5c4f,
-    accentCss: '#ff5c4f',
-    skinCss: '#d89572',
-    hairCss: '#541914',
-    suitDarkCss: '#1d0909',
-    outfitPrimaryCss: '#c83a32',
-    outfitSecondaryCss: '#3b0b0a',
-    outfitTrimCss: '#ff796d',
-    height: 1.04,
-    headScale: [1.04, 0.98, 1.00],
-    bodyScale: [1.05, 1.02, 1.02],
-    speed: 9.48,
-    handling: 0.92,
-    expression: 'relaxed',
-    hairStyle: 'swept'
-  },
-  {
     id: 'mika',
     name: 'MIKA',
     type: 'Female Anime • Street Jacket',
     gender: 'female',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
     model: {
       primary:
         'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_A.vrm',
@@ -1046,7 +979,6 @@ const CHARACTER_PRESETS = [
     name: 'YUNA',
     type: 'Female Anime • Fashion Outfit',
     gender: 'female',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
     model: {
       primary:
         'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_B.vrm',
@@ -1068,34 +1000,6 @@ const CHARACTER_PRESETS = [
     handling: 1.18,
     expression: 'relaxed',
     hairStyle: 'ponytail'
-  },
-  {
-    id: 'sora',
-    name: 'SORA',
-    type: 'Male Anime • Gold Hoodie',
-    gender: 'male',
-    // Model VRM ini sudah memiliki kostum anime di dalam file.
-    model: {
-      primary:
-        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm',
-      fallback:
-        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_C.vrm'
-    },
-    accent: 0xffd44a,
-    accentCss: '#ffd44a',
-    skinCss: '#7d4d38',
-    hairCss: '#d2d6df',
-    suitDarkCss: '#211b07',
-    outfitPrimaryCss: '#d49b17',
-    outfitSecondaryCss: '#362807',
-    outfitTrimCss: '#ffe16b',
-    height: 1.06,
-    headScale: [1.08, 1.00, 1.00],
-    bodyScale: [1.10, 1.04, 1.05],
-    speed: 9.34,
-    handling: 0.96,
-    expression: 'neutral',
-    hairStyle: 'crest'
   }
 ];
 
@@ -1124,48 +1028,6 @@ const characterSelector = document.getElementById('characterSelector');
 const characterGrid = document.getElementById('characterGrid');
 const closeSelectorBtn = document.getElementById('closeSelectorBtn');
 
-const LOW_POWER_MODE =
-  matchMedia(
-    '(max-width: 1024px)'
-  ).matches ||
-  (
-    navigator.hardwareConcurrency &&
-    navigator.hardwareConcurrency <= 4
-  ) ||
-  (
-    navigator.deviceMemory &&
-    navigator.deviceMemory <= 4
-  );
-
-const PIXEL_RATIO_LIMIT =
-  LOW_POWER_MODE
-    ? 0.68
-    : 1.00;
-
-const TARGET_FPS =
-  LOW_POWER_MODE
-    ? 30
-    : 45;
-
-const HUD_UPDATE_DIVISOR =
-  LOW_POWER_MODE
-    ? 3
-    : 1;
-
-const OPPONENT_POSE_DIVISOR =
-  LOW_POWER_MODE
-    ? 2
-    : 1;
-
-const OPPONENT_VRM_DIVISOR =
-  LOW_POWER_MODE
-    ? 4
-    : 2;
-
-// URL model yang sama tidak diminta berulang dalam satu sesi.
-// KAI, REN, dan SORA memakai AvatarSample_C yang sama.
-THREE.Cache.enabled = true;
-
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x0b1020, 0.013);
 
@@ -1178,49 +1040,22 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(5.8, 3.3, 53);
 
 const renderer = new THREE.WebGLRenderer({
-  antialias: !LOW_POWER_MODE,
+  antialias: true,
   alpha: true,
-  powerPreference: 'high-performance',
-  stencil: false,
-  preserveDrawingBuffer: false
+  powerPreference: 'high-performance'
 });
-
-renderer.setPixelRatio(
-  Math.min(
-    devicePixelRatio,
-    PIXEL_RATIO_LIMIT
-  )
-);
-
-renderer.setSize(
-  innerWidth,
-  innerHeight
-);
-
-renderer.outputColorSpace =
-  THREE.SRGBColorSpace;
-
-renderer.toneMapping =
-  LOW_POWER_MODE
-    ? THREE.NoToneMapping
-    : THREE.ACESFilmicToneMapping;
-
-renderer.toneMappingExposure =
-  LOW_POWER_MODE
-    ? 1
-    : 1.06;
-
-// Di ponsel cukup memakai contact shadow ringan.
-renderer.shadowMap.enabled =
-  !LOW_POWER_MODE;
-
-renderer.shadowMap.type =
-  THREE.BasicShadowMap;
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.55));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 viewport.appendChild(renderer.domElement);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
-orbit.enableDamping = !LOW_POWER_MODE;
-orbit.dampingFactor = LOW_POWER_MODE ? 0 : 0.055;
+orbit.enableDamping = true;
+orbit.dampingFactor = 0.065;
 orbit.target.set(0, 1.25, TRACK.startZ - 2);
 orbit.enablePan = false;
 orbit.minDistance = 3.5;
@@ -1261,7 +1096,6 @@ let playerTargetX = 0;
 let smoothInputX = 0;
 let smoothInputY = 0;
 let modelsReady = false;
-let performanceFrame = 0;
 
 const joystick = {
   active: false,
@@ -1303,35 +1137,33 @@ function setupLights() {
     );
 
   sun.position.set(8, 14, 8);
-  sun.castShadow = !LOW_POWER_MODE;
-  sun.shadow.mapSize.set(512, 512);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.left = -14;
   sun.shadow.camera.right = 14;
   sun.shadow.camera.top = 18;
   sun.shadow.camera.bottom = -8;
   scene.add(sun);
 
-  if (!LOW_POWER_MODE) {
-    const fill =
-      new THREE.DirectionalLight(
-        0x6fdcff,
-        1.45
-      );
+  const fill =
+    new THREE.DirectionalLight(
+      0x6fdcff,
+      1.8
+    );
 
-    fill.position.set(-8, 5, 6);
-    scene.add(fill);
+  fill.position.set(-8, 5, 6);
+  scene.add(fill);
 
-    const warm =
-      new THREE.PointLight(
-        0xff8c43,
-        4.5,
-        26,
-        2
-      );
+  const warm =
+    new THREE.PointLight(
+      0xff8c43,
+      7,
+      28,
+      2
+    );
 
-    warm.position.set(0, 4, -12);
-    scene.add(warm);
-  }
+  warm.position.set(0, 4, -12);
+  scene.add(warm);
 }
 
 function createTrack() {
@@ -1512,12 +1344,7 @@ function createTrack() {
   [-1, 1].forEach(side => {
     for (
       let row = 0;
-      row <
-      (
-        LOW_POWER_MODE
-          ? 2
-          : 5
-      );
+      row < 5;
       row++
     ) {
       const stand =
@@ -1537,8 +1364,8 @@ function createTrack() {
         -4
       );
 
-      stand.castShadow = !LOW_POWER_MODE;
-      stand.receiveShadow = !LOW_POWER_MODE;
+      stand.castShadow = true;
+      stand.receiveShadow = true;
       scene.add(stand);
     }
   });
@@ -1572,7 +1399,7 @@ function createTrack() {
       TRACK.finishZ
     );
 
-    pole.castShadow = !LOW_POWER_MODE;
+    pole.castShadow = true;
     scene.add(pole);
   });
 
@@ -1978,13 +1805,9 @@ function tintAvatarMaterials(
   vrm.scene.traverse(object => {
     if (!object.isMesh) return;
 
-    object.castShadow =
-      !LOW_POWER_MODE;
-
-    object.receiveShadow =
-      !LOW_POWER_MODE;
-
-    object.frustumCulled = true;
+    object.castShadow = true;
+    object.receiveShadow = true;
+    object.frustumCulled = false;
 
     const materials =
       Array.isArray(
@@ -2314,9 +2137,7 @@ function createSpoon(
         0.005,
         0.0065,
         0.18,
-        LOW_POWER_MODE
-          ? 8
-          : 16
+        16
       ),
       spoonMaterial
     );
@@ -2330,19 +2151,15 @@ function createSpoon(
     -0.09
   );
 
-  handle.castShadow = !LOW_POWER_MODE;
+  handle.castShadow = true;
   group.add(handle);
 
   const bowl =
     new THREE.Mesh(
       new THREE.SphereGeometry(
         0.034,
-        LOW_POWER_MODE
-          ? 10
-          : 22,
-        LOW_POWER_MODE
-          ? 8
-          : 18
+        22,
+        18
       ),
       spoonMaterial
     );
@@ -2359,7 +2176,7 @@ function createSpoon(
     -0.19
   );
 
-  bowl.castShadow = !LOW_POWER_MODE;
+  bowl.castShadow = true;
   group.add(bowl);
 
   // Kelereng menjadi anak dari bowl, sehingga selalu berada
@@ -2368,12 +2185,8 @@ function createSpoon(
     new THREE.Mesh(
       new THREE.SphereGeometry(
         0.017,
-        LOW_POWER_MODE
-          ? 8
-          : 20,
-        LOW_POWER_MODE
-          ? 6
-          : 16
+        20,
+        16
       ),
       marbleMaterial
     );
@@ -2384,7 +2197,7 @@ function createSpoon(
     0
   );
 
-  marble.castShadow = !LOW_POWER_MODE;
+  marble.castShadow = true;
   bowl.add(marble);
 
   scene.add(group);
@@ -2467,41 +2280,26 @@ function createAccentAccessories(
   racer.accessories = null;
 }
 
-let sharedContactShadowTexture =
-  null;
-
-function getContactShadowTexture() {
-  if (
-    sharedContactShadowTexture
-  ) {
-    return sharedContactShadowTexture;
-  }
-
+function createContactShadow(
+  racer
+) {
   const canvas =
     document.createElement('canvas');
 
-  const size =
-    LOW_POWER_MODE
-      ? 64
-      : 128;
-
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = 256;
+  canvas.height = 256;
 
   const context =
     canvas.getContext('2d');
 
-  const center =
-    size / 2;
-
   const gradient =
     context.createRadialGradient(
-      center,
-      center,
-      size * 0.04,
-      center,
-      center,
-      size * 0.47
+      128,
+      128,
+      8,
+      128,
+      128,
+      120
     );
 
   gradient.addColorStop(
@@ -2525,25 +2323,18 @@ function getContactShadowTexture() {
   context.fillRect(
     0,
     0,
-    size,
-    size
+    256,
+    256
   );
 
-  sharedContactShadowTexture =
+  const texture =
     new THREE.CanvasTexture(
       canvas
     );
 
-  return sharedContactShadowTexture;
-}
-
-function createContactShadow(
-  racer
-) {
   const material =
     new THREE.MeshBasicMaterial({
-      map:
-        getContactShadowTexture(),
+      map: texture,
       transparent: true,
       depthWrite: false,
       opacity:
@@ -2569,7 +2360,7 @@ function createContactShadow(
     -Math.PI / 2;
 
   shadow.renderOrder = 2;
-  shadow.frustumCulled = true;
+  shadow.frustumCulled = false;
 
   scene.add(shadow);
 
@@ -2696,7 +2487,7 @@ async function createRacer(
     preset.model;
 
   loaderText.textContent =
-    `Memuat avatar ${racerNumber}/5 • ${preset.name}`;
+    `Memuat avatar ${racerNumber}/${CHARACTER_PRESETS.length} • ${preset.name}`;
 
   const vrm =
     await loadVrmWithFallback(
@@ -2706,7 +2497,7 @@ async function createRacer(
           (
             racerNumber - 1 +
             modelProgress
-          ) / 5;
+          ) / CHARACTER_PRESETS.length;
 
         loadProgressBar.style.width =
           `${Math.round(
@@ -2777,22 +2568,23 @@ async function createRacer(
     racer
   );
 
-  if (isPlayer) {
-    const label =
-      createLabelSprite(
-        `PEMAIN • ${preset.name}`,
-        preset.accentCss
-      );
-
-    label.position.set(
-      0,
-      2.95,
-      0
+  const label =
+    createLabelSprite(
+      `PEMAIN • ${preset.name}`,
+      preset.accentCss
     );
 
-    root.add(label);
-    racer.label = label;
-  }
+  label.position.set(
+    0,
+    2.95,
+    0
+  );
+
+  label.visible =
+    isPlayer;
+
+  root.add(label);
+  racer.label = label;
 
   setIdlePose(
     racer,
@@ -2818,10 +2610,8 @@ function getPresetLaneOrder() {
 
   return [
     otherPresets[0],
-    otherPresets[1],
     selected,
-    otherPresets[2],
-    otherPresets[3]
+    otherPresets[1]
   ];
 }
 
@@ -2844,7 +2634,7 @@ async function loadAllRacers() {
     // Sequential parsing is more stable on phones and low-memory browsers.
     for (
       let laneIndex = 0;
-      laneIndex < 5;
+      laneIndex < CHARACTER_PRESETS.length;
       laneIndex++
     ) {
       const racer =
@@ -2885,7 +2675,7 @@ async function loadAllRacers() {
     resetRace();
 
     statusText.textContent =
-      '5 avatar siap • mode ringan aktif';
+      '3 avatar hidup • lebih ringan dan stabil';
   } catch (error) {
     console.error(error);
 
@@ -4188,17 +3978,6 @@ function updateOpponents(
   if (!modelsReady) return;
 
   racers.forEach(racer => {
-    const updatePose =
-      !LOW_POWER_MODE ||
-      (
-        performanceFrame %
-        OPPONENT_POSE_DIVISOR
-      ) ===
-      (
-        racer.laneIndex %
-        OPPONENT_POSE_DIVISOR
-      );
-
     if (
       racer.isPlayer ||
       racer.finished
@@ -4209,18 +3988,14 @@ function updateOpponents(
       raceTime <
       racer.reactionTime
     ) {
-      if (updatePose) {
-        setIdlePose(
-          racer,
-          elapsed,
-          1 -
-          Math.exp(
-            -10 *
-            dt *
-            OPPONENT_POSE_DIVISOR
-          )
-        );
-      }
+      setIdlePose(
+        racer,
+        elapsed,
+        1 -
+        Math.exp(
+          -10 * dt
+        )
+      );
       return;
     }
 
@@ -4264,20 +4039,17 @@ function updateOpponents(
         dt
       );
 
-    if (updatePose) {
-      animateRun(
-        racer,
-        elapsed,
-        THREE.MathUtils.clamp(
-          effectiveSpeed /
-          racer.preset.speed,
-          0,
-          1
-        ),
-        dt *
-        OPPONENT_POSE_DIVISOR
-      );
-    }
+    animateRun(
+      racer,
+      elapsed,
+      THREE.MathUtils.clamp(
+        effectiveSpeed /
+        racer.preset.speed,
+        0,
+        1
+      ),
+      dt
+    );
 
     if (
       racer.root.position.z <=
@@ -4304,7 +4076,7 @@ function updateOpponents(
 }
 
 function getPlayerPosition() {
-  if (!player) return 5;
+  if (!player) return CHARACTER_PRESETS.length;
 
   let ahead = 0;
 
@@ -4351,14 +4123,14 @@ function finishPlayerRace() {
     getPlayerPosition();
 
   finishText.textContent =
-    `${player.preset.name} • ${raceTime.toFixed(2)} detik • Posisi ${position} dari 5`;
+    `${player.preset.name} • ${raceTime.toFixed(2)} detik • Posisi ${position} dari ${racers.length}`;
 
   finishBanner.classList.add(
     'show'
   );
 
   statusText.textContent =
-    `Finish posisi ${position}/5`;
+    `Finish posisi ${position}/${racers.length}`;
 }
 
 function dampAngle(
@@ -4530,43 +4302,18 @@ function updateHud() {
     !raceFinished
   ) {
     statusText.textContent =
-      `${player.preset.name} • Posisi ${getPlayerPosition()}/5`;
+      `${player.preset.name} • Posisi ${getPlayerPosition()}/${racers.length}`;
   }
 }
 
-let renderAccumulator = 0;
-
 function animate() {
-  requestAnimationFrame(
-    animate
-  );
-
-  const rawDelta =
-    clock.getDelta();
-
-  // Saat tab tidak terlihat, jangan melakukan render berat.
-  if (document.hidden) {
-    return;
-  }
-
-  renderAccumulator +=
-    rawDelta;
-
-  if (
-    renderAccumulator <
-    1 /
-    TARGET_FPS
-  ) {
-    return;
-  }
+  requestAnimationFrame(animate);
 
   const dt =
     Math.min(
-      renderAccumulator,
+      clock.getDelta(),
       MAX_FRAME_DELTA
     );
-
-  renderAccumulator = 0;
 
   const elapsed =
     clock.elapsedTime;
@@ -4592,75 +4339,30 @@ function animate() {
     elapsed
   );
 
-  racers.forEach(
-    (
+  racers.forEach(racer => {
+    racer.vrm?.update(dt);
+
+    updateMouthAttachment(
+      racer
+    );
+
+    // Tetap dipanggil setelah finish agar bayangan tidak menghilang.
+    updateGroundShadow(
       racer,
-      racerIndex
-    ) => {
-      const isPlayer =
-        racer === player;
+      Math.max(
+        0,
+        racer.root.position.y
+      )
+    );
+  });
 
-      const updateVrm =
-        isPlayer ||
-        !LOW_POWER_MODE ||
-        (
-          performanceFrame %
-          OPPONENT_VRM_DIVISOR
-        ) ===
-        (
-          racerIndex %
-          OPPONENT_VRM_DIVISOR
-        );
-
-      if (updateVrm) {
-        racer.vrm?.update(
-          isPlayer
-            ? dt
-            : dt *
-              OPPONENT_VRM_DIVISOR
-        );
-      }
-
-      const updateAccessory =
-        isPlayer ||
-        !LOW_POWER_MODE ||
-        performanceFrame % 2 ===
-        racerIndex % 2;
-
-      if (updateAccessory) {
-        updateMouthAttachment(
-          racer
-        );
-      }
-
-      updateGroundShadow(
-        racer,
-        Math.max(
-          0,
-          racer.root.position.y
-        )
-      );
-    }
-  );
-
-  updateCamera(
-    dt
-  );
-
-  if (
-    performanceFrame %
-    HUD_UPDATE_DIVISOR ===
-    0
-  ) {
-    updateHud();
-  }
+  updateCamera(dt);
+  updateHud();
 
   renderer.render(
     scene,
     camera
   );
-
-  performanceFrame++;
 }
 
 function setJoystick(x, y) {
@@ -4954,7 +4656,7 @@ addEventListener(
     renderer.setPixelRatio(
       Math.min(
         devicePixelRatio,
-        PIXEL_RATIO_LIMIT
+        1.55
       )
     );
 
