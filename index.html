@@ -1017,15 +1017,16 @@ const closeSelectorBtn = document.getElementById('closeSelectorBtn');
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x0b1020, 0.013);
 
+const IS_MOBILE = matchMedia('(max-width: 720px)').matches || ('ontouchstart' in window);
+const CAMERA_FOV = IS_MOBILE ? 56 : 50;
 const camera = new THREE.PerspectiveCamera(
-  44,
+  CAMERA_FOV,
   innerWidth / innerHeight,
   0.1,
   400
 );
-camera.position.set(5.8, 3.3, 53);
+camera.position.set(0, IS_MOBILE ? 4.6 : 4.0, 55);
 
-const IS_MOBILE = matchMedia('(max-width: 720px)').matches || ('ontouchstart' in window);
 const renderer = new THREE.WebGLRenderer({
   antialias: !IS_MOBILE,
   alpha: true,
@@ -1043,11 +1044,11 @@ viewport.appendChild(renderer.domElement);
 const orbit = new OrbitControls(camera, renderer.domElement);
 orbit.enableDamping = !IS_MOBILE;
 orbit.dampingFactor = IS_MOBILE ? 0.05 : 0.065;
-orbit.target.set(0, 1.25, TRACK.startZ - 2);
+orbit.target.set(0, IS_MOBILE ? 1.45 : 1.35, TRACK.startZ - 1.5);
 orbit.enablePan = false;
-orbit.minDistance = 3.5;
-orbit.maxDistance = 18;
-orbit.maxPolarAngle = Math.PI * 0.50;
+orbit.minDistance = 5.0;
+orbit.maxDistance = 22;
+orbit.maxPolarAngle = Math.PI * 0.48;
 
 const clock = new THREE.Clock();
 
@@ -3915,17 +3916,18 @@ function updateCamera(dt) {
         .classList
         .contains('hidden')
     ) {
+      // Saat memilih karakter: kamera center dari belakang, sedikit tinggi dan lebih lebar.
       desiredPosition =
         groundPosition
           .clone()
           .addScaledVector(
             forward,
-            -4.0
+            IS_MOBILE ? -9.2 : -8.2
           )
           .add(
             new THREE.Vector3(
-              3.8,
-              3.0,
+              0,
+              IS_MOBILE ? 4.8 : 4.2,
               0
             )
           );
@@ -3936,22 +3938,24 @@ function updateCamera(dt) {
           .add(
             new THREE.Vector3(
               0,
-              1.35,
+              IS_MOBILE ? 1.6 : 1.5,
               0
             )
           );
     } else {
+      // Kamera follow center: tepat di tengah belakang pemain, sedikit lebih tinggi,
+      // dan cukup jauh agar dua lawan tetap masuk frame, terutama di mobile.
       desiredPosition =
         groundPosition
           .clone()
           .addScaledVector(
             forward,
-            -5.2
+            IS_MOBILE ? -10.4 : -8.8
           )
           .add(
             new THREE.Vector3(
-              2.8,
-              2.8,
+              0,
+              IS_MOBILE ? 4.9 : 4.0,
               0
             )
           );
@@ -3962,13 +3966,13 @@ function updateCamera(dt) {
           .add(
             new THREE.Vector3(
               0,
-              1.05,
+              IS_MOBILE ? 1.7 : 1.5,
               0
             )
           )
           .addScaledVector(
             forward,
-            2.3
+            IS_MOBILE ? 1.0 : 1.2
           );
     }
 
@@ -3976,7 +3980,7 @@ function updateCamera(dt) {
       desiredPosition,
       1 -
       Math.exp(
-        -(IS_MOBILE ? 4.2 : 5.5) *
+        -(IS_MOBILE ? 4.6 : 5.8) *
         dt
       )
     );
@@ -3985,7 +3989,7 @@ function updateCamera(dt) {
       desiredTarget,
       1 -
       Math.exp(
-        -(IS_MOBILE ? 5.2 : 7.5) *
+        -(IS_MOBILE ? 5.8 : 7.8) *
         dt
       )
     );
