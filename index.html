@@ -809,7 +809,7 @@
     <button id="resetBtn" type="button" class="control-btn primary">RESET LOMBA</button>
     <button id="cameraBtn" type="button" class="control-btn">KAMERA: FOLLOW</button>
     <button id="laneBtn" type="button" class="control-btn">BATAS JALUR: ON</button>
-    <div class="hint">Analog 360° • badan menghadap arah gerak • kamera mengikuti dari belakang karakter</div>
+    <div class="hint">Analog halus • tangan dan kaki bergerak silang • idle bernapas • kamera stabil</div>
   </section>
 
 
@@ -1044,7 +1044,8 @@ const renderer = new THREE.WebGLRenderer({
   alpha: true,
   powerPreference: 'high-performance'
 });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.55));
+const IS_MOBILE = matchMedia('(max-width: 720px)').matches;
+renderer.setPixelRatio(Math.min(devicePixelRatio, IS_MOBILE ? 1.15 : 1.4));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1096,6 +1097,7 @@ let playerTargetX = 0;
 let smoothInputX = 0;
 let smoothInputY = 0;
 let modelsReady = false;
+let hudAccumulator = 0;
 
 const joystick = {
   active: false,
@@ -1138,7 +1140,7 @@ function setupLights() {
 
   sun.position.set(8, 14, 8);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(1024, 1024);
   sun.shadow.camera.left = -14;
   sun.shadow.camera.right = 14;
   sun.shadow.camera.top = 18;
@@ -1807,7 +1809,7 @@ function tintAvatarMaterials(
 
     object.castShadow = true;
     object.receiveShadow = true;
-    object.frustumCulled = false;
+    object.frustumCulled = true;
 
     const materials =
       Array.isArray(
@@ -2826,217 +2828,73 @@ function poseRunningArm(
   speedRatio,
   smoothing
 ) {
-  const isLeft =
-    side === 'left';
+  const isLeft = side === 'left';
+  const mirror = isLeft ? 1 : -1;
 
-  const mirror =
-    isLeft
-      ? 1
-      : -1;
+  const shoulderName = isLeft
+    ? 'leftShoulder'
+    : 'rightShoulder';
 
-  const shoulderName =
-    isLeft
-      ? 'leftShoulder'
-      : 'rightShoulder';
+  const upperName = isLeft
+    ? 'leftUpperArm'
+    : 'rightUpperArm';
 
-  const upperName =
-    isLeft
-      ? 'leftUpperArm'
-      : 'rightUpperArm';
+  const handName = isLeft
+    ? 'leftHand'
+    : 'rightHand';
 
-  const handName =
-    isLeft
-      ? 'leftHand'
-      : 'rightHand';
+  // Rumus sengaja dibuat sederhana agar stabil pada berbagai rig VRM.
+  // Nilai swing positif berarti lengan maju, negatif berarti ke belakang.
+  const armAmplitude =
+    0.42 + speedRatio * 0.34;
 
-  const upper =
-    racer.bones[upperName];
+  const shoulderAmplitude =
+    0.045 + speedRatio * 0.035;
 
-  const upperRest =
-    racer.rests[upperName];
-
-  if (
-    !upper ||
-    !upperRest
-  ) return;
-
-  const forwardAmount =
-    Math.max(
-      0,
-      swing
-    );
-
-  const backwardAmount =
-    Math.max(
-      0,
-      -swing
-    );
-
-  const delayedSwing =
-    Math.sin(
-      Math.asin(
-        THREE.MathUtils.clamp(
-          swing,
-          -1,
-          1
-        )
-      ) -
-      0.16
-    );
-
-  // Bahu ikut maju-mundur, naik-turun, dan sedikit memutar.
   poseBone(
     racer,
     shoulderName,
-    delayedSwing *
-    (
-      0.08 +
-      speedRatio *
-      0.05
-    ),
-    mirror *
-    delayedSwing *
-    0.045,
-    mirror *
-    (
-      0.045 +
-      forwardAmount *
-      0.025
-    ),
-    smoothing *
-    0.92,
+    swing * shoulderAmplitude,
+    mirror * swing * 0.018,
+    mirror * (0.035 + speedRatio * 0.012),
+    smoothing * 0.86,
     'XYZ'
   );
 
-  // Posisi dasar lengan dibuat lebih dekat ke tubuh,
-  // tetapi tidak menempel kaku.
-  const armDown =
-    new THREE.Quaternion()
-      .setFromAxisAngle(
-        new THREE.Vector3(
-          0,
-          0,
-          1
-        ),
-        mirror *
-        1.05
-      );
-
-  const forwardBack =
-    new THREE.Quaternion()
-      .setFromAxisAngle(
-        new THREE.Vector3(
-          0,
-          1,
-          0
-        ),
-        mirror *
-        swing *
-        (
-          0.62 +
-          speedRatio *
-          0.30
-        )
-      );
-
-  const naturalDrive =
-    new THREE.Quaternion()
-      .setFromAxisAngle(
-        new THREE.Vector3(
-          1,
-          0,
-          0
-        ),
-        swing *
-        (
-          0.16 +
-          speedRatio *
-          0.08
-        )
-      );
-
-  const outwardRelax =
-    new THREE.Quaternion()
-      .setFromAxisAngle(
-        new THREE.Vector3(
-          0,
-          0,
-          1
-        ),
-        -mirror *
-        (
-          0.035 +
-          backwardAmount *
-          0.025
-        )
-      );
-
-  const target =
-    upperRest
-      .clone()
-      .multiply(
-        armDown
-      )
-      .multiply(
-        forwardBack
-      )
-      .multiply(
-        naturalDrive
-      )
-      .multiply(
-        outwardRelax
-      );
-
-  upper.quaternion.slerp(
-    target,
-    THREE.MathUtils.clamp(
-      smoothing *
-      0.90,
-      0,
-      1
-    )
+  // Z menurunkan lengan dari T-pose, sedangkan X mengayunkan
+  // tangan ke depan dan belakang. Kiri dan kanan memakai swing lawan.
+  poseBone(
+    racer,
+    upperName,
+    0.055 + swing * armAmplitude,
+    mirror * swing * 0.025,
+    mirror * (1.02 + speedRatio * 0.025),
+    smoothing,
+    'ZXY'
   );
 
-  // Siku berubah terus, tidak terkunci di satu sudut.
+  // Siku tidak dikunci. Tekukan bertambah saat tangan berada di depan.
   const elbowBend =
-    0.98 +
-    forwardAmount *
-    (
-      0.34 +
-      speedRatio *
-      0.12
-    ) +
-    backwardAmount *
-    0.20;
+    0.68 +
+    Math.abs(swing) * 0.24 +
+    Math.max(0, swing) *
+      (0.18 + speedRatio * 0.08);
 
   poseBentElbow(
     racer,
     side,
     elbowBend,
-    swing *
-    0.70,
-    smoothing *
-    0.86
+    swing,
+    smoothing * 0.90
   );
 
-  // Pergelangan punya lag kecil sehingga tangan tidak seperti papan.
   poseBone(
     racer,
     handName,
-    -0.10 +
-    delayedSwing *
-    0.075,
-    mirror *
-    delayedSwing *
-    0.085,
-    mirror *
-    (
-      -0.035 +
-      forwardAmount *
-      0.025
-    ),
-    smoothing *
-    0.78,
+    -0.055 - swing * 0.035,
+    mirror * swing * 0.035,
+    mirror * -0.025,
+    smoothing * 0.76,
     'XYZ'
   );
 }
@@ -3046,373 +2904,202 @@ function setIdlePose(
   elapsed,
   smoothing
 ) {
-  const phaseOffset =
-    racer.laneIndex *
-    0.73;
+  const phaseOffset = racer.laneIndex * 0.71;
+  const breath = Math.sin(elapsed * 1.18 + phaseOffset);
+  const breathSoft = Math.sin(elapsed * 2.36 + phaseOffset) * 0.18;
+  const weightShift = Math.sin(elapsed * 0.52 + phaseOffset);
+  const bodySway = Math.sin(elapsed * 0.34 + phaseOffset * 0.6);
+  const armSway = Math.sin(elapsed * 0.72 + phaseOffset);
 
-  const breath =
-    Math.sin(
-      elapsed *
-      1.48 +
-      phaseOffset
-    );
+  const soft = THREE.MathUtils.clamp(smoothing, 0, 1);
 
-  const breathSecond =
-    Math.sin(
-      elapsed *
-      2.96 +
-      phaseOffset
-    ) *
-    0.22;
-
-  const inhale =
-    THREE.MathUtils.clamp(
-      (
-        breath +
-        1
-      ) *
-      0.5,
-      0,
-      1
-    );
-
-  const weightShift =
-    Math.sin(
-      elapsed *
-      0.63 +
-      phaseOffset
-    );
-
-  const bodySway =
-    Math.sin(
-      elapsed *
-      0.37 +
-      phaseOffset *
-      0.65
-    );
-
-  const armSway =
-    Math.sin(
-      elapsed *
-      0.88 +
-      phaseOffset
-    );
-
-  // Pergeseran berat badan dari kaki kiri ke kanan.
+  // Pose berdiri rileks: pinggul dan dada tidak tegak seperti papan.
   poseBone(
     racer,
     'hips',
-    -0.012 +
-    breath *
-    0.004,
-    weightShift *
-    0.018,
-    weightShift *
-    0.014,
-    smoothing
+    -0.018 + breath * 0.004,
+    bodySway * 0.010,
+    weightShift * 0.012,
+    soft
   );
 
-  // Bagian badan bawah ikut bergerak kecil saat bernapas.
   poseBone(
     racer,
     'spine',
-    -0.018 +
-    breath *
-    0.016 +
-    breathSecond *
-    0.005,
-    bodySway *
-    0.008,
-    -weightShift *
-    0.008,
-    smoothing
+    -0.025 + breath * 0.012 + breathSoft * 0.004,
+    -bodySway * 0.006,
+    -weightShift * 0.007,
+    soft
   );
 
-  // Dada naik dan sedikit membuka ketika menarik napas.
   poseBone(
     racer,
     'chest',
-    0.012 +
-    breath *
-    0.028 +
-    breathSecond *
-    0.006,
-    bodySway *
-    0.006,
-    weightShift *
-    0.007,
-    smoothing
+    0.008 + breath * 0.022,
+    bodySway * 0.006,
+    weightShift * 0.006,
+    soft
   );
 
   poseBone(
     racer,
     'upperChest',
-    0.006 +
-    breath *
-    0.022,
-    -bodySway *
-    0.005,
-    weightShift *
-    0.006,
-    smoothing
+    0.004 + breath * 0.016,
+    -bodySway * 0.004,
+    weightShift * 0.004,
+    soft
   );
 
-  // Leher dan kepala mengimbangi gerakan dada.
   poseBone(
     racer,
     'neck',
-    -breath *
-    0.007,
-    bodySway *
-    0.008,
-    -weightShift *
-    0.004,
-    smoothing
+    -breath * 0.005,
+    bodySway * 0.007,
+    -weightShift * 0.003,
+    soft
   );
 
   poseBone(
     racer,
     'head',
-    0.014 -
-    breath *
-    0.006,
-    Math.sin(
-      elapsed *
-      0.48 +
-      phaseOffset
-    ) *
-    0.024,
-    -bodySway *
-    0.006,
-    smoothing
+    0.012 - breath * 0.005,
+    Math.sin(elapsed * 0.42 + phaseOffset) * 0.018,
+    -bodySway * 0.005,
+    soft
   );
 
-  // Bahu dan tangan rileks saat berdiri.
-  const idleLeftSwing =
-    armSway *
-    0.16 +
-    breath *
-    0.035;
-
-  const idleRightSwing =
-    -armSway *
-    0.16 +
-    breath *
-    0.035;
+  // Tangan menggantung santai dan bergerak sangat kecil secara bergantian.
+  const leftArm = armSway * 0.085 + breath * 0.018;
+  const rightArm = -armSway * 0.085 + breath * 0.018;
 
   poseBone(
     racer,
     'leftShoulder',
-    inhale *
-    0.014 +
-    idleLeftSwing *
-    0.16,
-    -idleLeftSwing *
-    0.10,
-    0.045 +
-    inhale *
-    0.008,
-    smoothing *
-    0.88,
+    leftArm * 0.18,
+    -leftArm * 0.08,
+    0.038,
+    soft * 0.88,
     'XYZ'
   );
 
   poseBone(
     racer,
     'rightShoulder',
-    inhale *
-    0.014 +
-    idleRightSwing *
-    0.16,
-    -idleRightSwing *
-    0.10,
-    -0.045 -
-    inhale *
-    0.008,
-    smoothing *
-    0.88,
+    rightArm * 0.18,
+    -rightArm * 0.08,
+    -0.038,
+    soft * 0.88,
     'XYZ'
   );
 
   poseBone(
     racer,
     'leftUpperArm',
-    0.10 +
-    idleLeftSwing *
-    0.26,
-    -0.035 +
-    idleLeftSwing *
-    0.10,
-    1.05,
-    smoothing *
-    0.84,
+    0.065 + leftArm,
+    -0.020,
+    1.01,
+    soft * 0.90,
     'ZXY'
   );
 
   poseBone(
     racer,
     'rightUpperArm',
-    0.10 +
-    idleRightSwing *
-    0.26,
-    0.035 -
-    idleRightSwing *
-    0.10,
-    -1.05,
-    smoothing *
-    0.84,
+    0.065 + rightArm,
+    0.020,
+    -1.01,
+    soft * 0.90,
     'ZXY'
   );
 
   poseBentElbow(
     racer,
     'left',
-    0.66 +
-    inhale *
-    0.045 +
-    Math.max(
-      0,
-      idleLeftSwing
-    ) *
-    0.10,
-    idleLeftSwing,
-    smoothing *
-    0.82
+    0.55 + Math.max(0, leftArm) * 0.16,
+    leftArm,
+    soft * 0.86
   );
 
   poseBentElbow(
     racer,
     'right',
-    0.66 +
-    inhale *
-    0.045 +
-    Math.max(
-      0,
-      idleRightSwing
-    ) *
-    0.10,
-    idleRightSwing,
-    smoothing *
-    0.82
+    0.55 + Math.max(0, rightArm) * 0.16,
+    rightArm,
+    soft * 0.86
   );
 
   poseBone(
     racer,
     'leftHand',
-    -0.075 +
-    idleLeftSwing *
-    0.08,
-    idleLeftSwing *
-    0.11,
-    -0.040,
-    smoothing *
-    0.72,
+    -0.055 + leftArm * 0.05,
+    leftArm * 0.05,
+    -0.025,
+    soft * 0.72,
     'XYZ'
   );
 
   poseBone(
     racer,
     'rightHand',
-    -0.075 +
-    idleRightSwing *
-    0.08,
-    -idleRightSwing *
-    0.11,
-    0.040,
-    smoothing *
-    0.72,
+    -0.055 + rightArm * 0.05,
+    -rightArm * 0.05,
+    0.025,
+    soft * 0.72,
     'XYZ'
   );
 
-  // Kaki menopang perpindahan berat badan secara lembut.
+  // Lutut sedikit lentur agar pose tidak kaku.
   poseBone(
     racer,
     'leftUpperLeg',
-    -0.015,
+    -0.018,
     0,
-    0.012 +
-    weightShift *
-    0.006,
-    smoothing
+    0.010 + weightShift * 0.005,
+    soft
   );
 
   poseBone(
     racer,
     'rightUpperLeg',
-    -0.015,
+    -0.018,
     0,
-    -0.012 +
-    weightShift *
-    0.006,
-    smoothing
+    -0.010 + weightShift * 0.005,
+    soft
   );
 
   poseBone(
     racer,
     'leftLowerLeg',
-    -0.032 -
-    Math.max(
-      0,
-      weightShift
-    ) *
-    0.012,
+    -0.040 - Math.max(0, weightShift) * 0.012,
     0,
     0,
-    smoothing
+    soft
   );
 
   poseBone(
     racer,
     'rightLowerLeg',
-    -0.032 -
-    Math.max(
-      0,
-      -weightShift
-    ) *
-    0.012,
+    -0.040 - Math.max(0, -weightShift) * 0.012,
     0,
     0,
-    smoothing
+    soft
   );
 
-  poseBone(
-    racer,
-    'leftFoot',
-    0.024,
-    0,
-    0,
-    smoothing
+  poseBone(racer, 'leftFoot', 0.025, 0, 0, soft);
+  poseBone(racer, 'rightFoot', 0.025, 0, 0, soft);
+
+  // Gerakan napas vertikal dibuat sangat kecil dan dihaluskan.
+  const targetY = 0.0035 + breath * 0.0018;
+  racer.root.position.y = THREE.MathUtils.lerp(
+    racer.root.position.y,
+    targetY,
+    THREE.MathUtils.clamp(soft * 0.32, 0, 1)
   );
 
-  poseBone(
-    racer,
-    'rightFoot',
-    0.024,
-    0,
-    0,
-    smoothing
-  );
-
-  // Naik-turun tubuh sangat kecil agar terlihat bernapas,
-  // tetapi telapak kaki tetap terasa menempel di lintasan.
-  racer.root.position.y =
-    THREE.MathUtils.clamp(
-      0.004 +
-      breath *
-      0.003,
-      0,
-      0.008
-    );
-
-  updateGroundShadow(
-    racer,
-    racer.root.position.y
-  );
+  updateGroundShadow(racer, Math.max(0, racer.root.position.y));
 
   if (racer.spoonBowl) {
-    racer.spoonBowl.rotation.z =
-      bodySway *
-      0.012;
+    racer.spoonBowl.rotation.z = bodySway * 0.006;
   }
 }
 
@@ -3422,88 +3109,44 @@ function animateRun(
   speedRatio,
   dt
 ) {
-  const phase =
-    racer.runPhase;
+  const phase = racer.runPhase;
 
-  // Reverse phase so the visible lead leg matches forward movement to -Z.
-  const stride =
-    -Math.sin(phase);
+  // Siklus silang yang konsisten:
+  // kaki kiri maju = tangan kanan maju, dan sebaliknya.
+  const leftLegSwing = -Math.sin(phase);
+  const rightLegSwing = -leftLegSwing;
+  const doubleStep = Math.sin(phase * 2);
 
-  const opposite =
-    -stride;
+  const leftRecovery = Math.max(0, -leftLegSwing);
+  const rightRecovery = Math.max(0, -rightLegSwing);
+  const leftContact = Math.max(0, leftLegSwing);
+  const rightContact = Math.max(0, rightLegSwing);
 
-  const doubleStep =
-    Math.sin(
-      phase * 2
-    );
+  const legAmplitude = 0.42 + speedRatio * 0.34;
+  const smoothing = 1 - Math.exp(-12 * Math.max(dt, 0.001));
 
-  const leftRecovery =
-    Math.max(
-      0,
-      -stride
-    );
+  // Pantulan tubuh diperkecil dan didamp agar tidak bergetar.
+  const bounceWave = (1 - Math.cos(phase * 2)) * 0.5;
+  const desiredBounce =
+    0.0025 + bounceWave * (0.006 + speedRatio * 0.010);
 
-  const rightRecovery =
-    Math.max(
-      0,
-      stride
-    );
+  racer.root.position.y = THREE.MathUtils.damp(
+    racer.root.position.y,
+    desiredBounce,
+    18,
+    dt
+  );
 
-  const leftContact =
-    Math.max(
-      0,
-      stride
-    );
-
-  const rightContact =
-    Math.max(
-      0,
-      -stride
-    );
-
-  const legAmplitude =
-    0.48 +
-    speedRatio * 0.38;
-
-  const smoothing =
-    1 -
-    Math.exp(
-      -15 *
-      Math.max(
-        dt,
-        0.001
-      )
-    );
-
-  const verticalBounce =
-    Math.abs(doubleStep) *
-    (
-      0.012 +
-      speedRatio * 0.024
-    );
+  updateGroundShadow(racer, racer.root.position.y);
 
   const lateralWeight =
-    stride *
-    (
-      0.008 +
-      speedRatio * 0.010
-    );
-
-  racer.root.position.y =
-    verticalBounce;
-
-  // Bayangan tetap di permukaan lintasan hingga garis finish.
-  updateGroundShadow(
-    racer,
-    verticalBounce
-  );
+    leftLegSwing * (0.006 + speedRatio * 0.007);
 
   poseBone(
     racer,
     'hips',
-    -0.035 +
-    doubleStep * 0.015,
-    -stride * 0.030,
+    -0.038 + doubleStep * 0.008,
+    -leftLegSwing * 0.020,
     lateralWeight,
     smoothing
   );
@@ -3511,52 +3154,53 @@ function animateRun(
   poseBone(
     racer,
     'spine',
-    -0.075 -
-    speedRatio * 0.040,
-    stride * 0.026,
-    -lateralWeight * 0.72,
+    -0.060 - speedRatio * 0.030,
+    leftLegSwing * 0.018,
+    -lateralWeight * 0.65,
     smoothing
   );
 
   poseBone(
     racer,
     'chest',
-    -0.012,
-    -stride * 0.022,
-    lateralWeight * 0.52,
+    -0.008,
+    -leftLegSwing * 0.016,
+    lateralWeight * 0.45,
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'upperChest',
+    0.004,
+    -leftLegSwing * 0.010,
+    lateralWeight * 0.30,
     smoothing
   );
 
   poseBone(
     racer,
     'neck',
-    0.035,
-    stride * 0.006,
-    -lateralWeight * 0.25,
+    0.025,
+    leftLegSwing * 0.004,
+    -lateralWeight * 0.18,
     smoothing
   );
 
   poseBone(
     racer,
     'head',
-    0.045,
-    -stride * 0.010,
-    -lateralWeight * 0.30,
+    0.032,
+    -leftLegSwing * 0.006,
+    -lateralWeight * 0.20,
     smoothing
   );
 
-  // Gerakan tangan berlawanan dengan kaki:
-  // kaki kiri maju => tangan kanan maju.
-  const leftArmSwing =
-    -stride;
-
-  const rightArmSwing =
-    stride;
-
+  // Ayunan tangan dibuat persis berlawanan dengan kaki pada sisi yang sama.
   poseRunningArm(
     racer,
     'left',
-    leftArmSwing,
+    -leftLegSwing,
     speedRatio,
     smoothing
   );
@@ -3564,40 +3208,33 @@ function animateRun(
   poseRunningArm(
     racer,
     'right',
-    rightArmSwing,
+    -rightLegSwing,
     speedRatio,
     smoothing
   );
 
-  // Paha maju/mundur mengikuti arah lari ke -Z.
   poseBone(
     racer,
     'leftUpperLeg',
-    stride * legAmplitude,
+    leftLegSwing * legAmplitude,
     0,
-    0.015,
+    0.012,
     smoothing
   );
 
   poseBone(
     racer,
     'rightUpperLeg',
-    opposite * legAmplitude,
+    rightLegSwing * legAmplitude,
     0,
-    -0.015,
+    -0.012,
     smoothing
   );
 
-  // Lutut menekuk saat kaki berada di fase recovery.
   poseBone(
     racer,
     'leftLowerLeg',
-    -0.055 -
-    leftRecovery *
-    (
-      0.94 +
-      speedRatio * 0.36
-    ),
+    -0.06 - leftRecovery * (0.82 + speedRatio * 0.30),
     0,
     0,
     smoothing
@@ -3606,24 +3243,16 @@ function animateRun(
   poseBone(
     racer,
     'rightLowerLeg',
-    -0.055 -
-    rightRecovery *
-    (
-      0.94 +
-      speedRatio * 0.36
-    ),
+    -0.06 - rightRecovery * (0.82 + speedRatio * 0.30),
     0,
     0,
     smoothing
   );
 
-  // Telapak kaki lebih rata saat kontak dan terangkat ketika recovery.
   poseBone(
     racer,
     'leftFoot',
-    0.08 -
-    leftContact * 0.22 +
-    leftRecovery * 0.14,
+    0.065 - leftContact * 0.16 + leftRecovery * 0.11,
     0,
     0,
     smoothing
@@ -3632,53 +3261,23 @@ function animateRun(
   poseBone(
     racer,
     'rightFoot',
-    0.08 -
-    rightContact * 0.22 +
-    rightRecovery * 0.14,
+    0.065 - rightContact * 0.16 + rightRecovery * 0.11,
     0,
     0,
     smoothing
   );
 
-  poseBone(
-    racer,
-    'leftToes',
-    -leftContact * 0.12,
-    0,
-    0,
-    smoothing
-  );
+  poseBone(racer, 'leftToes', -leftContact * 0.08, 0, 0, smoothing);
+  poseBone(racer, 'rightToes', -rightContact * 0.08, 0, 0, smoothing);
 
-  poseBone(
-    racer,
-    'rightToes',
-    -rightContact * 0.12,
-    0,
-    0,
-    smoothing
-  );
-
+  // Aksesori mengikuti ritme langkah, bukan noise waktu acak.
   if (racer.spoon) {
-    racer.spoon.rotation.x =
-      Math.sin(
-        elapsed * 7 +
-        racer.laneIndex
-      ) *
-      0.0045 *
-      speedRatio;
-
-    racer.spoon.rotation.z =
-      Math.cos(
-        elapsed * 5.6 +
-        racer.laneIndex
-      ) *
-      0.006 *
-      speedRatio;
+    racer.spoon.rotation.x = doubleStep * 0.0025 * speedRatio;
+    racer.spoon.rotation.z = leftLegSwing * 0.003 * speedRatio;
   }
 
   if (racer.spoonBowl) {
-    racer.spoonBowl.rotation.z =
-      0;
+    racer.spoonBowl.rotation.z = 0;
   }
 }
 
@@ -3879,7 +3478,7 @@ function updatePlayer(
     currentDirection
       .lerp(
         direction,
-        0.22
+        1 - Math.exp(-10 * dt)
       )
       .normalize();
 
@@ -3913,13 +3512,15 @@ function updatePlayer(
         1
       );
 
-    player.runPhase +=
-      dt *
+    player.runPhase =
       (
-        4.05 +
-        currentSpeed *
-        0.62
-      );
+        player.runPhase +
+        dt *
+        (
+          4.05 +
+          currentSpeed * 0.62
+        )
+      ) % (Math.PI * 2);
 
     animateRun(
       player,
@@ -4024,12 +3625,15 @@ function updateOpponents(
       effectiveSpeed *
       dt;
 
-    racer.runPhase +=
-      dt *
+    racer.runPhase =
       (
-        4.00 +
-        effectiveSpeed * 0.60
-      );
+        racer.runPhase +
+        dt *
+        (
+          4.00 +
+          effectiveSpeed * 0.60
+        )
+      ) % (Math.PI * 2);
 
     racer.root.rotation.y =
       dampAngle(
@@ -4183,13 +3787,19 @@ function updateCamera(dt) {
     let desiredPosition;
     let desiredTarget;
 
+    const groundPosition = new THREE.Vector3(
+      player.root.position.x,
+      0,
+      player.root.position.z
+    );
+
     if (
       !characterSelector
         .classList
         .contains('hidden')
     ) {
       desiredPosition =
-        player.root.position
+        groundPosition
           .clone()
           .addScaledVector(
             forward,
@@ -4204,7 +3814,7 @@ function updateCamera(dt) {
           );
 
       desiredTarget =
-        player.root.position
+        groundPosition
           .clone()
           .add(
             new THREE.Vector3(
@@ -4215,7 +3825,7 @@ function updateCamera(dt) {
           );
     } else {
       desiredPosition =
-        player.root.position
+        groundPosition
           .clone()
           .addScaledVector(
             forward,
@@ -4230,7 +3840,7 @@ function updateCamera(dt) {
           );
 
       desiredTarget =
-        player.root.position
+        groundPosition
           .clone()
           .add(
             new THREE.Vector3(
@@ -4318,14 +3928,33 @@ function animate() {
   const elapsed =
     clock.elapsedTime;
 
-  const input =
-    getInputVector();
+  const rawInput = getInputVector();
+  const inputSmooth = 1 - Math.exp(-13 * dt);
 
-  updatePlayer(
-    dt,
-    elapsed,
-    input
+  smoothInputX = THREE.MathUtils.lerp(
+    smoothInputX,
+    rawInput.x,
+    inputSmooth
   );
+
+  smoothInputY = THREE.MathUtils.lerp(
+    smoothInputY,
+    rawInput.y,
+    inputSmooth
+  );
+
+  const inputMagnitude = Math.min(
+    1,
+    Math.hypot(smoothInputX, smoothInputY)
+  );
+
+  const input = {
+    x: smoothInputX,
+    y: smoothInputY,
+    magnitude: inputMagnitude
+  };
+
+  updatePlayer(dt, elapsed, input);
 
   if (
     raceStarted &&
@@ -4357,7 +3986,13 @@ function animate() {
   });
 
   updateCamera(dt);
-  updateHud();
+
+  // HUD tidak perlu ditulis ke DOM 60 kali per detik.
+  hudAccumulator += dt;
+  if (hudAccumulator >= 0.05) {
+    updateHud();
+    hudAccumulator = 0;
+  }
 
   renderer.render(
     scene,
@@ -4656,7 +4291,7 @@ addEventListener(
     renderer.setPixelRatio(
       Math.min(
         devicePixelRatio,
-        1.55
+        IS_MOBILE ? 1.15 : 1.4
       )
     );
 
