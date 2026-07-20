@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V12.1 Fixed</title>
+  <title>Anime Runner VRM V14.1 Real VRM Costumes</title>
   <style>
     :root{
       --bg:#080b14;
@@ -768,8 +768,8 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER VRM V12.1 FIXED</span></h1>
-      <p>Versi publik satu file HTML dengan perbaikan runtime bayangan karakter. Avatar VRM dan library 3D dimuat langsung dari CDN.</p>
+      <h1>HUMAN <span>RUNNER VRM V14.1</span></h1>
+      <p>Memakai karakter VRM berkostum anime asli: hoodie, jaket, rok atau celana, kaus kaki, dan sepatu sudah menyatu dengan model.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
@@ -891,31 +891,55 @@ const AVATAR_FORWARD_YAW = 0;
 const RUN_FORWARD_Z = -1;
 const MAX_FRAME_DELTA = 1 / 30;
 
-const MALE_MODEL = {
-  primary:
-    'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/masc_vroid.vrm',
-  fallback:
-    'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/masc_vroid.vrm'
-};
+/*
+==============================================================
+MODEL KOSTUM VRM YANG DIGUNAKAN
+==============================================================
 
-const FEMALE_MODEL = {
-  primary:
-    'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/fem_vroid.vrm',
-  fallback:
-    'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/fem_vroid.vrm'
-};
+Versi ini memakai:
+- AvatarSample_A.vrm
+- AvatarSample_B.vrm
+- AvatarSample_C.vrm
+
+Pakaian sudah menyatu di dalam model VRM:
+- hoodie atau jaket
+- atasan
+- rok atau celana
+- kaus kaki
+- sepatu
+
+Tidak ada baju kotak, capsule, sphere, atau pakaian tempelan.
+
+Untuk memakai karakter milik sendiri, ganti nilai primary dan fallback
+pada masing-masing karakter dengan file VRM lengkap, contohnya:
+
+primary: './assets/kai.vrm'
+fallback: './assets/kai.vrm'
+
+==============================================================
+*/
 
 const CHARACTER_PRESETS = [
   {
     id: 'kai',
     name: 'KAI',
-    type: 'Male Anime • Balanced',
+    type: 'Male Anime • Hoodie Runner',
     gender: 'male',
+    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    model: {
+      primary:
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm',
+      fallback:
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_C.vrm'
+    },
     accent: 0x36e5f2,
     accentCss: '#36e5f2',
     skinCss: '#efb895',
     hairCss: '#15202b',
     suitDarkCss: '#071b22',
+    outfitPrimaryCss: '#087ca7',
+    outfitSecondaryCss: '#062c3d',
+    outfitTrimCss: '#52efff',
     height: 1.00,
     headScale: [1.00, 1.00, 1.00],
     bodyScale: [1.00, 1.00, 1.00],
@@ -927,13 +951,23 @@ const CHARACTER_PRESETS = [
   {
     id: 'ren',
     name: 'REN',
-    type: 'Male Anime • Speed',
+    type: 'Male Anime • Red Hoodie',
     gender: 'male',
+    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    model: {
+      primary:
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm',
+      fallback:
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_C.vrm'
+    },
     accent: 0xff5c4f,
     accentCss: '#ff5c4f',
     skinCss: '#d89572',
     hairCss: '#541914',
     suitDarkCss: '#1d0909',
+    outfitPrimaryCss: '#c83a32',
+    outfitSecondaryCss: '#3b0b0a',
+    outfitTrimCss: '#ff796d',
     height: 1.04,
     headScale: [1.04, 0.98, 1.00],
     bodyScale: [1.05, 1.02, 1.02],
@@ -945,13 +979,23 @@ const CHARACTER_PRESETS = [
   {
     id: 'mika',
     name: 'MIKA',
-    type: 'Female Anime • Smooth',
+    type: 'Female Anime • Street Jacket',
     gender: 'female',
+    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    model: {
+      primary:
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_A.vrm',
+      fallback:
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_A.vrm'
+    },
     accent: 0xb76cff,
     accentCss: '#b76cff',
     skinCss: '#f2c4aa',
     hairCss: '#30256c',
     suitDarkCss: '#160b2b',
+    outfitPrimaryCss: '#8447d7',
+    outfitSecondaryCss: '#2b123f',
+    outfitTrimCss: '#d2a1ff',
     height: 0.98,
     headScale: [0.98, 1.04, 1.00],
     bodyScale: [0.96, 1.00, 0.98],
@@ -963,13 +1007,23 @@ const CHARACTER_PRESETS = [
   {
     id: 'yuna',
     name: 'YUNA',
-    type: 'Female Anime • Control',
+    type: 'Female Anime • Fashion Outfit',
     gender: 'female',
+    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    model: {
+      primary:
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_B.vrm',
+      fallback:
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_B.vrm'
+    },
     accent: 0x43e899,
     accentCss: '#43e899',
     skinCss: '#b97b59',
     hairCss: '#102019',
     suitDarkCss: '#071d15',
+    outfitPrimaryCss: '#168c59',
+    outfitSecondaryCss: '#082d20',
+    outfitTrimCss: '#62f0aa',
     height: 1.01,
     headScale: [1.02, 1.00, 1.00],
     bodyScale: [0.98, 1.02, 1.00],
@@ -981,13 +1035,23 @@ const CHARACTER_PRESETS = [
   {
     id: 'sora',
     name: 'SORA',
-    type: 'Male Anime • Power',
+    type: 'Male Anime • Gold Hoodie',
     gender: 'male',
+    // Model VRM ini sudah memiliki kostum anime di dalam file.
+    model: {
+      primary:
+        'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm',
+      fallback:
+        'https://raw.githubusercontent.com/madjin/vrm-samples/master/vroid/stable/AvatarSample_C.vrm'
+    },
     accent: 0xffd44a,
     accentCss: '#ffd44a',
     skinCss: '#7d4d38',
     hairCss: '#d2d6df',
     suitDarkCss: '#211b07',
+    outfitPrimaryCss: '#d49b17',
+    outfitSecondaryCss: '#362807',
+    outfitTrimCss: '#ffe16b',
     height: 1.06,
     headScale: [1.08, 1.00, 1.00],
     bodyScale: [1.10, 1.04, 1.05],
@@ -1772,14 +1836,19 @@ function tintAvatarMaterials(
   vrm,
   preset
 ) {
-  const accentColor =
+  const primaryColor =
     new THREE.Color(
-      preset.accent
+      preset.outfitPrimaryCss
     );
 
-  const darkColor =
+  const secondaryColor =
     new THREE.Color(
-      preset.suitDarkCss
+      preset.outfitSecondaryCss
+    );
+
+  const trimColor =
+    new THREE.Color(
+      preset.outfitTrimCss
     );
 
   const hairColor =
@@ -1806,79 +1875,119 @@ function tintAvatarMaterials(
         ? object.material
         : [object.material];
 
-    materials.forEach(material => {
-      if (!material) return;
+    materials.forEach(
+      material => {
+        if (!material) return;
 
-      const materialName =
-        String(
-          material.name ||
-          object.name ||
-          ''
-        ).toLowerCase();
+        const materialName =
+          String(
+            material.name ||
+            object.name ||
+            ''
+          ).toLowerCase();
 
-      if (
-        findHairMaterialName(
-          materialName
-        )
-      ) {
-        material.color?.lerp(
-          hairColor,
-          0.56
-        );
-      } else if (
-        findSkinMaterialName(
-          materialName
-        ) ||
-        materialName.includes('face')
-      ) {
-        material.color?.lerp(
-          skinColor,
-          0.34
-        );
-      } else if (
-        materialName.includes('eye') ||
-        materialName.includes('mouth') ||
-        materialName.includes('lip')
-      ) {
-        // Pertahankan detail wajah bawaan VRM.
-      } else if (
-        material.color
-      ) {
-        const brightness =
-          (
-            material.color.r +
-            material.color.g +
-            material.color.b
-          ) / 3;
+        const isHair =
+          materialName.includes('hair') ||
+          materialName.includes('bang') ||
+          materialName.includes('lash') ||
+          materialName.includes('brow');
 
-        const target =
-          brightness >
-          0.50
-            ? accentColor
-            : darkColor;
+        const isFace =
+          materialName.includes('face') ||
+          materialName.includes('eye') ||
+          materialName.includes('iris') ||
+          materialName.includes('mouth') ||
+          materialName.includes('lip') ||
+          materialName.includes('teeth') ||
+          materialName.includes('tongue');
 
-        material.color.lerp(
-          target,
-          0.72
-        );
+        const isSkin =
+          materialName.includes('skin');
+
+        const isBottom =
+          materialName.includes('pants') ||
+          materialName.includes('bottom') ||
+          materialName.includes('skirt') ||
+          materialName.includes('short');
+
+        const isShoes =
+          materialName.includes('shoe') ||
+          materialName.includes('boot') ||
+          materialName.includes('sole');
+
+        const isClothing =
+          materialName.includes('cloth') ||
+          materialName.includes('shirt') ||
+          materialName.includes('top') ||
+          materialName.includes('jacket') ||
+          materialName.includes('coat') ||
+          materialName.includes('hood') ||
+          materialName.includes('dress') ||
+          materialName.includes('uniform') ||
+          isBottom ||
+          isShoes;
 
         if (
-          'roughness' in material
+          isHair
         ) {
-          material.roughness =
-            0.55;
+          // Pertahankan tekstur rambut asli, hanya beri warna ringan.
+          material.color?.lerp(
+            hairColor,
+            0.18
+          );
+        } else if (
+          isFace
+        ) {
+          // Wajah, mata, dan mulut asli tidak diwarnai.
+        } else if (
+          isSkin
+        ) {
+          material.color?.lerp(
+            skinColor,
+            0.10
+          );
+        } else if (
+          isClothing &&
+          material.color
+        ) {
+          const target =
+            isBottom ||
+            isShoes
+              ? secondaryColor
+              : primaryColor;
+
+          // Tint ringan supaya pola dan detail kostum asli tetap terlihat.
+          material.color.lerp(
+            target,
+            0.32
+          );
+
+          if (
+            'roughness' in material
+          ) {
+            material.roughness =
+              0.58;
+          }
+
+          if (
+            'metalness' in material
+          ) {
+            material.metalness =
+              0.03;
+          }
+        } else if (
+          material.color
+        ) {
+          // Material tidak dikenal dipertahankan hampir sepenuhnya.
+          material.color.lerp(
+            trimColor,
+            0.06
+          );
         }
 
-        if (
-          'metalness' in material
-        ) {
-          material.metalness =
-            0.04;
-        }
+        material.needsUpdate = true;
       }
-
-      material.needsUpdate = true;
-    });
+    );
   });
 }
 
@@ -2394,142 +2503,18 @@ function createFaceDetails(
 function createHairStyle(
   racer
 ) {
-  const head =
-    racer.bones.head;
-
-  if (!head) return;
-
-  const hairMaterial =
-    new THREE.MeshStandardMaterial({
-      color: racer.preset.hairCss,
-      roughness: 0.84,
-      metalness: 0.02
-    });
-
-  const style =
-    racer.preset.hairStyle ||
-    'spiky';
-
-  const group =
-    new THREE.Group();
-
-  function addMesh(
-    geometry,
-    position,
-    rotation = [0, 0, 0],
-    scale = [1, 1, 1]
-  ) {
-    const mesh =
-      new THREE.Mesh(
-        geometry,
-        hairMaterial
-      );
-
-    mesh.position.set(
-      position[0],
-      position[1],
-      position[2]
-    );
-
-    mesh.rotation.set(
-      rotation[0],
-      rotation[1],
-      rotation[2]
-    );
-
-    mesh.scale.set(
-      scale[0],
-      scale[1],
-      scale[2]
-    );
-
-    mesh.castShadow = true;
-    group.add(mesh);
-    return mesh;
-  }
-
-  addMesh(
-    new THREE.SphereGeometry(0.082, 22, 18),
-    [0, 0.080, 0.000],
-    [0, 0, 0],
-    [1.08, 0.90, 1.12]
-  );
-
-  if (style === 'spiky') {
-    [-0.048, -0.022, 0, 0.022, 0.048].forEach((x, index) => {
-      addMesh(
-        new THREE.ConeGeometry(0.015, 0.060, 8),
-        [x, 0.145 + Math.abs(x) * 0.10, -0.010 - index * 0.001],
-        [-0.30, 0, x * -3.5]
-      );
-    });
-  } else if (style === 'swept') {
-    addMesh(
-      new THREE.CapsuleGeometry(0.034, 0.11, 6, 10),
-      [0.025, 0.112, -0.018],
-      [-0.22, -0.55, -0.55],
-      [1.15, 1.00, 1.0]
-    );
-  } else if (style === 'bob') {
-    addMesh(
-      new THREE.CapsuleGeometry(0.046, 0.13, 6, 12),
-      [0, -0.005, 0.000],
-      [0, 0, 0],
-      [1.14, 1.0, 1.08]
-    );
-
-    addMesh(
-      new THREE.CapsuleGeometry(0.020, 0.058, 6, 10),
-      [-0.072, 0.005, -0.010],
-      [0, 0, -0.55]
-    );
-
-    addMesh(
-      new THREE.CapsuleGeometry(0.020, 0.058, 6, 10),
-      [0.072, 0.005, -0.010],
-      [0, 0, 0.55]
-    );
-  } else if (style === 'ponytail') {
-    addMesh(
-      new THREE.CapsuleGeometry(0.020, 0.17, 6, 12),
-      [0, 0.022, 0.095],
-      [-0.10, 0, 0],
-      [0.85, 1.12, 0.85]
-    );
-
-    addMesh(
-      new THREE.TorusGeometry(0.018, 0.006, 6, 14),
-      [0, 0.056, 0.060],
-      [Math.PI / 2, 0, 0]
-    );
-  } else if (style === 'crest') {
-    addMesh(
-      new THREE.BoxGeometry(0.028, 0.11, 0.082),
-      [0, 0.150, -0.010],
-      [-0.18, 0, 0]
-    );
-  }
-
-  [-0.040, -0.013, 0.013, 0.040].forEach((x, i) => {
-    addMesh(
-      new THREE.CapsuleGeometry(0.013, 0.040, 6, 10),
-      [x, 0.052 - Math.abs(x) * 0.05, -0.058 - i * 0.002],
-      [0.40, 0, x * -2.0],
-      [0.92, 1.0, 0.9]
-    );
-  });
-
-  head.add(group);
-  racer.hairStyleGroup = group;
+  // Rambut memakai mesh dan tekstur asli dari file VRM.
+  // Tidak ada rambut tambahan berbentuk sphere, cone, atau capsule.
+  racer.hairStyleGroup = null;
 }
-
 
 function createOutfit(
   racer
 ) {
-  // Tidak membuat capsule, sphere, armor, atau pakaian tambahan.
-  // Warna outfit berasal dari material bawaan model VRM.
-  racer.outfit = null;
+  // Kostum tidak dibuat lewat Three.js.
+  // Hoodie, jaket, rok/celana, kaus kaki, dan sepatu
+  // sudah menjadi bagian dari mesh AvatarSample_A/B/C.
+  racer.outfit = racer.vrm.scene;
 }
 
 function lockForwardDirection(
@@ -2558,9 +2543,7 @@ async function createRacer(
   racerNumber
 ) {
   const source =
-    preset.gender === 'female'
-      ? FEMALE_MODEL
-      : MALE_MODEL;
+    preset.model;
 
   loaderText.textContent =
     `Memuat avatar ${racerNumber}/5 • ${preset.name}`;
@@ -2753,7 +2736,7 @@ async function loadAllRacers() {
     resetRace();
 
     statusText.textContent =
-      '5 avatar anime asli siap';
+      '5 avatar hidup • outfit warna berbeda';
   } catch (error) {
     console.error(error);
 
@@ -2907,25 +2890,25 @@ function poseRunningArm(
   const isLeft =
     side === 'left';
 
-  const upperName =
+  const mirror =
     isLeft
-      ? 'leftUpperArm'
-      : 'rightUpperArm';
-
-  const lowerName =
-    isLeft
-      ? 'leftLowerArm'
-      : 'rightLowerArm';
-
-  const handName =
-    isLeft
-      ? 'leftHand'
-      : 'rightHand';
+      ? 1
+      : -1;
 
   const shoulderName =
     isLeft
       ? 'leftShoulder'
       : 'rightShoulder';
+
+  const upperName =
+    isLeft
+      ? 'leftUpperArm'
+      : 'rightUpperArm';
+
+  const handName =
+    isLeft
+      ? 'leftHand'
+      : 'rightHand';
 
   const upper =
     racer.bones[upperName];
@@ -2937,11 +2920,6 @@ function poseRunningArm(
     !upper ||
     !upperRest
   ) return;
-
-  const mirror =
-    isLeft
-      ? 1
-      : -1;
 
   const forwardAmount =
     Math.max(
@@ -2955,28 +2933,45 @@ function poseRunningArm(
       -swing
     );
 
-  // Gerak bahu kecil membuat ayunan tidak terlihat seperti
-  // hanya siku yang bergerak.
+  const delayedSwing =
+    Math.sin(
+      Math.asin(
+        THREE.MathUtils.clamp(
+          swing,
+          -1,
+          1
+        )
+      ) -
+      0.16
+    );
+
+  // Bahu ikut maju-mundur, naik-turun, dan sedikit memutar.
   poseBone(
     racer,
     shoulderName,
-    swing *
+    delayedSwing *
     (
-      0.07 +
+      0.08 +
       speedRatio *
       0.05
     ),
     mirror *
-    swing *
-    0.025,
+    delayedSwing *
+    0.045,
     mirror *
-    0.055,
-    smoothing,
+    (
+      0.045 +
+      forwardAmount *
+      0.025
+    ),
+    smoothing *
+    0.92,
     'XYZ'
   );
 
-  // Turunkan lengan dari T-pose.
-  const downQuaternion =
+  // Posisi dasar lengan dibuat lebih dekat ke tubuh,
+  // tetapi tidak menempel kaku.
+  const armDown =
     new THREE.Quaternion()
       .setFromAxisAngle(
         new THREE.Vector3(
@@ -2985,12 +2980,10 @@ function poseRunningArm(
           1
         ),
         mirror *
-        1.15
+        1.05
       );
 
-  // Rotasi Y lokal menghasilkan gerakan tangan
-  // benar-benar ke depan dan ke belakang.
-  const swingQuaternion =
+  const forwardBack =
     new THREE.Quaternion()
       .setFromAxisAngle(
         new THREE.Vector3(
@@ -3001,14 +2994,13 @@ function poseRunningArm(
         mirror *
         swing *
         (
-          0.72 +
+          0.62 +
           speedRatio *
-          0.34
+          0.30
         )
       );
 
-  // Sedikit rotasi X supaya tangan tidak menyapu terlalu datar.
-  const driveQuaternion =
+  const naturalDrive =
     new THREE.Quaternion()
       .setFromAxisAngle(
         new THREE.Vector3(
@@ -3018,237 +3010,413 @@ function poseRunningArm(
         ),
         swing *
         (
-          0.12 +
+          0.16 +
           speedRatio *
           0.08
         )
       );
 
-  // Urutan penting:
-  // ayunkan lengan terlebih dahulu, kemudian turunkan dari T-pose.
-  const armOffset =
-    downQuaternion
-      .clone()
-      .multiply(
-        swingQuaternion
-      )
-      .multiply(
-        driveQuaternion
+  const outwardRelax =
+    new THREE.Quaternion()
+      .setFromAxisAngle(
+        new THREE.Vector3(
+          0,
+          0,
+          1
+        ),
+        -mirror *
+        (
+          0.035 +
+          backwardAmount *
+          0.025
+        )
       );
 
-  const upperTarget =
+  const target =
     upperRest
       .clone()
       .multiply(
-        armOffset
+        armDown
+      )
+      .multiply(
+        forwardBack
+      )
+      .multiply(
+        naturalDrive
+      )
+      .multiply(
+        outwardRelax
       );
 
   upper.quaternion.slerp(
-    upperTarget,
+    target,
     THREE.MathUtils.clamp(
-      smoothing,
+      smoothing *
+      0.90,
       0,
       1
     )
   );
 
-  // Siku selalu menekuk sekitar 70–105 derajat.
-  // Tekukan bertambah saat tangan bergerak ke depan.
+  // Siku berubah terus, tidak terkunci di satu sudut.
   const elbowBend =
-    1.22 +
+    0.98 +
     forwardAmount *
     (
-      0.42 +
+      0.34 +
       speedRatio *
-      0.16
+      0.12
     ) +
     backwardAmount *
-    0.10;
+    0.20;
 
   poseBentElbow(
     racer,
     side,
     elbowBend,
-    swing,
-    smoothing
+    swing *
+    0.70,
+    smoothing *
+    0.86
   );
 
-  // Pergelangan mengikuti ayunan secara halus.
+  // Pergelangan punya lag kecil sehingga tangan tidak seperti papan.
   poseBone(
     racer,
     handName,
-    -0.04 +
-    forwardAmount *
-    0.04,
+    -0.10 +
+    delayedSwing *
+    0.075,
     mirror *
-    swing *
-    0.035,
+    delayedSwing *
+    0.085,
     mirror *
-    -0.025,
-    smoothing,
+    (
+      -0.035 +
+      forwardAmount *
+      0.025
+    ),
+    smoothing *
+    0.78,
     'XYZ'
   );
 }
-
 
 function setIdlePose(
   racer,
   elapsed,
   smoothing
 ) {
+  const phaseOffset =
+    racer.laneIndex *
+    0.73;
+
   const breath =
     Math.sin(
-      elapsed * 1.85 +
-      racer.laneIndex * 0.72
+      elapsed *
+      1.48 +
+      phaseOffset
+    );
+
+  const breathSecond =
+    Math.sin(
+      elapsed *
+      2.96 +
+      phaseOffset
+    ) *
+    0.22;
+
+  const inhale =
+    THREE.MathUtils.clamp(
+      (
+        breath +
+        1
+      ) *
+      0.5,
+      0,
+      1
     );
 
   const weightShift =
     Math.sin(
-      elapsed * 0.72 +
-      racer.laneIndex
+      elapsed *
+      0.63 +
+      phaseOffset
     );
 
+  const bodySway =
+    Math.sin(
+      elapsed *
+      0.37 +
+      phaseOffset *
+      0.65
+    );
+
+  const armSway =
+    Math.sin(
+      elapsed *
+      0.88 +
+      phaseOffset
+    );
+
+  // Pergeseran berat badan dari kaki kiri ke kanan.
   poseBone(
     racer,
     'hips',
-    -0.015,
-    weightShift * 0.012,
-    weightShift * 0.010,
+    -0.012 +
+    breath *
+    0.004,
+    weightShift *
+    0.018,
+    weightShift *
+    0.014,
     smoothing
   );
 
+  // Bagian badan bawah ikut bergerak kecil saat bernapas.
   poseBone(
     racer,
     'spine',
-    -0.020 +
-    breath * 0.007,
-    0,
-    -weightShift * 0.006,
+    -0.018 +
+    breath *
+    0.016 +
+    breathSecond *
+    0.005,
+    bodySway *
+    0.008,
+    -weightShift *
+    0.008,
+    smoothing
+  );
+
+  // Dada naik dan sedikit membuka ketika menarik napas.
+  poseBone(
+    racer,
+    'chest',
+    0.012 +
+    breath *
+    0.028 +
+    breathSecond *
+    0.006,
+    bodySway *
+    0.006,
+    weightShift *
+    0.007,
     smoothing
   );
 
   poseBone(
     racer,
-    'chest',
-    0.018 +
-    breath * 0.006,
-    0,
-    weightShift * 0.005,
+    'upperChest',
+    0.006 +
+    breath *
+    0.022,
+    -bodySway *
+    0.005,
+    weightShift *
+    0.006,
+    smoothing
+  );
+
+  // Leher dan kepala mengimbangi gerakan dada.
+  poseBone(
+    racer,
+    'neck',
+    -breath *
+    0.007,
+    bodySway *
+    0.008,
+    -weightShift *
+    0.004,
     smoothing
   );
 
   poseBone(
     racer,
     'head',
-    0.018,
+    0.014 -
+    breath *
+    0.006,
     Math.sin(
-      elapsed * 0.52 +
-      racer.laneIndex
-    ) * 0.020,
-    -weightShift * 0.004,
+      elapsed *
+      0.48 +
+      phaseOffset
+    ) *
+    0.024,
+    -bodySway *
+    0.006,
     smoothing
   );
 
-  // Turunkan lengan dari T-pose.
-  // Rotasi Z adalah pose dasar, rotasi X hanya memberi ayunan kecil.
+  // Bahu dan tangan rileks saat berdiri.
+  const idleLeftSwing =
+    armSway *
+    0.16 +
+    breath *
+    0.035;
+
+  const idleRightSwing =
+    -armSway *
+    0.16 +
+    breath *
+    0.035;
+
   poseBone(
     racer,
     'leftShoulder',
-    0,
-    0,
-    0.055,
-    smoothing,
-    'ZXY'
+    inhale *
+    0.014 +
+    idleLeftSwing *
+    0.16,
+    -idleLeftSwing *
+    0.10,
+    0.045 +
+    inhale *
+    0.008,
+    smoothing *
+    0.88,
+    'XYZ'
   );
 
   poseBone(
     racer,
     'rightShoulder',
-    0,
-    0,
-    -0.055,
-    smoothing,
-    'ZXY'
+    inhale *
+    0.014 +
+    idleRightSwing *
+    0.16,
+    -idleRightSwing *
+    0.10,
+    -0.045 -
+    inhale *
+    0.008,
+    smoothing *
+    0.88,
+    'XYZ'
   );
 
   poseBone(
     racer,
     'leftUpperArm',
-    0.055 +
-    breath * 0.006,
-    0,
-    1.18,
-    smoothing,
+    0.10 +
+    idleLeftSwing *
+    0.26,
+    -0.035 +
+    idleLeftSwing *
+    0.10,
+    1.05,
+    smoothing *
+    0.84,
     'ZXY'
   );
 
   poseBone(
     racer,
     'rightUpperArm',
-    0.055 +
-    breath * 0.006,
-    0,
-    -1.18,
-    smoothing,
+    0.10 +
+    idleRightSwing *
+    0.26,
+    0.035 -
+    idleRightSwing *
+    0.10,
+    -1.05,
+    smoothing *
+    0.84,
     'ZXY'
   );
 
   poseBentElbow(
     racer,
     'left',
-    0.42,
-    0,
-    smoothing
+    0.66 +
+    inhale *
+    0.045 +
+    Math.max(
+      0,
+      idleLeftSwing
+    ) *
+    0.10,
+    idleLeftSwing,
+    smoothing *
+    0.82
   );
 
   poseBentElbow(
     racer,
     'right',
-    0.42,
-    0,
-    smoothing
+    0.66 +
+    inhale *
+    0.045 +
+    Math.max(
+      0,
+      idleRightSwing
+    ) *
+    0.10,
+    idleRightSwing,
+    smoothing *
+    0.82
   );
 
   poseBone(
     racer,
     'leftHand',
-    0.02,
-    0,
-    -0.03,
-    smoothing
+    -0.075 +
+    idleLeftSwing *
+    0.08,
+    idleLeftSwing *
+    0.11,
+    -0.040,
+    smoothing *
+    0.72,
+    'XYZ'
   );
 
   poseBone(
     racer,
     'rightHand',
-    0.02,
-    0,
-    0.03,
-    smoothing
+    -0.075 +
+    idleRightSwing *
+    0.08,
+    -idleRightSwing *
+    0.11,
+    0.040,
+    smoothing *
+    0.72,
+    'XYZ'
   );
 
+  // Kaki menopang perpindahan berat badan secara lembut.
   poseBone(
     racer,
     'leftUpperLeg',
-    -0.018,
+    -0.015,
     0,
-    0.012,
+    0.012 +
+    weightShift *
+    0.006,
     smoothing
   );
 
   poseBone(
     racer,
     'rightUpperLeg',
-    -0.018,
+    -0.015,
     0,
-    -0.012,
+    -0.012 +
+    weightShift *
+    0.006,
     smoothing
   );
 
   poseBone(
     racer,
     'leftLowerLeg',
-    -0.035,
+    -0.032 -
+    Math.max(
+      0,
+      weightShift
+    ) *
+    0.012,
     0,
     0,
     smoothing
@@ -3257,7 +3425,12 @@ function setIdlePose(
   poseBone(
     racer,
     'rightLowerLeg',
-    -0.035,
+    -0.032 -
+    Math.max(
+      0,
+      -weightShift
+    ) *
+    0.012,
     0,
     0,
     smoothing
@@ -3266,7 +3439,7 @@ function setIdlePose(
   poseBone(
     racer,
     'leftFoot',
-    0.025,
+    0.024,
     0,
     0,
     smoothing
@@ -3275,38 +3448,34 @@ function setIdlePose(
   poseBone(
     racer,
     'rightFoot',
-    0.025,
+    0.024,
     0,
     0,
     smoothing
   );
 
+  // Naik-turun tubuh sangat kecil agar terlihat bernapas,
+  // tetapi telapak kaki tetap terasa menempel di lintasan.
   racer.root.position.y =
-    Math.max(
+    THREE.MathUtils.clamp(
+      0.004 +
+      breath *
+      0.003,
       0,
-      breath * 0.004
+      0.008
     );
-
 
   updateGroundShadow(
     racer,
-    0
+    racer.root.position.y
   );
-
-  if (racer.spoon) {
-    racer.spoon.rotation.set(
-      0,
-      0,
-      0
-    );
-  }
 
   if (racer.spoonBowl) {
     racer.spoonBowl.rotation.z =
-      0;
+      bodySway *
+      0.012;
   }
 }
-
 
 function animateRun(
   racer,
