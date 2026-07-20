@@ -3279,40 +3279,33 @@ function poseRunningArm(
     ? 'leftHand'
     : 'rightHand';
 
-  // Jogging lebih natural:
-  // - ayunan ke depan dibuat lebih tinggi
-  // - bahu/clavicle ikut mendorong gerakan
-  // - siku dan tangan sedikit tertinggal agar tidak kaku seperti robot.
+  // Gerak bahu dibuat maju-mundur dari sendi bahu,
+  // bukan mengepak ke samping.
   const forwardSwing = Math.max(0, swing);
   const backwardSwing = Math.max(0, -swing);
 
   const shoulderPitch =
-    -0.022 +
-    forwardSwing * (0.24 + speedRatio * 0.07) -
-    backwardSwing * (0.12 + speedRatio * 0.04);
-
-  const shoulderRoll =
-    mirror * (
-      0.004 +
-      backwardSwing * 0.010 -
-      forwardSwing * 0.004
-    );
+    -0.018 +
+    forwardSwing * (0.28 + speedRatio * 0.08) -
+    backwardSwing * (0.16 + speedRatio * 0.05);
 
   const upperArmPitch =
-    -0.030 +
-    forwardSwing * (0.62 + speedRatio * 0.16) -
-    backwardSwing * (0.34 + speedRatio * 0.10);
+    -0.024 +
+    forwardSwing * (0.58 + speedRatio * 0.15) -
+    backwardSwing * (0.40 + speedRatio * 0.10);
 
+  // Sudut lengan turun di samping badan dibuat hampir konstan
+  // agar tidak terlihat mengepak ke kanan-kiri.
   const upperArmDrop =
-    mirror * (1.16 - forwardSwing * 0.04 + backwardSwing * 0.03);
+    mirror * 1.18;
 
   poseBone(
     racer,
     shoulderName,
     shoulderPitch,
     0,
-    shoulderRoll,
-    smoothing * 0.92,
+    mirror * 0.002,
+    smoothing * 0.94,
     'XYZ'
   );
 
@@ -3327,29 +3320,28 @@ function poseRunningArm(
   );
 
   const elbowBend =
-    0.52 +
-    forwardSwing * (0.14 + speedRatio * 0.04) +
+    0.50 +
+    forwardSwing * (0.12 + speedRatio * 0.04) +
     backwardSwing * 0.10;
 
   poseBentElbow(
     racer,
     side,
     elbowBend,
-    swing * 0.22,
+    swing * 0.16,
     smoothing * 0.90
   );
 
   poseBone(
     racer,
     handName,
-    0.004 - swing * 0.050,
+    0.002 - swing * 0.040,
     0,
-    mirror * -0.006,
+    mirror * -0.003,
     smoothing * 0.84,
     'XYZ'
   );
 
-  // Kepalan rileks, bukan kepalan keras.
   setHandGrip(
     racer,
     side,
