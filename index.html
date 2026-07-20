@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V14.4 Lite Performance</title>
+  <title>Anime Runner VRM V14.1 Real VRM Costumes</title>
   <style>
     :root{
       --bg:#080b14;
@@ -768,8 +768,8 @@
 
   <header class="topbar">
     <section class="brand">
-      <h1>HUMAN <span>RUNNER VRM V14.4 LITE</span></h1>
-      <p>Versi ringan: kostum tetap ada, pose santai tetap aktif, tetapi perhitungan berat dan shadow map dikurangi agar lebih lancar.</p>
+      <h1>HUMAN <span>RUNNER VRM V14.1</span></h1>
+      <p>Memakai karakter VRM berkostum anime asli: hoodie, jaket, rok atau celana, kaus kaki, dan sepatu sudah menyatu dengan model.</p>
     </section>
 
     <div class="status-pill" aria-live="polite">
@@ -946,9 +946,7 @@ const CHARACTER_PRESETS = [
     speed: 9.24,
     handling: 1.00,
     expression: 'neutral',
-    hairStyle: 'spiky',
-    idleStyle: 'ready',
-    groundBias: 0.000
+    hairStyle: 'spiky'
   },
   {
     id: 'ren',
@@ -976,9 +974,7 @@ const CHARACTER_PRESETS = [
     speed: 9.48,
     handling: 0.92,
     expression: 'relaxed',
-    hairStyle: 'swept',
-    idleStyle: 'confident',
-    groundBias: 0.000
+    hairStyle: 'swept'
   },
   {
     id: 'mika',
@@ -1006,9 +1002,7 @@ const CHARACTER_PRESETS = [
     speed: 9.08,
     handling: 1.14,
     expression: 'happy',
-    hairStyle: 'bob',
-    idleStyle: 'casual',
-    groundBias: 0.000
+    hairStyle: 'bob'
   },
   {
     id: 'yuna',
@@ -1036,9 +1030,7 @@ const CHARACTER_PRESETS = [
     speed: 9.18,
     handling: 1.18,
     expression: 'relaxed',
-    hairStyle: 'ponytail',
-    idleStyle: 'soft',
-    groundBias: 0.000
+    hairStyle: 'ponytail'
   },
   {
     id: 'sora',
@@ -1066,9 +1058,7 @@ const CHARACTER_PRESETS = [
     speed: 9.34,
     handling: 0.96,
     expression: 'neutral',
-    hairStyle: 'crest',
-    idleStyle: 'athletic',
-    groundBias: 0.000
+    hairStyle: 'crest'
   }
 ];
 
@@ -1108,55 +1098,18 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(5.8, 3.3, 53);
 
-const LOW_POWER_MODE =
-  matchMedia(
-    '(max-width: 900px)'
-  ).matches ||
-  (
-    navigator.hardwareConcurrency &&
-    navigator.hardwareConcurrency <= 4
-  );
-
-const PIXEL_RATIO_LIMIT =
-  LOW_POWER_MODE
-    ? 0.90
-    : 1.10;
-
-const TARGET_FPS =
-  LOW_POWER_MODE
-    ? 36
-    : 48;
-
 const renderer = new THREE.WebGLRenderer({
-  antialias: !LOW_POWER_MODE,
+  antialias: true,
   alpha: true,
   powerPreference: 'high-performance'
 });
-
-renderer.setPixelRatio(
-  Math.min(
-    devicePixelRatio,
-    PIXEL_RATIO_LIMIT
-  )
-);
-
-renderer.setSize(
-  innerWidth,
-  innerHeight
-);
-
-renderer.outputColorSpace =
-  THREE.SRGBColorSpace;
-
-renderer.toneMapping =
-  THREE.ACESFilmicToneMapping;
-
-renderer.toneMappingExposure =
-  1.04;
-
-// Bayangan karakter memakai contact shadow ringan.
-// Shadow map WebGL dimatikan karena sangat berat untuk lima VRM.
-renderer.shadowMap.enabled = false;
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.55));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 viewport.appendChild(renderer.domElement);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
@@ -1243,7 +1196,7 @@ function setupLights() {
     );
 
   sun.position.set(8, 14, 8);
-  sun.castShadow = false;
+  sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.left = -14;
   sun.shadow.camera.right = 14;
@@ -1911,10 +1864,9 @@ function tintAvatarMaterials(
   vrm.scene.traverse(object => {
     if (!object.isMesh) return;
 
-    // Shadow map dimatikan; hanya contact shadow yang dipakai.
-    object.castShadow = false;
-    object.receiveShadow = false;
-    object.frustumCulled = true;
+    object.castShadow = true;
+    object.receiveShadow = true;
+    object.frustumCulled = false;
 
     const materials =
       Array.isArray(
@@ -2186,7 +2138,6 @@ function captureBones(vrm) {
 
   const bones = {};
   const rests = {};
-  const restScales = {};
 
   names.forEach(name => {
     const bone =
@@ -2198,18 +2149,13 @@ function captureBones(vrm) {
     if (!bone) return;
 
     bones[name] = bone;
-
     rests[name] =
       bone.quaternion.clone();
-
-    restScales[name] =
-      bone.scale.clone();
   });
 
   return {
     bones,
-    rests,
-    restScales
+    rests
   };
 }
 
@@ -2264,7 +2210,7 @@ function createSpoon(
     -0.09
   );
 
-  handle.castShadow = false;
+  handle.castShadow = true;
   group.add(handle);
 
   const bowl =
@@ -2289,7 +2235,7 @@ function createSpoon(
     -0.19
   );
 
-  bowl.castShadow = false;
+  bowl.castShadow = true;
   group.add(bowl);
 
   // Kelereng menjadi anak dari bowl, sehingga selalu berada
@@ -2310,7 +2256,7 @@ function createSpoon(
     0
   );
 
-  marble.castShadow = false;
+  marble.castShadow = true;
   bowl.add(marble);
 
   scene.add(group);
@@ -2626,8 +2572,7 @@ async function createRacer(
 
   const {
     bones,
-    rests,
-    restScales
+    rests
   } = captureBones(vrm);
 
   const root =
@@ -2651,11 +2596,6 @@ async function createRacer(
     vrm,
     bones,
     rests,
-    restScales,
-    visualBounds: new THREE.Box3(),
-    soleOffset: 0,
-    groundLift: 0,
-    groundCorrection: 0,
     spoon: null,
     spoonBowl: null,
     marble: null,
@@ -2684,11 +2624,6 @@ async function createRacer(
   createOutfit(racer);
   createSpoon(racer);
   createAccentAccessories(
-    racer
-  );
-
-  // Simpan tinggi kaki asli model sebelum pose diterapkan.
-  captureGroundReference(
     racer
   );
 
@@ -2801,7 +2736,7 @@ async function loadAllRacers() {
     resetRace();
 
     statusText.textContent =
-      '5 avatar siap • mode ringan aktif';
+      '5 avatar hidup • outfit warna berbeda';
   } catch (error) {
     console.error(error);
 
@@ -2865,256 +2800,6 @@ function poseBone(
   );
 }
 
-
-function poseBoneScale(
-  racer,
-  name,
-  scaleX,
-  scaleY,
-  scaleZ,
-  smoothing
-) {
-  const bone =
-    racer.bones[name];
-
-  const restScale =
-    racer.restScales?.[name];
-
-  if (
-    !bone ||
-    !restScale
-  ) return;
-
-  const target =
-    new THREE.Vector3(
-      restScale.x * scaleX,
-      restScale.y * scaleY,
-      restScale.z * scaleZ
-    );
-
-  bone.scale.lerp(
-    target,
-    THREE.MathUtils.clamp(
-      smoothing,
-      0,
-      1
-    )
-  );
-}
-
-function resetBreathingScale(
-  racer,
-  smoothing
-) {
-  poseBoneScale(
-    racer,
-    'spine',
-    1,
-    1,
-    1,
-    smoothing
-  );
-
-  poseBoneScale(
-    racer,
-    'chest',
-    1,
-    1,
-    1,
-    smoothing
-  );
-
-  poseBoneScale(
-    racer,
-    'upperChest',
-    1,
-    1,
-    1,
-    smoothing
-  );
-}
-
-const TRACK_SURFACE_Y =
-  0.006;
-
-function getLowestFootBoneY(
-  racer
-) {
-  const footNames = [
-    'leftFoot',
-    'rightFoot',
-    'leftToes',
-    'rightToes'
-  ];
-
-  const worldPosition =
-    new THREE.Vector3();
-
-  let lowest =
-    Infinity;
-
-  racer.root.updateMatrixWorld(
-    true
-  );
-
-  footNames.forEach(name => {
-    const bone =
-      racer.bones[name];
-
-    if (!bone) return;
-
-    bone.getWorldPosition(
-      worldPosition
-    );
-
-    lowest =
-      Math.min(
-        lowest,
-        worldPosition.y
-      );
-  });
-
-  return lowest;
-}
-
-function getVisualModelMinYOnce(
-  racer
-) {
-  racer.root.updateMatrixWorld(
-    true
-  );
-
-  racer.vrm.scene.updateMatrixWorld(
-    true
-  );
-
-  racer.visualBounds
-    .makeEmpty()
-    .setFromObject(
-      racer.vrm.scene,
-      true
-    );
-
-  return racer.visualBounds.min.y;
-}
-
-function captureGroundReference(
-  racer
-) {
-  racer.root.position.y = 0;
-  racer.groundCorrection = 0;
-
-  try {
-    racer.vrm.humanoid
-      ?.update();
-  } catch (error) {
-    // Tidak masalah jika update humanoid langsung tidak tersedia.
-  }
-
-  const meshMinY =
-    getVisualModelMinYOnce(
-      racer
-    );
-
-  const footBoneY =
-    getLowestFootBoneY(
-      racer
-    );
-
-  if (
-    Number.isFinite(
-      meshMinY
-    ) &&
-    Number.isFinite(
-      footBoneY
-    )
-  ) {
-    // Selisih ini menyimpan jarak ankle/toes ke sol sepatu.
-    // Box3 hanya dihitung satu kali saat loading, bukan setiap frame.
-    racer.soleOffset =
-      footBoneY -
-      meshMinY;
-  } else {
-    racer.soleOffset =
-      0.075;
-  }
-
-  keepFeetGrounded(
-    racer,
-    0,
-    true
-  );
-}
-
-function keepFeetGrounded(
-  racer,
-  desiredLift = 0,
-  forceSnap = false
-) {
-  const lowestFootBoneY =
-    getLowestFootBoneY(
-      racer
-    );
-
-  if (
-    !Number.isFinite(
-      lowestFootBoneY
-    )
-  ) return;
-
-  const estimatedSoleY =
-    lowestFootBoneY -
-    racer.soleOffset;
-
-  const targetSoleY =
-    TRACK_SURFACE_Y +
-    (
-      racer.preset.groundBias ||
-      0
-    ) +
-    Math.max(
-      0,
-      desiredLift
-    );
-
-  const rawCorrection =
-    targetSoleY -
-    estimatedSoleY;
-
-  const safeCorrection =
-    THREE.MathUtils.clamp(
-      rawCorrection,
-      -0.16,
-      0.16
-    );
-
-  const correction =
-    forceSnap
-      ? safeCorrection
-      : THREE.MathUtils.lerp(
-          racer.groundCorrection ||
-          0,
-          safeCorrection,
-          0.58
-        );
-
-  racer.root.position.y +=
-    correction;
-
-  racer.groundCorrection =
-    safeCorrection;
-
-  racer.groundLift =
-    Math.max(
-      0,
-      desiredLift
-    );
-
-  updateGroundShadow(
-    racer,
-    racer.groundLift
-  );
-}
 
 function poseBentElbow(
   racer,
@@ -3198,8 +2883,7 @@ function poseBentElbow(
 function poseRunningArm(
   racer,
   side,
-  forwardSignal,
-  armPhase,
+  swing,
   speedRatio,
   smoothing
 ) {
@@ -3237,69 +2921,56 @@ function poseRunningArm(
     !upperRest
   ) return;
 
-  const shoulderSignal =
-    Math.sin(
-      armPhase +
-      0.12
-    );
-
-  const upperSignal =
-    Math.sin(
-      armPhase
-    );
-
-  const wristSignal =
-    Math.sin(
-      armPhase -
-      0.24
-    );
-
-  const elbowPulse =
-    (
-      Math.sin(
-        armPhase +
-        0.68
-      ) +
-      1
-    ) *
-    0.5;
-
   const forwardAmount =
     Math.max(
       0,
-      forwardSignal
+      swing
     );
 
   const backwardAmount =
     Math.max(
       0,
-      -forwardSignal
+      -swing
     );
 
-  // Bahu punya gerakan sendiri agar lengan tidak seperti papan.
+  const delayedSwing =
+    Math.sin(
+      Math.asin(
+        THREE.MathUtils.clamp(
+          swing,
+          -1,
+          1
+        )
+      ) -
+      0.16
+    );
+
+  // Bahu ikut maju-mundur, naik-turun, dan sedikit memutar.
   poseBone(
     racer,
     shoulderName,
-    shoulderSignal *
+    delayedSwing *
     (
-      0.10 +
+      0.08 +
       speedRatio *
-      0.06
+      0.05
     ),
     mirror *
-    shoulderSignal *
-    0.055,
+    delayedSwing *
+    0.045,
     mirror *
     (
-      0.042 +
+      0.045 +
       forwardAmount *
-      0.030
+      0.025
     ),
     smoothing *
-    0.80,
+    0.92,
     'XYZ'
   );
 
+  // Posisi dasar lengan dibuat lebih dekat ke tubuh,
+  // tetapi tidak menempel kaku.
   const armDown =
     new THREE.Quaternion()
       .setFromAxisAngle(
@@ -3309,7 +2980,7 @@ function poseRunningArm(
           1
         ),
         mirror *
-        1.00
+        1.05
       );
 
   const forwardBack =
@@ -3321,11 +2992,11 @@ function poseRunningArm(
           0
         ),
         mirror *
-        upperSignal *
+        swing *
         (
-          0.72 +
+          0.62 +
           speedRatio *
-          0.34
+          0.30
         )
       );
 
@@ -3337,15 +3008,15 @@ function poseRunningArm(
           0,
           0
         ),
-        forwardSignal *
+        swing *
         (
-          0.18 +
+          0.16 +
           speedRatio *
-          0.10
+          0.08
         )
       );
 
-  const relaxedOpening =
+  const outwardRelax =
     new THREE.Quaternion()
       .setFromAxisAngle(
         new THREE.Vector3(
@@ -3355,9 +3026,9 @@ function poseRunningArm(
         ),
         -mirror *
         (
-          0.032 +
+          0.035 +
           backwardAmount *
-          0.050
+          0.025
         )
       );
 
@@ -3374,266 +3045,62 @@ function poseRunningArm(
         naturalDrive
       )
       .multiply(
-        relaxedOpening
+        outwardRelax
       );
 
   upper.quaternion.slerp(
     target,
     THREE.MathUtils.clamp(
       smoothing *
-      0.82,
+      0.90,
       0,
       1
     )
   );
 
-  // Siku tidak terkunci; tekukan berubah sepanjang langkah.
+  // Siku berubah terus, tidak terkunci di satu sudut.
   const elbowBend =
-    0.90 +
-    elbowPulse *
-    (
-      0.20 +
-      speedRatio *
-      0.10
-    ) +
+    0.98 +
     forwardAmount *
-    0.30 +
+    (
+      0.34 +
+      speedRatio *
+      0.12
+    ) +
     backwardAmount *
-    0.13;
+    0.20;
 
   poseBentElbow(
     racer,
     side,
     elbowBend,
-    upperSignal *
-    0.72,
+    swing *
+    0.70,
     smoothing *
-    0.74
+    0.86
   );
 
-  // Pergelangan tertinggal sedikit dari lengan atas.
+  // Pergelangan punya lag kecil sehingga tangan tidak seperti papan.
   poseBone(
     racer,
     handName,
-    -0.075 +
-    wristSignal *
-    0.095,
+    -0.10 +
+    delayedSwing *
+    0.075,
     mirror *
-    wristSignal *
-    0.095,
+    delayedSwing *
+    0.085,
     mirror *
     (
-      -0.034 +
+      -0.035 +
       forwardAmount *
-      0.026
+      0.025
     ),
     smoothing *
-    0.64,
+    0.78,
     'XYZ'
   );
 }
-
-function poseRelaxedIdleArm(
-  racer,
-  side,
-  elapsed,
-  phaseOffset,
-  profile,
-  breath,
-  smoothing
-) {
-  const isLeft =
-    side === 'left';
-
-  const mirror =
-    isLeft
-      ? 1
-      : -1;
-
-  const shoulderName =
-    isLeft
-      ? 'leftShoulder'
-      : 'rightShoulder';
-
-  const upperName =
-    isLeft
-      ? 'leftUpperArm'
-      : 'rightUpperArm';
-
-  const handName =
-    isLeft
-      ? 'leftHand'
-      : 'rightHand';
-
-  const upper =
-    racer.bones[upperName];
-
-  const upperRest =
-    racer.rests[upperName];
-
-  if (
-    !upper ||
-    !upperRest
-  ) return;
-
-  // Setiap bagian memakai tempo berbeda agar tidak bergerak serempak.
-  const slowDrift =
-    Math.sin(
-      elapsed *
-      0.62 +
-      phaseOffset +
-      profile.phase
-    );
-
-  const elbowDrift =
-    Math.sin(
-      elapsed *
-      0.81 +
-      phaseOffset +
-      profile.phase +
-      0.72
-    );
-
-  const wristDrift =
-    Math.sin(
-      elapsed *
-      1.07 +
-      phaseOffset +
-      profile.phase -
-      0.48
-    );
-
-  const shoulderBreath =
-    Math.max(
-      0,
-      breath
-    );
-
-  poseBone(
-    racer,
-    shoulderName,
-    shoulderBreath *
-    0.018 +
-    slowDrift *
-    0.018,
-    mirror *
-    slowDrift *
-    0.025,
-    mirror *
-    (
-      0.040 +
-      profile.shoulderOpen
-    ),
-    smoothing *
-    0.56,
-    'XYZ'
-  );
-
-  // Turunkan lengan dari T-pose.
-  const armDown =
-    new THREE.Quaternion()
-      .setFromAxisAngle(
-        new THREE.Vector3(
-          0,
-          0,
-          1
-        ),
-        mirror *
-        (
-          1.04 +
-          profile.downOffset
-        )
-      );
-
-  // Posisi depan/belakang tidak sama antara tangan kiri dan kanan.
-  const forwardBack =
-    new THREE.Quaternion()
-      .setFromAxisAngle(
-        new THREE.Vector3(
-          0,
-          1,
-          0
-        ),
-        mirror *
-        (
-          profile.forward +
-          slowDrift *
-          0.075
-        )
-      );
-
-  const relaxedTwist =
-    new THREE.Quaternion()
-      .setFromAxisAngle(
-        new THREE.Vector3(
-          1,
-          0,
-          0
-        ),
-        profile.twist +
-        slowDrift *
-        0.040
-      );
-
-  const armTarget =
-    upperRest
-      .clone()
-      .multiply(
-        armDown
-      )
-      .multiply(
-        forwardBack
-      )
-      .multiply(
-        relaxedTwist
-      );
-
-  upper.quaternion.slerp(
-    armTarget,
-    THREE.MathUtils.clamp(
-      smoothing *
-      0.54,
-      0,
-      1
-    )
-  );
-
-  // Siku berubah perlahan, tidak terkunci pada satu sudut.
-  poseBentElbow(
-    racer,
-    side,
-    profile.elbow +
-    elbowDrift *
-    0.075 +
-    shoulderBreath *
-    0.035,
-    slowDrift *
-    0.12,
-    smoothing *
-    0.48
-  );
-
-  // Pergelangan lebih lepas dan sedikit tertinggal.
-  poseBone(
-    racer,
-    handName,
-    profile.wristX +
-    wristDrift *
-    0.055,
-    mirror *
-    (
-      profile.wristY +
-      wristDrift *
-      0.065
-    ),
-    mirror *
-    profile.wristZ,
-    smoothing *
-    0.42,
-    'XYZ'
-  );
-}
-
 
 function setIdlePose(
   racer,
@@ -3642,153 +3109,100 @@ function setIdlePose(
 ) {
   const phaseOffset =
     racer.laneIndex *
-    0.81;
-
-  const breathPhase =
-    elapsed *
-    1.30 +
-    phaseOffset;
+    0.73;
 
   const breath =
     Math.sin(
-      breathPhase
+      elapsed *
+      1.48 +
+      phaseOffset
     );
 
-  const inhale =
-    (
-      breath +
-      1
+  const breathSecond =
+    Math.sin(
+      elapsed *
+      2.96 +
+      phaseOffset
     ) *
-    0.5;
+    0.22;
+
+  const inhale =
+    THREE.MathUtils.clamp(
+      (
+        breath +
+        1
+      ) *
+      0.5,
+      0,
+      1
+    );
 
   const weightShift =
     Math.sin(
       elapsed *
-      0.55 +
+      0.63 +
       phaseOffset
     );
 
   const bodySway =
     Math.sin(
       elapsed *
-      0.36 +
+      0.37 +
       phaseOffset *
-      0.60
+      0.65
     );
 
-  const armFloat =
+  const armSway =
     Math.sin(
       elapsed *
-      0.78 +
+      0.88 +
       phaseOffset
     );
 
-  const style =
-    racer.preset.idleStyle ||
-    'casual';
-
-  let stanceSide = 1;
-  let hipLean = 0.018;
-  let chestYaw = -0.010;
-  let headYaw = 0.018;
-  let leftArmBase = 0.10;
-  let rightArmBase = 0.08;
-  let leftElbowBase = 0.58;
-  let rightElbowBase = 0.54;
-  let relaxedKnee = 0.10;
-
-  if (style === 'confident') {
-    stanceSide = -1;
-    hipLean = 0.026;
-    chestYaw = 0.020;
-    headYaw = -0.025;
-    leftArmBase = 0.08;
-    rightArmBase = 0.14;
-    leftElbowBase = 0.52;
-    rightElbowBase = 0.66;
-    relaxedKnee = 0.08;
-  } else if (style === 'casual') {
-    stanceSide = 1;
-    hipLean = 0.032;
-    chestYaw = -0.018;
-    headYaw = 0.030;
-    leftArmBase = 0.16;
-    rightArmBase = 0.07;
-    leftElbowBase = 0.72;
-    rightElbowBase = 0.48;
-    relaxedKnee = 0.16;
-  } else if (style === 'soft') {
-    stanceSide = -1;
-    hipLean = 0.020;
-    chestYaw = 0.012;
-    headYaw = -0.018;
-    leftArmBase = 0.11;
-    rightArmBase = 0.12;
-    leftElbowBase = 0.60;
-    rightElbowBase = 0.62;
-    relaxedKnee = 0.12;
-  } else if (style === 'athletic') {
-    stanceSide = 1;
-    hipLean = 0.014;
-    chestYaw = -0.006;
-    headYaw = 0.010;
-    leftArmBase = 0.13;
-    rightArmBase = 0.13;
-    leftElbowBase = 0.66;
-    rightElbowBase = 0.66;
-    relaxedKnee = 0.07;
-  }
-
-  // Pinggang tidak lagi simetris: berat badan bertumpu pada satu kaki.
+  // Pergeseran berat badan dari kaki kiri ke kanan.
   poseBone(
     racer,
     'hips',
     -0.012 +
     breath *
-    0.006,
-    chestYaw +
+    0.004,
+    weightShift *
+    0.018,
     weightShift *
     0.014,
-    stanceSide *
-    hipLean +
-    weightShift *
-    0.010,
-    smoothing *
-    0.86
+    smoothing
   );
 
-  // Napas bergerak dari perut ke dada.
+  // Bagian badan bawah ikut bergerak kecil saat bernapas.
   poseBone(
     racer,
     'spine',
-    -0.016 +
+    -0.018 +
     breath *
-    0.022,
-    -chestYaw *
-    0.55 +
+    0.016 +
+    breathSecond *
+    0.005,
     bodySway *
     0.008,
-    -stanceSide *
-    hipLean *
-    0.40,
-    smoothing *
-    0.82
+    -weightShift *
+    0.008,
+    smoothing
   );
 
+  // Dada naik dan sedikit membuka ketika menarik napas.
   poseBone(
     racer,
     'chest',
-    0.010 +
+    0.012 +
     breath *
-    0.042,
-    chestYaw +
+    0.028 +
+    breathSecond *
+    0.006,
     bodySway *
-    0.008,
-    stanceSide *
-    hipLean *
-    0.25,
-    smoothing *
-    0.78
+    0.006,
+    weightShift *
+    0.007,
+    smoothing
   );
 
   poseBone(
@@ -3796,314 +3210,236 @@ function setIdlePose(
     'upperChest',
     0.006 +
     breath *
-    0.034,
-    chestYaw *
-    0.50 -
-    bodySway *
-    0.006,
-    stanceSide *
-    hipLean *
-    0.18,
-    smoothing *
-    0.76
-  );
-
-  // Dada mengembang halus ketika menarik napas.
-  poseBoneScale(
-    racer,
-    'spine',
-    1,
-    1 +
-    inhale *
-    0.004,
-    1 +
-    inhale *
-    0.006,
-    smoothing *
-    0.66
-  );
-
-  poseBoneScale(
-    racer,
-    'chest',
-    1 +
-    inhale *
-    0.006,
-    1 +
-    inhale *
-    0.010,
-    1 +
-    inhale *
-    0.016,
-    smoothing *
-    0.64
-  );
-
-  poseBoneScale(
-    racer,
-    'upperChest',
-    1 +
-    inhale *
+    0.022,
+    -bodySway *
     0.005,
-    1 +
-    inhale *
-    0.008,
-    1 +
-    inhale *
-    0.013,
-    smoothing *
-    0.62
+    weightShift *
+    0.006,
+    smoothing
   );
 
+  // Leher dan kepala mengimbangi gerakan dada.
   poseBone(
     racer,
     'neck',
     -breath *
-    0.010,
-    -headYaw *
-    0.30 +
+    0.007,
     bodySway *
     0.008,
-    -stanceSide *
-    0.005,
-    smoothing *
-    0.80
+    -weightShift *
+    0.004,
+    smoothing
   );
 
   poseBone(
     racer,
     'head',
-    0.012 -
+    0.014 -
     breath *
-    0.008,
-    headYaw +
+    0.006,
     Math.sin(
       elapsed *
-      0.43 +
+      0.48 +
       phaseOffset
     ) *
-    0.018,
+    0.024,
     -bodySway *
-    0.007,
-    smoothing *
-    0.78
-  );
-
-  // Profil tangan berbeda agar setiap karakter tidak berdiri seperti patung.
-  const idleProfiles = {
-    ready: {
-      left: {
-        phase: 0.10,
-        forward: 0.08,
-        elbow: 0.52,
-        downOffset: 0.00,
-        shoulderOpen: 0.006,
-        twist: 0.025,
-        wristX: -0.040,
-        wristY: 0.015,
-        wristZ: 0.028
-      },
-      right: {
-        phase: 1.15,
-        forward: -0.045,
-        elbow: 0.46,
-        downOffset: -0.018,
-        shoulderOpen: -0.004,
-        twist: -0.018,
-        wristX: -0.055,
-        wristY: -0.010,
-        wristZ: 0.022
-      }
-    },
-    confident: {
-      left: {
-        phase: 0.35,
-        forward: -0.075,
-        elbow: 0.42,
-        downOffset: 0.010,
-        shoulderOpen: 0.018,
-        twist: 0.030,
-        wristX: -0.030,
-        wristY: 0.020,
-        wristZ: 0.030
-      },
-      right: {
-        phase: 1.55,
-        forward: 0.155,
-        elbow: 0.70,
-        downOffset: -0.035,
-        shoulderOpen: -0.008,
-        twist: -0.045,
-        wristX: -0.095,
-        wristY: 0.030,
-        wristZ: 0.050
-      }
-    },
-    casual: {
-      left: {
-        phase: 0.70,
-        forward: 0.205,
-        elbow: 0.78,
-        downOffset: -0.030,
-        shoulderOpen: 0.014,
-        twist: 0.055,
-        wristX: -0.110,
-        wristY: 0.035,
-        wristZ: 0.052
-      },
-      right: {
-        phase: 1.95,
-        forward: -0.080,
-        elbow: 0.40,
-        downOffset: 0.020,
-        shoulderOpen: -0.010,
-        twist: -0.025,
-        wristX: -0.035,
-        wristY: -0.020,
-        wristZ: 0.020
-      }
-    },
-    soft: {
-      left: {
-        phase: 0.25,
-        forward: 0.105,
-        elbow: 0.60,
-        downOffset: -0.010,
-        shoulderOpen: 0.004,
-        twist: 0.020,
-        wristX: -0.070,
-        wristY: 0.020,
-        wristZ: 0.035
-      },
-      right: {
-        phase: 1.35,
-        forward: 0.055,
-        elbow: 0.58,
-        downOffset: -0.006,
-        shoulderOpen: 0.004,
-        twist: -0.018,
-        wristX: -0.068,
-        wristY: 0.018,
-        wristZ: 0.035
-      }
-    },
-    athletic: {
-      left: {
-        phase: 0.00,
-        forward: 0.130,
-        elbow: 0.66,
-        downOffset: -0.020,
-        shoulderOpen: 0.008,
-        twist: 0.030,
-        wristX: -0.080,
-        wristY: 0.020,
-        wristZ: 0.040
-      },
-      right: {
-        phase: Math.PI,
-        forward: -0.090,
-        elbow: 0.57,
-        downOffset: -0.005,
-        shoulderOpen: 0.002,
-        twist: -0.025,
-        wristX: -0.065,
-        wristY: -0.015,
-        wristZ: 0.032
-      }
-    }
-  };
-
-  const activeProfile =
-    idleProfiles[style] ||
-    idleProfiles.casual;
-
-  poseRelaxedIdleArm(
-    racer,
-    'left',
-    elapsed,
-    phaseOffset,
-    activeProfile.left,
-    breath,
+    0.006,
     smoothing
   );
 
-  poseRelaxedIdleArm(
-    racer,
-    'right',
-    elapsed,
-    phaseOffset,
-    activeProfile.right,
-    breath,
-    smoothing
-  );
+  // Bahu dan tangan rileks saat berdiri.
+  const idleLeftSwing =
+    armSway *
+    0.16 +
+    breath *
+    0.035;
 
-  // Satu kaki menjadi tumpuan, kaki lain sedikit rileks.
-  const leftRelax =
-    stanceSide > 0
-      ? relaxedKnee
-      : 0.035;
-
-  const rightRelax =
-    stanceSide < 0
-      ? relaxedKnee
-      : 0.035;
+  const idleRightSwing =
+    -armSway *
+    0.16 +
+    breath *
+    0.035;
 
   poseBone(
     racer,
-    'leftUpperLeg',
-    -0.010 +
-    leftRelax *
+    'leftShoulder',
+    inhale *
+    0.014 +
+    idleLeftSwing *
+    0.16,
+    -idleLeftSwing *
     0.10,
-    0,
-    0.010 +
-    stanceSide *
+    0.045 +
+    inhale *
     0.008,
     smoothing *
-    0.76
+    0.88,
+    'XYZ'
+  );
+
+  poseBone(
+    racer,
+    'rightShoulder',
+    inhale *
+    0.014 +
+    idleRightSwing *
+    0.16,
+    -idleRightSwing *
+    0.10,
+    -0.045 -
+    inhale *
+    0.008,
+    smoothing *
+    0.88,
+    'XYZ'
+  );
+
+  poseBone(
+    racer,
+    'leftUpperArm',
+    0.10 +
+    idleLeftSwing *
+    0.26,
+    -0.035 +
+    idleLeftSwing *
+    0.10,
+    1.05,
+    smoothing *
+    0.84,
+    'ZXY'
+  );
+
+  poseBone(
+    racer,
+    'rightUpperArm',
+    0.10 +
+    idleRightSwing *
+    0.26,
+    0.035 -
+    idleRightSwing *
+    0.10,
+    -1.05,
+    smoothing *
+    0.84,
+    'ZXY'
+  );
+
+  poseBentElbow(
+    racer,
+    'left',
+    0.66 +
+    inhale *
+    0.045 +
+    Math.max(
+      0,
+      idleLeftSwing
+    ) *
+    0.10,
+    idleLeftSwing,
+    smoothing *
+    0.82
+  );
+
+  poseBentElbow(
+    racer,
+    'right',
+    0.66 +
+    inhale *
+    0.045 +
+    Math.max(
+      0,
+      idleRightSwing
+    ) *
+    0.10,
+    idleRightSwing,
+    smoothing *
+    0.82
+  );
+
+  poseBone(
+    racer,
+    'leftHand',
+    -0.075 +
+    idleLeftSwing *
+    0.08,
+    idleLeftSwing *
+    0.11,
+    -0.040,
+    smoothing *
+    0.72,
+    'XYZ'
+  );
+
+  poseBone(
+    racer,
+    'rightHand',
+    -0.075 +
+    idleRightSwing *
+    0.08,
+    -idleRightSwing *
+    0.11,
+    0.040,
+    smoothing *
+    0.72,
+    'XYZ'
+  );
+
+  // Kaki menopang perpindahan berat badan secara lembut.
+  poseBone(
+    racer,
+    'leftUpperLeg',
+    -0.015,
+    0,
+    0.012 +
+    weightShift *
+    0.006,
+    smoothing
   );
 
   poseBone(
     racer,
     'rightUpperLeg',
-    -0.010 +
-    rightRelax *
-    0.10,
+    -0.015,
     0,
-    -0.010 +
-    stanceSide *
-    0.008,
-    smoothing *
-    0.76
+    -0.012 +
+    weightShift *
+    0.006,
+    smoothing
   );
 
   poseBone(
     racer,
     'leftLowerLeg',
-    -0.026 -
-    leftRelax,
+    -0.032 -
+    Math.max(
+      0,
+      weightShift
+    ) *
+    0.012,
     0,
     0,
-    smoothing *
-    0.74
+    smoothing
   );
 
   poseBone(
     racer,
     'rightLowerLeg',
-    -0.026 -
-    rightRelax,
+    -0.032 -
+    Math.max(
+      0,
+      -weightShift
+    ) *
+    0.012,
     0,
     0,
-    smoothing *
-    0.74
+    smoothing
   );
 
   poseBone(
     racer,
     'leftFoot',
-    0.022 +
-    leftRelax *
-    0.20,
+    0.024,
     0,
     0,
     smoothing
@@ -4112,25 +3448,32 @@ function setIdlePose(
   poseBone(
     racer,
     'rightFoot',
-    0.022 +
-    rightRelax *
-    0.20,
+    0.024,
     0,
     0,
     smoothing
   );
 
-  // Menjaga kaki terendah tetap menapak.
-  keepFeetGrounded(
+  // Naik-turun tubuh sangat kecil agar terlihat bernapas,
+  // tetapi telapak kaki tetap terasa menempel di lintasan.
+  racer.root.position.y =
+    THREE.MathUtils.clamp(
+      0.004 +
+      breath *
+      0.003,
+      0,
+      0.008
+    );
+
+  updateGroundShadow(
     racer,
-    0,
-    true
+    racer.root.position.y
   );
 
   if (racer.spoonBowl) {
     racer.spoonBowl.rotation.z =
       bodySway *
-      0.010;
+      0.012;
   }
 }
 
@@ -4143,66 +3486,50 @@ function animateRun(
   const phase =
     racer.runPhase;
 
-  // SATU SIKLUS UNTUK KAKI DAN TANGAN.
-  // Saat kaki kanan maju, tangan kiri memakai sinyal yang sama.
-  const rightLegForward =
-    Math.sin(
-      phase
-    );
+  // Reverse phase so the visible lead leg matches forward movement to -Z.
+  const stride =
+    -Math.sin(phase);
 
-  const leftLegForward =
-    -rightLegForward;
-
-  const leftArmForward =
-    rightLegForward;
-
-  const rightArmForward =
-    leftLegForward;
+  const opposite =
+    -stride;
 
   const doubleStep =
     Math.sin(
       phase * 2
     );
 
-  const sideShift =
-    Math.sin(
-      phase +
-      Math.PI * 0.5
+  const leftRecovery =
+    Math.max(
+      0,
+      -stride
     );
 
   const rightRecovery =
     Math.max(
       0,
-      rightLegForward
-    );
-
-  const leftRecovery =
-    Math.max(
-      0,
-      leftLegForward
-    );
-
-  const rightContact =
-    Math.max(
-      0,
-      -rightLegForward
+      stride
     );
 
   const leftContact =
     Math.max(
       0,
-      -leftLegForward
+      stride
+    );
+
+  const rightContact =
+    Math.max(
+      0,
+      -stride
     );
 
   const legAmplitude =
-    0.52 +
-    speedRatio *
-    0.42;
+    0.48 +
+    speedRatio * 0.38;
 
   const smoothing =
     1 -
     Math.exp(
-      -13.0 *
+      -15 *
       Math.max(
         dt,
         0.001
@@ -4210,116 +3537,87 @@ function animateRun(
     );
 
   const verticalBounce =
-    Math.abs(
-      doubleStep
-    ) *
+    Math.abs(doubleStep) *
     (
-      0.010 +
-      speedRatio *
-      0.020
+      0.012 +
+      speedRatio * 0.024
     );
 
   const lateralWeight =
-    sideShift *
+    stride *
     (
-      0.010 +
-      speedRatio *
-      0.012
+      0.008 +
+      speedRatio * 0.010
     );
 
-  resetBreathingScale(
+  racer.root.position.y =
+    verticalBounce;
+
+  // Bayangan tetap di permukaan lintasan hingga garis finish.
+  updateGroundShadow(
     racer,
-    smoothing *
-    0.72
+    verticalBounce
   );
 
-  // Pinggul mengikuti kaki, dada melawan rotasi pinggul.
   poseBone(
     racer,
     'hips',
-    -0.040 +
-    doubleStep *
-    0.017,
-    rightLegForward *
-    0.042,
+    -0.035 +
+    doubleStep * 0.015,
+    -stride * 0.030,
     lateralWeight,
-    smoothing *
-    0.86
+    smoothing
   );
 
   poseBone(
     racer,
     'spine',
-    -0.080 -
-    speedRatio *
-    0.045,
-    -rightLegForward *
-    0.034,
-    -lateralWeight *
-    0.78,
-    smoothing *
-    0.80
+    -0.075 -
+    speedRatio * 0.040,
+    stride * 0.026,
+    -lateralWeight * 0.72,
+    smoothing
   );
 
   poseBone(
     racer,
     'chest',
-    -0.018,
-    -rightLegForward *
-    0.048,
-    lateralWeight *
-    0.56,
-    smoothing *
-    0.76
-  );
-
-  poseBone(
-    racer,
-    'upperChest',
-    -0.008,
-    -rightLegForward *
-    0.026,
-    lateralWeight *
-    0.34,
-    smoothing *
-    0.74
+    -0.012,
+    -stride * 0.022,
+    lateralWeight * 0.52,
+    smoothing
   );
 
   poseBone(
     racer,
     'neck',
-    0.030,
-    rightLegForward *
-    0.010,
-    -lateralWeight *
-    0.22,
-    smoothing *
-    0.76
+    0.035,
+    stride * 0.006,
+    -lateralWeight * 0.25,
+    smoothing
   );
 
   poseBone(
     racer,
     'head',
-    0.040 +
-    Math.abs(
-      doubleStep
-    ) *
-    0.006,
-    -rightLegForward *
-    0.012,
-    -lateralWeight *
-    0.26,
-    smoothing *
-    0.76
+    0.045,
+    -stride * 0.010,
+    -lateralWeight * 0.30,
+    smoothing
   );
 
-  // Hubungan silang eksplisit:
-  // kaki kanan maju -> tangan kiri maju.
+  // Gerakan tangan berlawanan dengan kaki:
+  // kaki kiri maju => tangan kanan maju.
+  const leftArmSwing =
+    -stride;
+
+  const rightArmSwing =
+    stride;
+
   poseRunningArm(
     racer,
     'left',
-    leftArmForward,
-    phase,
+    leftArmSwing,
     speedRatio,
     smoothing
   );
@@ -4327,100 +3625,77 @@ function animateRun(
   poseRunningArm(
     racer,
     'right',
-    rightArmForward,
-    phase + Math.PI,
+    rightArmSwing,
     speedRatio,
+    smoothing
+  );
+
+  // Paha maju/mundur mengikuti arah lari ke -Z.
+  poseBone(
+    racer,
+    'leftUpperLeg',
+    stride * legAmplitude,
+    0,
+    0.015,
     smoothing
   );
 
   poseBone(
     racer,
     'rightUpperLeg',
-    rightLegForward *
-    legAmplitude,
+    opposite * legAmplitude,
     0,
-    -0.016,
-    smoothing *
-    0.88
+    -0.015,
+    smoothing
   );
 
-  poseBone(
-    racer,
-    'leftUpperLeg',
-    leftLegForward *
-    legAmplitude,
-    0,
-    0.016,
-    smoothing *
-    0.88
-  );
-
-  // Lutut menekuk ketika kaki bergerak ke depan.
-  poseBone(
-    racer,
-    'rightLowerLeg',
-    -0.050 -
-    rightRecovery *
-    (
-      0.94 +
-      speedRatio *
-      0.36
-    ),
-    0,
-    0,
-    smoothing *
-    0.84
-  );
-
+  // Lutut menekuk saat kaki berada di fase recovery.
   poseBone(
     racer,
     'leftLowerLeg',
-    -0.050 -
+    -0.055 -
     leftRecovery *
     (
       0.94 +
-      speedRatio *
-      0.36
+      speedRatio * 0.36
     ),
     0,
     0,
-    smoothing *
-    0.84
+    smoothing
+  );
+
+  poseBone(
+    racer,
+    'rightLowerLeg',
+    -0.055 -
+    rightRecovery *
+    (
+      0.94 +
+      speedRatio * 0.36
+    ),
+    0,
+    0,
+    smoothing
+  );
+
+  // Telapak kaki lebih rata saat kontak dan terangkat ketika recovery.
+  poseBone(
+    racer,
+    'leftFoot',
+    0.08 -
+    leftContact * 0.22 +
+    leftRecovery * 0.14,
+    0,
+    0,
+    smoothing
   );
 
   poseBone(
     racer,
     'rightFoot',
-    0.075 -
-    rightContact *
-    0.21 +
-    rightRecovery *
-    0.15,
-    0,
-    0,
-    smoothing *
-    0.82
-  );
-
-  poseBone(
-    racer,
-    'leftFoot',
-    0.075 -
-    leftContact *
-    0.21 +
-    leftRecovery *
-    0.15,
-    0,
-    0,
-    smoothing *
-    0.82
-  );
-
-  poseBone(
-    racer,
-    'rightToes',
-    -rightContact *
-    0.12,
+    0.08 -
+    rightContact * 0.22 +
+    rightRecovery * 0.14,
     0,
     0,
     smoothing
@@ -4429,36 +3704,36 @@ function animateRun(
   poseBone(
     racer,
     'leftToes',
-    -leftContact *
-    0.12,
+    -leftContact * 0.12,
     0,
     0,
     smoothing
   );
 
-  // Menjaga kaki tumpuan dekat lintasan sambil mempertahankan bounce kecil.
-  keepFeetGrounded(
+  poseBone(
     racer,
-    verticalBounce
+    'rightToes',
+    -rightContact * 0.12,
+    0,
+    0,
+    smoothing
   );
 
   if (racer.spoon) {
     racer.spoon.rotation.x =
       Math.sin(
-        elapsed *
-        7 +
+        elapsed * 7 +
         racer.laneIndex
       ) *
-      0.004 *
+      0.0045 *
       speedRatio;
 
     racer.spoon.rotation.z =
       Math.cos(
-        elapsed *
-        5.6 +
+        elapsed * 5.6 +
         racer.laneIndex
       ) *
-      0.005 *
+      0.006 *
       speedRatio;
   }
 
@@ -5092,39 +4367,14 @@ function updateHud() {
   }
 }
 
-let frameCounter = 0;
-let frameAccumulator = 0;
-
 function animate() {
-  requestAnimationFrame(
-    animate
-  );
-
-  const rawDelta =
-    clock.getDelta();
-
-  frameAccumulator +=
-    rawDelta;
-
-  const minimumFrameTime =
-    1 /
-    TARGET_FPS;
-
-  // Batasi update/render agar GPU dan CPU tidak dipaksa 60–144 FPS.
-  if (
-    frameAccumulator <
-    minimumFrameTime
-  ) {
-    return;
-  }
+  requestAnimationFrame(animate);
 
   const dt =
     Math.min(
-      frameAccumulator,
+      clock.getDelta(),
       MAX_FRAME_DELTA
     );
-
-  frameAccumulator = 0;
 
   const elapsed =
     clock.elapsedTime;
@@ -5150,50 +4400,24 @@ function animate() {
     elapsed
   );
 
-  racers.forEach(
-    (
+  racers.forEach(racer => {
+    racer.vrm?.update(dt);
+
+    updateMouthAttachment(
+      racer
+    );
+
+    // Tetap dipanggil setelah finish agar bayangan tidak menghilang.
+    updateGroundShadow(
       racer,
-      racerIndex
-    ) => {
-      // Player diperbarui tiap frame.
-      // Rambut/spring bone lawan diperbarui bergantian untuk mengurangi beban.
-      const shouldUpdateVrm =
-        racer === player ||
-        (
-          frameCounter % 2
-        ) ===
-        (
-          racerIndex % 2
-        );
+      Math.max(
+        0,
+        racer.root.position.y
+      )
+    );
+  });
 
-      if (
-        shouldUpdateVrm
-      ) {
-        racer.vrm?.update(
-          racer === player
-            ? dt
-            : dt * 2
-        );
-      }
-
-      updateMouthAttachment(
-        racer
-      );
-
-      updateGroundShadow(
-        racer,
-        racer.groundLift ||
-        0
-      );
-    }
-  );
-
-  frameCounter++;
-
-  updateCamera(
-    dt
-  );
-
+  updateCamera(dt);
   updateHud();
 
   renderer.render(
@@ -5493,7 +4717,7 @@ addEventListener(
     renderer.setPixelRatio(
       Math.min(
         devicePixelRatio,
-        PIXEL_RATIO_LIMIT
+        1.55
       )
     );
 
