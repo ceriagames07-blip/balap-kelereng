@@ -2931,71 +2931,70 @@ function poseRunningArm(
     ? 'leftHand'
     : 'rightHand';
 
-  // Ayunan dibuat lebih tinggi ke depan dengan kontribusi bahu,
-  // tetap lurus ke depan-belakang dan tidak melebar ke samping.
+  // Gaya jogging realistis: ayunan tangan santai, siku cukup menekuk,
+  // bahu ikut bergerak halus ke depan-belakang tanpa melebar ke samping.
   const forwardSwing = Math.max(0, swing);
   const backwardSwing = Math.max(0, -swing);
 
-  const shoulderForward =
-    forwardSwing * (0.28 + speedRatio * 0.10);
-  const shoulderBackward =
-    backwardSwing * (0.12 + speedRatio * 0.05);
+  const shoulderPitch =
+    -0.018 +
+    forwardSwing * (0.16 + speedRatio * 0.05) -
+    backwardSwing * (0.09 + speedRatio * 0.03);
 
-  const upperArmForward =
-    forwardSwing * (0.76 + speedRatio * 0.24);
-  const upperArmBackward =
-    backwardSwing * (0.34 + speedRatio * 0.12);
+  const upperArmPitch =
+    -0.020 +
+    forwardSwing * (0.44 + speedRatio * 0.12) -
+    backwardSwing * (0.28 + speedRatio * 0.08);
 
   poseBone(
     racer,
     shoulderName,
-    -0.040 + shoulderForward - shoulderBackward,
+    shoulderPitch,
     0,
-    mirror * 0.003,
-    smoothing * 0.92,
+    mirror * 0.006,
+    smoothing * 0.90,
     'XYZ'
   );
 
-  // Z tetap menjaga lengan turun di sisi badan, sementara X mengarahkannya
-  // maju-mundur. Saat ayunan maju, lengan lebih lurus dan lebih tinggi ke depan.
   poseBone(
     racer,
     upperName,
-    -0.035 + upperArmForward - upperArmBackward,
+    upperArmPitch,
     0,
-    mirror * (1.16 - forwardSwing * 0.06),
+    mirror * 1.18,
     smoothing,
     'ZXY'
   );
 
   const elbowBend =
-    0.18 +
-    backwardSwing * 0.14 +
-    forwardSwing * (0.10 + speedRatio * 0.03);
+    0.44 +
+    forwardSwing * (0.12 + speedRatio * 0.03) +
+    backwardSwing * 0.08;
 
   poseBentElbow(
     racer,
     side,
     elbowBend,
-    swing * 0.18,
+    swing * 0.16,
     smoothing * 0.90
   );
 
   poseBone(
     racer,
     handName,
-    0.010 - swing * 0.075,
+    -0.005 - swing * 0.030,
     0,
-    mirror * -0.004,
+    mirror * -0.006,
     smoothing * 0.82,
     'XYZ'
   );
 
+  // Kepalan dibuat lebih rileks, tidak sekeras sprint.
   setHandGrip(
     racer,
     side,
-    0.92,
-    smoothing * 0.92
+    0.72,
+    smoothing * 0.90
   );
 }
 
@@ -3214,8 +3213,7 @@ function animateRun(
 ) {
   const phase = racer.runPhase;
 
-  // Siklus silang yang konsisten:
-  // kaki kiri maju = tangan kanan maju, dan sebaliknya.
+  // Jogging realistis: langkah lebih pendek, ritme lebih halus.
   const leftLegSwing = -Math.sin(phase);
   const rightLegSwing = -leftLegSwing;
   const doubleStep = Math.sin(phase * 2);
@@ -3225,31 +3223,31 @@ function animateRun(
   const leftContact = Math.max(0, leftLegSwing);
   const rightContact = Math.max(0, rightLegSwing);
 
-  const legAmplitude = 0.42 + speedRatio * 0.34;
-  const smoothing = 1 - Math.exp(-12 * Math.max(dt, 0.001));
+  const legAmplitude = 0.28 + speedRatio * 0.18;
+  const smoothing = 1 - Math.exp(-11 * Math.max(dt, 0.001));
 
-  // Pantulan tubuh diperkecil dan didamp agar tidak bergetar.
+  // Pantulan kecil dan lembut seperti jogging santai.
   const bounceWave = (1 - Math.cos(phase * 2)) * 0.5;
   const desiredBounce =
-    0.0025 + bounceWave * (0.006 + speedRatio * 0.010);
+    0.002 + bounceWave * (0.004 + speedRatio * 0.005);
 
   racer.root.position.y = THREE.MathUtils.damp(
     racer.root.position.y,
     desiredBounce,
-    18,
+    16,
     dt
   );
 
   updateGroundShadow(racer, racer.root.position.y);
 
   const lateralWeight =
-    leftLegSwing * (0.006 + speedRatio * 0.007);
+    leftLegSwing * (0.003 + speedRatio * 0.004);
 
   poseBone(
     racer,
     'hips',
-    -0.038 + doubleStep * 0.008,
-    -leftLegSwing * 0.020,
+    -0.020 + doubleStep * 0.004,
+    -leftLegSwing * 0.010,
     lateralWeight,
     smoothing
   );
@@ -3257,49 +3255,48 @@ function animateRun(
   poseBone(
     racer,
     'spine',
-    -0.060 - speedRatio * 0.030,
-    leftLegSwing * 0.018,
-    -lateralWeight * 0.65,
+    -0.032 - speedRatio * 0.012,
+    leftLegSwing * 0.008,
+    -lateralWeight * 0.42,
     smoothing
   );
 
   poseBone(
     racer,
     'chest',
-    -0.008,
-    -leftLegSwing * 0.016,
-    lateralWeight * 0.45,
+    -0.004,
+    -leftLegSwing * 0.006,
+    lateralWeight * 0.24,
     smoothing
   );
 
   poseBone(
     racer,
     'upperChest',
-    0.004,
-    -leftLegSwing * 0.010,
-    lateralWeight * 0.30,
+    0.003,
+    -leftLegSwing * 0.004,
+    lateralWeight * 0.16,
     smoothing
   );
 
   poseBone(
     racer,
     'neck',
-    0.025,
-    leftLegSwing * 0.004,
-    -lateralWeight * 0.18,
+    0.016,
+    leftLegSwing * 0.003,
+    -lateralWeight * 0.10,
     smoothing
   );
 
   poseBone(
     racer,
     'head',
-    0.032,
-    -leftLegSwing * 0.006,
-    -lateralWeight * 0.20,
+    0.018,
+    -leftLegSwing * 0.003,
+    -lateralWeight * 0.10,
     smoothing
   );
 
-  // Ayunan tangan dibuat persis berlawanan dengan kaki pada sisi yang sama.
   poseRunningArm(
     racer,
     'left',
@@ -3321,7 +3318,7 @@ function animateRun(
     'leftUpperLeg',
     leftLegSwing * legAmplitude,
     0,
-    0.012,
+    0.008,
     smoothing
   );
 
@@ -3330,14 +3327,14 @@ function animateRun(
     'rightUpperLeg',
     rightLegSwing * legAmplitude,
     0,
-    -0.012,
+    -0.008,
     smoothing
   );
 
   poseBone(
     racer,
     'leftLowerLeg',
-    -0.06 - leftRecovery * (0.82 + speedRatio * 0.30),
+    -0.05 - leftRecovery * (0.48 + speedRatio * 0.12),
     0,
     0,
     smoothing
@@ -3346,7 +3343,7 @@ function animateRun(
   poseBone(
     racer,
     'rightLowerLeg',
-    -0.06 - rightRecovery * (0.82 + speedRatio * 0.30),
+    -0.05 - rightRecovery * (0.48 + speedRatio * 0.12),
     0,
     0,
     smoothing
@@ -3355,7 +3352,7 @@ function animateRun(
   poseBone(
     racer,
     'leftFoot',
-    0.065 - leftContact * 0.16 + leftRecovery * 0.11,
+    0.035 - leftContact * 0.08 + leftRecovery * 0.07,
     0,
     0,
     smoothing
@@ -3364,19 +3361,18 @@ function animateRun(
   poseBone(
     racer,
     'rightFoot',
-    0.065 - rightContact * 0.16 + rightRecovery * 0.11,
+    0.035 - rightContact * 0.08 + rightRecovery * 0.07,
     0,
     0,
     smoothing
   );
 
-  poseBone(racer, 'leftToes', -leftContact * 0.08, 0, 0, smoothing);
-  poseBone(racer, 'rightToes', -rightContact * 0.08, 0, 0, smoothing);
+  poseBone(racer, 'leftToes', -leftContact * 0.04, 0, 0, smoothing);
+  poseBone(racer, 'rightToes', -rightContact * 0.04, 0, 0, smoothing);
 
-  // Aksesori mengikuti ritme langkah, bukan noise waktu acak.
   if (racer.spoon) {
-    racer.spoon.rotation.x = doubleStep * 0.0025 * speedRatio;
-    racer.spoon.rotation.z = leftLegSwing * 0.003 * speedRatio;
+    racer.spoon.rotation.x = doubleStep * 0.0015 * speedRatio;
+    racer.spoon.rotation.z = leftLegSwing * 0.0018 * speedRatio;
   }
 
   if (racer.spoonBowl) {
