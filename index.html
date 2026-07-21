@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V14.1 - 3 Karakter Ringan</title>
+  <title>Anime Runner VRM V14.2 - Gerakan Lari Natural</title>
   <style>
     :root{
       --bg:#080b14;
@@ -805,7 +805,7 @@
     <button id="resetBtn" type="button" class="control-btn primary">RESET LOMBA</button>
     <button id="cameraBtn" type="button" class="control-btn">KAMERA: FOLLOW</button>
     <button id="laneBtn" type="button" class="control-btn">BATAS JALUR: ON</button>
-    <div class="hint">Analog halus • tangan dan kaki bergerak silang • idle bernapas • kamera stabil</div>
+    <div class="hint">Analog halus • tangan maju-mundur • langkah kaki lebar dan silang natural • kamera stabil</div>
   </section>
 
 
@@ -3725,73 +3725,97 @@ function poseRunningArm(
     ? 'leftHand'
     : 'rightHand';
 
-  // Berdasarkan video: ayunan tangan perlu lebih seperti lari manusia normal.
-  // Fokus dibuat dari bahu -> lengan atas -> siku, maju-mundur, bukan mengepak.
-  const armSwing = swing;
+  const shoulder = racer.bones[shoulderName];
+  const shoulderRest = racer.rests[shoulderName];
+  const upperArm = racer.bones[upperName];
+  const upperRest = racer.rests[upperName];
+
+  const soft = THREE.MathUtils.clamp(smoothing, 0, 1);
+  const armSwing = THREE.MathUtils.clamp(swing, -1, 1);
   const forwardSwing = Math.max(0, armSwing);
   const backwardSwing = Math.max(0, -armSwing);
 
-  // Bahu hanya sedikit ikut bergerak ke depan-belakang.
-  const shoulderPitch =
-    -0.045 + armSwing * (0.13 + speedRatio * 0.04);
+  /*
+   * Urutan rotasi dibuat eksplisit agar lengan tidak mengepak ke samping:
+   * 1. Lengan diturunkan dari pose T pada sumbu Z lokal.
+   * 2. Setelah berada di samping badan, lengan diayun pada sumbu X lokal.
+   * Karena seluruh pose berada di ruang lokal karakter, arah ayunan otomatis
+   * mengikuti arah hadap pelari dan tetap sejajar dengan lintasan.
+   */
+  if (shoulder && shoulderRest) {
+    const shoulderTarget = shoulderRest
+      .clone()
+      .multiply(
+        new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          armSwing * (0.055 + speedRatio * 0.018)
+        )
+      );
 
-  // Lengan atas jadi sumber utama ayunan maju-mundur.
-  const upperArmPitch =
-    -0.22 + armSwing * (0.82 + speedRatio * 0.16);
+    shoulder.quaternion.slerp(
+      shoulderTarget,
+      soft * 0.88
+    );
+  }
 
-  // Sisi lengan dijaga tetap turun di samping badan.
-  const upperArmSide = mirror * 1.38;
+  if (upperArm && upperRest) {
+    const armDown = new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(0, 0, 1),
+      mirror * 1.34
+    );
 
-  poseBone(
-    racer,
-    shoulderName,
-    shoulderPitch,
-    0,
-    0,
-    smoothing * 0.96,
-    'XYZ'
-  );
+    const sagittalSwing = new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(1, 0, 0),
+      -0.10 + armSwing * (0.76 + speedRatio * 0.20)
+    );
 
-  poseBone(
-    racer,
-    upperName,
-    upperArmPitch,
-    0,
-    upperArmSide,
-    smoothing,
-    'ZXY'
-  );
+    const tinyInward = new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(0, 1, 0),
+      -mirror * 0.025
+    );
 
-  // Siku khas lari umum: selalu cukup menekuk, sedikit lebih rapat saat lengan maju.
+    const upperTarget = upperRest
+      .clone()
+      .multiply(armDown)
+      .multiply(sagittalSwing)
+      .multiply(tinyInward);
+
+    upperArm.quaternion.slerp(
+      upperTarget,
+      soft
+    );
+  }
+
+  // Siku tetap menekuk seperti pelari, tanpa membuka ke samping.
   const elbowBend =
-    1.00 -
-    forwardSwing * 0.14 +
-    backwardSwing * 0.08;
+    0.96 -
+    forwardSwing * 0.10 +
+    backwardSwing * 0.07 +
+    speedRatio * 0.05;
 
   poseBentElbow(
     racer,
     side,
     elbowBend,
-    armSwing * 0.01,
-    smoothing * 0.92
+    0,
+    soft * 0.94
   );
 
-  // Pergelangan dan kepalan tangan tetap rileks tapi tertutup.
   poseBone(
     racer,
     handName,
-    -0.06 - armSwing * 0.028,
+    -0.045 - armSwing * 0.018,
     0,
     0,
-    smoothing * 0.88,
+    soft * 0.88,
     'XYZ'
   );
 
   setHandGrip(
     racer,
     side,
-    0.98,
-    smoothing * 0.96
+    0.94,
+    soft * 0.94
   );
 }
 
@@ -4006,12 +4030,13 @@ function animateRun(
 ) {
   const phase = racer.runPhase;
 
+  // Kedua kaki selalu berlawanan 180 derajat.
   const leftLegSwing = -Math.sin(phase);
   const rightLegSwing = -leftLegSwing;
 
-  const armPhase = phase - 0.04;
-  const leftArmSwing = Math.sin(armPhase);
-  const rightArmSwing = -leftArmSwing;
+  // Tangan bergerak silang dengan kaki seperti lari manusia normal.
+  const leftArmSwing = -leftLegSwing;
+  const rightArmSwing = -rightLegSwing;
 
   const doubleStep = Math.sin(phase * 2);
   const leftRecovery = Math.max(0, -leftLegSwing);
@@ -4019,30 +4044,33 @@ function animateRun(
   const leftContact = Math.max(0, leftLegSwing);
   const rightContact = Math.max(0, rightLegSwing);
 
-  const legAmplitude = 0.42 + speedRatio * 0.18;
-  const smoothing = 1 - Math.exp(-12 * Math.max(dt, 0.001));
+  // Langkah dibuat lebih panjang supaya dua kaki terbaca jelas dari kamera.
+  const legAmplitude = 0.58 + speedRatio * 0.24;
+  const legSpread = 0.085 + speedRatio * 0.030;
+  const smoothing = 1 - Math.exp(-14 * Math.max(dt, 0.001));
 
   const bounceWave = (1 - Math.cos(phase * 2)) * 0.5;
   const desiredBounce =
-    0.004 + bounceWave * (0.005 + speedRatio * 0.005);
+    0.004 + bounceWave * (0.008 + speedRatio * 0.008);
 
   racer.root.position.y = THREE.MathUtils.damp(
     racer.root.position.y,
     desiredBounce,
-    15,
+    17,
     dt
   );
 
   updateGroundShadow(racer, racer.root.position.y);
 
-  const lateralWeight = leftLegSwing * 0.0016;
-  const torsoCounter = leftArmSwing * (0.005 + speedRatio * 0.002);
+  // Gerak samping tubuh sengaja dibuat sangat kecil agar arah lari tetap lurus.
+  const lateralWeight = leftLegSwing * 0.0010;
+  const torsoCounter = leftArmSwing * (0.008 + speedRatio * 0.003);
 
   poseBone(
     racer,
     'hips',
-    -0.042 + doubleStep * 0.004,
-    -leftLegSwing * 0.003,
+    -0.050 + doubleStep * 0.006,
+    -leftLegSwing * 0.004,
     lateralWeight,
     smoothing
   );
@@ -4050,27 +4078,27 @@ function animateRun(
   poseBone(
     racer,
     'spine',
-    -0.068 - speedRatio * 0.012,
+    -0.075 - speedRatio * 0.018,
     torsoCounter,
-    -lateralWeight * 0.18,
+    -lateralWeight * 0.12,
     smoothing
   );
 
   poseBone(
     racer,
     'chest',
-    -0.012,
-    torsoCounter * 0.42,
-    lateralWeight * 0.07,
+    -0.016,
+    torsoCounter * 0.45,
+    lateralWeight * 0.04,
     smoothing
   );
 
   poseBone(
     racer,
     'upperChest',
-    0.004,
-    torsoCounter * 0.22,
-    lateralWeight * 0.04,
+    0.003,
+    torsoCounter * 0.24,
+    lateralWeight * 0.025,
     smoothing
   );
 
@@ -4078,17 +4106,17 @@ function animateRun(
     racer,
     'neck',
     0.014,
-    torsoCounter * 0.08,
-    -lateralWeight * 0.03,
+    torsoCounter * 0.07,
+    0,
     smoothing
   );
 
   poseBone(
     racer,
     'head',
-    0.016,
-    torsoCounter * 0.04,
-    -lateralWeight * 0.03,
+    0.018,
+    torsoCounter * 0.035,
+    0,
     smoothing
   );
 
@@ -4108,14 +4136,17 @@ function animateRun(
     smoothing
   );
 
-  // Kaki diperhalus agar lebih mirip pola lari manusia biasa.
-  // Paha maju-mundur jelas, tetapi tidak terlalu terbuka ke samping.
+  /*
+   * Paha bergerak maju-mundur pada sumbu X lokal karakter.
+   * Offset Z hanya memberi jarak kecil antarkaki agar tidak berdempetan,
+   * bukan membuat langkah melebar ke arah samping lintasan.
+   */
   poseBone(
     racer,
     'leftUpperLeg',
     leftLegSwing * legAmplitude,
     0,
-    0.045,
+    legSpread + leftRecovery * 0.025,
     smoothing
   );
 
@@ -4124,69 +4155,68 @@ function animateRun(
     'rightUpperLeg',
     rightLegSwing * legAmplitude,
     0,
-    -0.045,
+    -legSpread - rightRecovery * 0.025,
     smoothing
   );
 
-  // Lutut menekuk kuat saat recovery, lebih lurus saat menapak.
+  // Kaki belakang terangkat jelas, kaki depan lebih siap menapak.
   poseBone(
     racer,
     'leftLowerLeg',
-    -0.08 - leftRecovery * (0.92 + speedRatio * 0.16) + leftContact * 0.06,
+    -0.10 - leftRecovery * (1.08 + speedRatio * 0.22) + leftContact * 0.08,
     0,
-    0.006,
+    0.010,
     smoothing
   );
 
   poseBone(
     racer,
     'rightLowerLeg',
-    -0.08 - rightRecovery * (0.92 + speedRatio * 0.16) + rightContact * 0.06,
+    -0.10 - rightRecovery * (1.08 + speedRatio * 0.22) + rightContact * 0.08,
     0,
-    -0.006,
+    -0.010,
     smoothing
   );
 
-  // Telapak kaki lebih natural: toe-up saat recovery, sedikit menapak saat kontak.
   poseBone(
     racer,
     'leftFoot',
-    0.04 - leftContact * 0.05 + leftRecovery * 0.16,
+    0.035 - leftContact * 0.075 + leftRecovery * 0.24,
     0,
-    0.014,
+    0.018,
     smoothing
   );
 
   poseBone(
     racer,
     'rightFoot',
-    0.04 - rightContact * 0.05 + rightRecovery * 0.16,
+    0.035 - rightContact * 0.075 + rightRecovery * 0.24,
     0,
-    -0.014,
+    -0.018,
     smoothing
   );
 
   poseBone(
     racer,
     'leftToes',
-    -leftContact * 0.05 + leftRecovery * 0.02,
+    -leftContact * 0.08 + leftRecovery * 0.035,
     0,
-    0.006,
+    0.008,
     smoothing
   );
 
   poseBone(
     racer,
     'rightToes',
-    -rightContact * 0.05 + rightRecovery * 0.02,
+    -rightContact * 0.08 + rightRecovery * 0.035,
     0,
-    -0.006,
+    -0.008,
     smoothing
   );
 
   if (racer.spoon) {
-    racer.spoon.rotation.x = doubleStep * 0.0011 * speedRatio;
-    racer.spoon.rotation.z = leftLegSwing * 0.0012 * speedRatio;
+    racer.spoon.rotation.x = doubleStep * 0.0010 * speedRatio;
+    racer.spoon.rotation.z = leftLegSwing * 0.0008 * speedRatio;
   }
 
   if (racer.spoonBowl) {
