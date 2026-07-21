@@ -1660,6 +1660,8 @@ let countdownActive = false;
 let countdownRunId = 0;
 let raceFinished = false;
 let raceTime = 0;
+let playerFinishTime = 0;
+let playerFinishPosition = 1;
 let currentSpeed = 0;
 let targetSpeed = 0;
 const currentDirection =
@@ -4865,6 +4867,8 @@ function resetRace() {
   raceStarted = false;
   raceFinished = false;
   raceTime = 0;
+  playerFinishTime = 0;
+  playerFinishPosition = 1;
   clearFinishCelebration();
   currentSpeed = 0;
   targetSpeed = 0;
@@ -4963,7 +4967,8 @@ function updatePlayer(
   if (
     !modelsReady ||
     !player ||
-    raceFinished
+    raceFinished ||
+    player.finished
   ) return;
 
   const deadZone =
@@ -5266,6 +5271,17 @@ function updateOpponents(
       );
     }
   });
+
+  // Setelah pemain mencapai garis finis, lawan tetap berlari sampai
+  // seluruh peserta benar-benar menyentuh garis finis.
+  if (
+    player?.finished &&
+    !raceFinished &&
+    racers.length > 0 &&
+    racers.every(racer => racer.finished)
+  ) {
+    completeRaceAfterAllFinish();
+  }
 }
 
 function getPlayerPosition() {
@@ -5292,16 +5308,18 @@ function getPlayerPosition() {
 }
 
 function finishPlayerRace() {
-  raceFinished = true;
-  raceStarted = false;
-  startGameBtn.disabled = true;
+  if (!player || player.finished) return;
+
   currentSpeed = 0;
   targetSpeed = 0;
+  currentDirection.set(0, 0, -1);
 
   player.root.position.z =
     TRACK.finishZ;
 
   player.finished = true;
+  playerFinishTime = raceTime;
+  playerFinishPosition = getPlayerPosition();
 
   setIdlePose(
     player,
@@ -5314,12 +5332,41 @@ function finishPlayerRace() {
     0
   );
 
-  const position =
-    getPlayerPosition();
+  startGameBtn.disabled = true;
+  startGameBtn.textContent = 'MENUNGGU LAWAN...';
 
-  finishTitle.textContent = position === 1 ? 'MENANG!' : 'SELESAI!';
+  const remainingOpponents = racers.filter(
+    racer => !racer.finished
+  ).length;
+
+  statusText.textContent = remainingOpponents > 0
+    ? `Anda finish posisi ${playerFinishPosition}/${racers.length} • Menunggu ${remainingOpponents} lawan`
+    : `Semua peserta sudah finish`;
+
+  // Jangan tampilkan hasil akhir dulu agar pemain masih dapat melihat
+  // karakter lawan berlari sampai mencapai garis finis.
+  if (racers.every(racer => racer.finished)) {
+    completeRaceAfterAllFinish();
+  }
+}
+
+function completeRaceAfterAllFinish() {
+  if (raceFinished) return;
+
+  raceFinished = true;
+  raceStarted = false;
+  currentSpeed = 0;
+  targetSpeed = 0;
+  startGameBtn.disabled = true;
+  startGameBtn.textContent = 'LOMBA SELESAI';
+
+  finishTitle.textContent =
+    playerFinishPosition === 1
+      ? 'MENANG!'
+      : 'SELESAI!';
+
   finishText.textContent =
-    `${player.preset.name} • ${raceTime.toFixed(2)} detik • Posisi ${position} dari ${racers.length}`;
+    `${player.preset.name} • ${playerFinishTime.toFixed(2)} detik • Posisi ${playerFinishPosition} dari ${racers.length}`;
 
   finishBanner.classList.add(
     'show'
@@ -5328,7 +5375,7 @@ function finishPlayerRace() {
   startFinishCelebration();
 
   statusText.textContent =
-    `Finish posisi ${position}/${racers.length}`;
+    `Semua peserta finish • Posisi Anda ${playerFinishPosition}/${racers.length}`;
 }
 
 function dampAngle(
@@ -5364,7 +5411,9 @@ function updateCamera(dt) {
   if (!player) return;
 
   if (cameraFollow) {
-    const forward = currentDirection.clone();
+    const forward = player.finished && !raceFinished
+      ? new THREE.Vector3(0, 0, -1)
+      : currentDirection.clone();
 
     if (forward.lengthSq() < 0.001) {
       forward.set(0, 0, -1);
@@ -5400,6 +5449,12 @@ function updateCamera(dt) {
     } else {
       packCenter.copy(groundPosition);
     }
+
+    const raceAnchor =
+      player.finished &&
+      !raceFinished
+        ? packCenter.clone()
+        : groundPosition.clone();
 
     let desiredPosition;
     let desiredTarget;
@@ -5449,7 +5504,7 @@ function updateCamera(dt) {
       // - lebih tinggi agar jalur dan lawan terlihat
       // - lebih jauh agar ketiga peserta tidak terpotong
       desiredPosition =
-        groundPosition
+        raceAnchor
           .clone()
           .addScaledVector(
             forward,
@@ -5471,15 +5526,15 @@ function updateCamera(dt) {
       // Posisi target dibuat lebih rendah daripada kamera supaya permukaan lapangan terlihat luas.
       desiredTarget = new THREE.Vector3(
         THREE.MathUtils.lerp(
-          groundPosition.x,
+          raceAnchor.x,
           packCenter.x,
-          0.58
+          player.finished && !raceFinished ? 0.82 : 0.58
         ),
         IS_MOBILE ? 1.15 : 1.1,
         THREE.MathUtils.lerp(
-          groundPosition.z,
+          raceAnchor.z,
           packCenter.z,
-          0.32
+          player.finished && !raceFinished ? 0.82 : 0.32
         )
       ).addScaledVector(
         forward,
@@ -5526,8 +5581,13 @@ function updateHud() {
   distanceText.textContent =
     `${distance.toFixed(1)} m`;
 
+  const displayedRaceTime =
+    player.finished
+      ? playerFinishTime
+      : raceTime;
+
   timeText.textContent =
-    `${raceTime.toFixed(2)} s`;
+    `${displayedRaceTime.toFixed(2)} s`;
 
   progressBar.style.width =
     `${progress * 100}%`;
@@ -5536,8 +5596,18 @@ function updateHud() {
     raceStarted &&
     !raceFinished
   ) {
-    statusText.textContent =
-      `${playerId} • ${player.preset.name} • Posisi ${getPlayerPosition()}/${racers.length}`;
+    if (player.finished) {
+      const remainingOpponents = racers.filter(
+        racer => !racer.finished
+      ).length;
+
+      statusText.textContent = remainingOpponents > 0
+        ? `Anda finish posisi ${playerFinishPosition}/${racers.length} • Menunggu ${remainingOpponents} lawan`
+        : 'Semua peserta sudah finish';
+    } else {
+      statusText.textContent =
+        `${playerId} • ${player.preset.name} • Posisi ${getPlayerPosition()}/${racers.length}`;
+    }
   }
 }
 
@@ -5836,6 +5906,8 @@ function backToMainMenu() {
   mainMenu.classList.remove('hidden');
   raceStarted = false;
   raceFinished = false;
+  playerFinishTime = 0;
+  playerFinishPosition = 1;
   currentSpeed = 0;
   targetSpeed = 0;
   startGameBtn.disabled = true;
