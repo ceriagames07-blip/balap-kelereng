@@ -4051,7 +4051,7 @@ function animateRun(
 
   // Langkah dibuat lebih panjang supaya dua kaki terbaca jelas dari kamera.
   const legAmplitude = 0.58 + speedRatio * 0.24;
-  const legSpread = 0.010 + speedRatio * 0.010;
+  const legSpread = -0.010 + speedRatio * -0.010;
   const smoothing = 1 - Math.exp(-14 * Math.max(dt, 0.001));
 
   const bounceWave = (1 - Math.cos(phase * 2)) * 0.5;
