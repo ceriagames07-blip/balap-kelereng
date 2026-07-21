@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Runner Merdeka • Login ID & Pilih Karakter</title>
+  <title>Balap Kelereng • Pilih Pemain & Countdown</title>
   <style>
     :root{
       --bg:#080b14;
@@ -1107,6 +1107,186 @@
       .character-avatar.image-avatar { height: 210px; }
     }
 
+
+
+    /* ===== UPDATE TAMPILAN KARAKTER, HUD, DAN COUNTDOWN ===== */
+    .hud{
+      grid-template-columns:repeat(2,minmax(110px,1fr));
+      width:min(290px,calc(100% - 28px));
+    }
+
+    .progress-shell{
+      top:88px;
+      width:min(290px,calc(100% - 28px));
+    }
+
+    .character-selector{
+      background:
+        radial-gradient(circle at 50% 16%,#17364a 0%,#0b1827 35%,#050a13 78%);
+      backdrop-filter:none;
+    }
+
+    .selector-panel{
+      width:min(1120px,96vw);
+      padding:22px;
+      background:#08111f;
+      border-color:#2a819b;
+    }
+
+    .character-grid{gap:14px;}
+
+    .character-card{
+      min-height:420px;
+      padding:12px;
+      background:#121d2e;
+      border-color:#304158;
+    }
+
+    .character-card:hover{
+      background:#18263a;
+    }
+
+    .character-card.active{
+      background:#17263a;
+    }
+
+    .character-avatar.image-avatar{
+      height:326px;
+      padding:0;
+      background:#1a2940;
+      border:1px solid rgba(255,255,255,.10);
+    }
+
+    .character-image{
+      width:100%;
+      height:100%;
+      max-width:none;
+      max-height:none;
+      object-fit:contain;
+      object-position:center top;
+      transform:scale(1.04);
+      transform-origin:center top;
+    }
+
+    .character-card:hover .character-image{
+      transform:scale(1.06);
+    }
+
+    .character-number{
+      margin-top:2px;
+      color:var(--cyan);
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:.13em;
+    }
+
+    .character-name{
+      margin-top:3px;
+      font-size:22px;
+      line-height:1.05;
+      font-weight:1000;
+      letter-spacing:.075em;
+    }
+
+    .character-stat,
+    .character-type,
+    .vrm-source-note,
+    .reference-chip,
+    .joystick-label{
+      display:none !important;
+    }
+
+    .controls-card{
+      width:202px;
+      background:#091322;
+    }
+
+    .control-btn:disabled{
+      cursor:not-allowed;
+      opacity:.48;
+      filter:grayscale(.28);
+    }
+
+    .control-btn.menu-back{
+      border-color:rgba(255,105,105,.32);
+      background:#35151d;
+      color:#ffd9df;
+    }
+
+    .countdown-overlay{
+      position:absolute;
+      inset:0;
+      z-index:13;
+      display:grid;
+      place-items:center;
+      background:rgba(3,8,15,.20);
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transition:opacity .18s ease,visibility .18s ease;
+    }
+
+    .countdown-overlay.show{
+      opacity:1;
+      visibility:visible;
+    }
+
+    .countdown-number{
+      display:grid;
+      place-items:center;
+      min-width:150px;
+      min-height:150px;
+      padding:18px;
+      border:3px solid rgba(255,255,255,.88);
+      border-radius:50%;
+      background:#d41426;
+      color:#fff;
+      font-size:clamp(72px,13vw,132px);
+      line-height:1;
+      font-weight:1000;
+      text-shadow:0 7px 0 rgba(90,0,12,.28);
+      box-shadow:0 0 0 10px rgba(255,255,255,.14),0 24px 80px rgba(0,0,0,.48);
+      animation:countdownPop .74s ease both;
+    }
+
+    .countdown-number.go{
+      min-width:260px;
+      min-height:120px;
+      border-radius:28px;
+      background:#159a55;
+      font-size:clamp(48px,9vw,84px);
+    }
+
+    @keyframes countdownPop{
+      0%{transform:scale(.55);opacity:0}
+      55%{transform:scale(1.12);opacity:1}
+      100%{transform:scale(1);opacity:1}
+    }
+
+    @media(max-width:820px){
+      .character-card{min-height:390px;}
+      .character-avatar.image-avatar{height:292px;}
+    }
+
+    @media(max-width:720px){
+      .hud{
+        width:230px;
+        grid-template-columns:repeat(2,1fr);
+      }
+      .progress-shell{width:230px;top:74px;}
+      .controls-card{width:174px;}
+    }
+
+    @media(max-width:520px){
+      .selector-panel{padding:14px;}
+      .character-card,
+      .character-card:last-child{min-height:390px;}
+      .character-avatar.image-avatar{height:300px;}
+      .character-name{font-size:20px;}
+      .countdown-number{min-width:124px;min-height:124px;}
+      .countdown-number.go{min-width:220px;min-height:105px;}
+    }
+
 </style>
 </head>
 <body>
@@ -1145,18 +1325,14 @@
 
     <div class="status-pill" aria-live="polite">
       <span class="status-dot"></span>
-      <span id="statusText">Memuat avatar anime asli...</span>
+      <span id="statusText">Memuat pemain...</span>
     </div>
   </header>
 
   <section class="hud" aria-label="Informasi lomba">
     <div class="hud-card">
-      <div class="hud-label">KECEPATAN</div>
-      <div id="speedText" class="hud-value accent">0.0 km/j</div>
-    </div>
-    <div class="hud-card">
       <div class="hud-label">JARAK</div>
-      <div id="distanceText" class="hud-value">0.0 m</div>
+      <div id="distanceText" class="hud-value accent">0.0 m</div>
     </div>
     <div class="hud-card">
       <div class="hud-label">WAKTU</div>
@@ -1171,7 +1347,6 @@
   <section id="joystickZone" class="joystick-zone" aria-label="Analog gerak">
     <div class="joystick-base joystick-cross"></div>
     <div id="joystickKnob" class="joystick-knob"></div>
-    <div class="joystick-label">ANALOG GERAK</div>
   </section>
 
   <section class="controls-card">
@@ -1179,8 +1354,14 @@
       <div>ID: <strong id="playerIdText">-</strong></div>
       <div>KARAKTER: <strong id="selectedCharacterName">KAI</strong></div>
     </div>
+    <button id="startGameBtn" type="button" class="control-btn primary" disabled>MULAI GAME</button>
     <button id="selectCharacterBtn" type="button" class="control-btn">GANTI KARAKTER</button>
     <button id="cameraBtn" type="button" class="control-btn">KAMERA: FOLLOW</button>
+    <button id="backMenuBtn" type="button" class="control-btn menu-back">KEMBALI KE MENU UTAMA</button>
+  </section>
+
+  <section id="countdownOverlay" class="countdown-overlay" aria-live="assertive" aria-label="Hitungan mundur permainan">
+    <div id="countdownNumber" class="countdown-number">3</div>
   </section>
 
 
@@ -1210,8 +1391,8 @@
   <div id="loader" class="loader hidden">
     <div class="loader-card">
       <div class="loader-ring"></div>
-      <h2>MEMUAT PERMAINAN</h2>
-      <p id="loaderText">Mengambil model VRM, tekstur, pakaian, dan skeleton dari server publik.</p>
+      <h2>MEMUAT PEMAIN</h2>
+      <p id="loaderText">Menyiapkan pemain dan arena permainan.</p>
       <div class="load-progress"><div id="loadProgressBar"></div></div>
       <div id="loaderError" class="loader-error"></div>
       <button id="retryLoadBtn" type="button" style="
@@ -1389,11 +1570,14 @@ const loadProgressBar = document.getElementById('loadProgressBar');
 const loaderError = document.getElementById('loaderError');
 const retryLoadBtn = document.getElementById('retryLoadBtn');
 const statusText = document.getElementById('statusText');
-const speedText = document.getElementById('speedText');
 const distanceText = document.getElementById('distanceText');
 const timeText = document.getElementById('timeText');
 const progressBar = document.getElementById('progressBar');
 const cameraBtn = document.getElementById('cameraBtn');
+const startGameBtn = document.getElementById('startGameBtn');
+const backMenuBtn = document.getElementById('backMenuBtn');
+const countdownOverlay = document.getElementById('countdownOverlay');
+const countdownNumber = document.getElementById('countdownNumber');
 const finishBanner = document.getElementById('finishBanner');
 const finishTitle = document.getElementById('finishTitle');
 const finishText = document.getElementById('finishText');
@@ -1472,6 +1656,8 @@ selectedPresetIndex =
 
 let cameraFollow = true;
 let raceStarted = false;
+let countdownActive = false;
+let countdownRunId = 0;
 let raceFinished = false;
 let raceTime = 0;
 let currentSpeed = 0;
@@ -2826,15 +3012,8 @@ function renderCharacterSelector() {
         <div class="character-avatar image-avatar">
           <img class="character-image" src="${preset.image}" alt="Karakter ${preset.name}" draggable="false" />
         </div>
+        <div class="character-number">KARAKTER ${index + 1}</div>
         <div class="character-name">${preset.name}</div>
-        <div class="character-type">${preset.type}</div>
-        <div class="character-stat">
-          <span>Speed <b>${preset.speed.toFixed(1)}</b></span>
-          <span>Control <b>${Math.round(preset.handling * 100)}</b></span>
-        </div>
-        <div class="vrm-source-note">
-          Klik kartu untuk memakai ${preset.name}
-        </div>
       `;
 
       card.addEventListener(
@@ -3687,7 +3866,7 @@ async function createRacer(
     preset.model;
 
   loaderText.textContent =
-    `Memuat avatar ${racerNumber}/${CHARACTER_PRESETS.length} • ${preset.name}`;
+    `Memuat pemain ${racerNumber}/${CHARACTER_PRESETS.length} • ${preset.name}`;
 
   const vrm =
     await loadVrmWithFallback(
@@ -3865,7 +4044,7 @@ async function loadAllRacers() {
       '100%';
 
     loaderText.textContent =
-      'Semua avatar anime VRM siap.';
+      'Semua pemain siap.';
 
     window.setTimeout(() => {
       loaderLayer.classList.add(
@@ -3876,14 +4055,14 @@ async function loadAllRacers() {
     resetRace();
 
     statusText.textContent =
-      '3 avatar hidup • lebih ringan dan stabil';
+      '3 pemain siap di arena';
   } catch (error) {
     console.error(error);
 
     modelsReady = false;
 
     loaderText.textContent =
-      'Karakter anime gagal dimuat.';
+      'Pemain gagal dimuat.';
 
     loaderError.textContent =
       `${error?.name || 'Error'}: ${error?.message || error}${error?.stack ? '\n\n' + error.stack.split('\n').slice(0, 3).join('\n') : ''}\n\nTekan COBA MUAT ULANG.`;
@@ -4619,9 +4798,70 @@ function animateRun(
   }
 }
 
+function cancelRaceCountdown() {
+  countdownRunId++;
+  countdownActive = false;
+  countdownOverlay.classList.remove('show');
+  countdownNumber.classList.remove('go');
+  countdownNumber.textContent = '3';
+}
+
+function waitCountdown(milliseconds) {
+  return new Promise(resolve => window.setTimeout(resolve, milliseconds));
+}
+
+async function startRaceCountdown() {
+  if (
+    !modelsReady ||
+    !player ||
+    raceStarted ||
+    countdownActive ||
+    raceFinished
+  ) return;
+
+  const runId = ++countdownRunId;
+  countdownActive = true;
+  raceTime = 0;
+  currentSpeed = 0;
+  targetSpeed = 0;
+  startGameBtn.disabled = true;
+  startGameBtn.textContent = 'BERSIAP...';
+  countdownOverlay.classList.add('show');
+  countdownNumber.classList.remove('go');
+  statusText.textContent = 'Bersiap di garis start';
+
+  for (const value of ['3', '2', '1']) {
+    if (runId !== countdownRunId) return;
+    countdownNumber.classList.remove('go');
+    countdownNumber.textContent = value;
+    countdownNumber.style.animation = 'none';
+    void countdownNumber.offsetWidth;
+    countdownNumber.style.animation = '';
+    await waitCountdown(850);
+  }
+
+  if (runId !== countdownRunId) return;
+
+  countdownNumber.textContent = 'MULAI!';
+  countdownNumber.classList.add('go');
+  countdownNumber.style.animation = 'none';
+  void countdownNumber.offsetWidth;
+  countdownNumber.style.animation = '';
+
+  raceStarted = true;
+  countdownActive = false;
+  startGameBtn.textContent = 'GAME DIMULAI';
+  statusText.textContent = 'Lomba dimulai';
+
+  await waitCountdown(620);
+  if (runId !== countdownRunId) return;
+  countdownOverlay.classList.remove('show');
+}
+
 function resetRace() {
   if (!modelsReady) return;
 
+  cancelRaceCountdown();
   raceStarted = false;
   raceFinished = false;
   raceTime = 0;
@@ -4677,6 +4917,8 @@ function resetRace() {
   );
 
   setJoystick(0, 0);
+  startGameBtn.disabled = false;
+  startGameBtn.textContent = 'MULAI GAME';
   updateHud();
 
   statusText.textContent =
@@ -4731,14 +4973,22 @@ function updatePlayer(
     input.magnitude >
     deadZone;
 
-  if (
-    moving &&
-    !raceStarted
-  ) {
-    raceStarted = true;
+  if (!raceStarted) {
+    targetSpeed = 0;
+    currentSpeed = THREE.MathUtils.damp(
+      currentSpeed,
+      0,
+      14,
+      dt
+    );
 
-    statusText.textContent =
-      'Lomba dimulai';
+    setIdlePose(
+      player,
+      elapsed,
+      1 - Math.exp(-10 * dt)
+    );
+
+    return;
   }
 
   const maxSpeed =
@@ -5043,6 +5293,8 @@ function getPlayerPosition() {
 
 function finishPlayerRace() {
   raceFinished = true;
+  raceStarted = false;
+  startGameBtn.disabled = true;
   currentSpeed = 0;
   targetSpeed = 0;
 
@@ -5270,9 +5522,6 @@ function updateHud() {
   const progress =
     distance /
     TRACK.length;
-
-  speedText.textContent =
-    `${(currentSpeed * 3.6).toFixed(1)} km/j`;
 
   distanceText.textContent =
     `${distance.toFixed(1)} m`;
@@ -5554,6 +5803,7 @@ function clearCurrentRacers() {
 async function chooseCharacter(index) {
   if (characterSelectionLocked) return;
 
+  cancelRaceCountdown();
   characterSelectionLocked = true;
   selectedPresetIndex = index;
 
@@ -5579,6 +5829,7 @@ async function chooseCharacter(index) {
 }
 
 function backToMainMenu() {
+  cancelRaceCountdown();
   clearFinishCelebration();
   finishBanner.classList.remove('show');
   characterSelector.classList.add('hidden');
@@ -5587,6 +5838,8 @@ function backToMainMenu() {
   raceFinished = false;
   currentSpeed = 0;
   targetSpeed = 0;
+  startGameBtn.disabled = true;
+  startGameBtn.textContent = 'MULAI GAME';
   setJoystick(0, 0);
   if (playerId) {
     playerIdInput.value = playerId;
@@ -5614,6 +5867,8 @@ function submitPlayerId() {
 }
 
 continueBtn.addEventListener('click', submitPlayerId);
+startGameBtn.addEventListener('click', startRaceCountdown);
+backMenuBtn.addEventListener('click', backToMainMenu);
 
 playerIdInput.addEventListener('keydown', event => {
   if (event.key === 'Enter') submitPlayerId();
