@@ -264,6 +264,17 @@
       border-radius:17px;
     }
 
+    .finish-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .finish-actions .control-btn{
+      width:100%;
+    }
+
     .control-btn{
       appearance:none;
       min-height:42px;
@@ -289,12 +300,7 @@
       background:linear-gradient(180deg,#a4fbff,#55e2f8);
     }
 
-    .hint{
-      color:var(--muted);
-      font-size:10px;
-      line-height:1.4;
-      text-align:center;
-    }
+    .hint{display:none;}
 
     .loader{
       position:absolute;
@@ -763,12 +769,39 @@
       z-index: 40;
       display: grid;
       place-items: center;
-      padding: 20px;
+      padding: 24px;
+      overflow: hidden;
       background:
-        radial-gradient(circle at 50% 24%, rgba(102,235,255,.22), transparent 34%),
-        linear-gradient(145deg, rgba(3,8,18,.94), rgba(12,20,37,.96));
-      backdrop-filter: blur(15px);
+        linear-gradient(145deg,
+          #d41426 0 28%,
+          #ffffff 28% 60%,
+          #ed1b2f 60% 100%
+        );
       transition: opacity .25s ease, visibility .25s ease;
+    }
+
+    .entry-screen::before,
+    .entry-screen::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      background: #ffffff;
+      opacity: .96;
+      transform: rotate(-12deg);
+    }
+
+    .entry-screen::before {
+      width: 58vw;
+      height: 86px;
+      left: -12vw;
+      top: 17vh;
+    }
+
+    .entry-screen::after {
+      width: 70vw;
+      height: 110px;
+      right: -19vw;
+      bottom: 10vh;
     }
 
     .entry-screen.hidden {
@@ -778,46 +811,168 @@
     }
 
     .entry-card {
-      width: min(460px, 94vw);
-      padding: clamp(24px, 5vw, 38px);
-      border: 1px solid rgba(102,235,255,.28);
-      border-radius: 28px;
-      background: linear-gradient(180deg, rgba(15,24,44,.97), rgba(7,13,25,.97));
-      box-shadow: 0 34px 120px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.08);
-      text-align: center;
+      position: relative;
+      z-index: 2;
+      width: min(670px, 94vw);
+      overflow: hidden;
+      border: 3px solid #ffffff;
+      border-radius: 30px;
+      background: #ffffff;
+      box-shadow:
+        0 30px 90px rgba(130, 0, 18, .34),
+        0 0 0 7px rgba(212, 20, 38, .15);
+    }
+
+    .entry-card::before {
+      content: "MERDEKA";
+      position: absolute;
+      right: 18px;
+      top: 10px;
+      z-index: 1;
+      color: rgba(255,255,255,.13);
+      font-size: clamp(46px, 10vw, 86px);
+      font-weight: 1000;
+      line-height: 1;
+      letter-spacing: -.06em;
+      pointer-events: none;
+    }
+
+    .entry-hero {
+      position: relative;
+      min-height: 245px;
+      padding: 30px 34px 68px;
+      overflow: hidden;
+      background:
+        linear-gradient(125deg, #b9001c 0 44%, #e4142b 44% 100%);
+      color: #ffffff;
+      text-align: left;
+    }
+
+    .entry-hero::before {
+      content: "";
+      position: absolute;
+      left: -8%;
+      right: -8%;
+      bottom: -50px;
+      height: 96px;
+      background: #ffffff;
+      transform: rotate(-5deg);
+      transform-origin: center;
+    }
+
+    .entry-hero::after {
+      content: "";
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      right: -92px;
+      top: -96px;
+      border: 32px solid rgba(255,255,255,.12);
+      border-radius: 50%;
     }
 
     .entry-badge {
+      position: relative;
+      z-index: 2;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 30px;
-      padding: 6px 12px;
-      border: 1px solid rgba(255,255,255,.12);
+      min-height: 33px;
+      padding: 7px 14px;
+      border: 1px solid rgba(255,255,255,.68);
       border-radius: 999px;
-      background: rgba(255,255,255,.05);
-      color: var(--cyan);
+      background: rgba(255,255,255,.12);
+      color: #ffffff;
       font-size: 10px;
-      font-weight: 900;
-      letter-spacing: .12em;
+      font-weight: 950;
+      letter-spacing: .14em;
     }
 
     .entry-card h1 {
-      margin: 18px 0 8px;
-      font-size: clamp(30px, 8vw, 48px);
-      line-height: .98;
+      position: relative;
+      z-index: 2;
+      margin: 21px 0 9px;
+      max-width: 470px;
+      color: #ffffff;
+      font-size: clamp(36px, 8vw, 58px);
+      line-height: .94;
       font-weight: 1000;
-      letter-spacing: -.04em;
+      letter-spacing: -.045em;
+      text-shadow: 0 5px 0 rgba(130,0,18,.28);
     }
 
-    .entry-card h1 span { color: var(--orange); }
+    .entry-card h1 span {
+      color: #ffffff;
+      -webkit-text-stroke: 1px #ffffff;
+    }
 
     .entry-card p {
-      margin: 0 auto 22px;
-      max-width: 360px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
+      position: relative;
+      z-index: 2;
+      margin: 0;
+      max-width: 400px;
+      color: rgba(255,255,255,.94);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .marble-decor {
+      position: absolute;
+      right: 32px;
+      bottom: 26px;
+      z-index: 3;
+      width: 180px;
+      height: 112px;
+      pointer-events: none;
+    }
+
+    .marble-decor span {
+      position: absolute;
+      display: block;
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 28%, #ffffff 0 7%, #ef2338 8% 42%, #a80018 72% 100%);
+      box-shadow: 0 14px 24px rgba(130,0,18,.35);
+    }
+
+    .marble-decor span:nth-child(1) {
+      width: 72px;
+      height: 72px;
+      left: 4px;
+      top: 12px;
+    }
+
+    .marble-decor span:nth-child(2) {
+      width: 54px;
+      height: 54px;
+      right: 4px;
+      top: 0;
+      background:
+        radial-gradient(circle at 34% 28%, #ffffff 0 9%, #ffffff 10% 44%, #d41426 73% 100%);
+    }
+
+    .marble-decor span:nth-child(3) {
+      width: 42px;
+      height: 42px;
+      right: 48px;
+      bottom: 0;
+    }
+
+    .entry-login {
+      position: relative;
+      z-index: 4;
+      padding: 7px 34px 34px;
+      background: #ffffff;
+    }
+
+    .entry-login-title {
+      margin-bottom: 15px;
+      color: #a80018;
+      font-size: 18px;
+      font-weight: 1000;
+      letter-spacing: -.015em;
     }
 
     .entry-field {
@@ -827,60 +982,81 @@
     }
 
     .entry-field label {
-      color: #dff8ff;
+      color: #a80018;
       font-size: 11px;
-      font-weight: 900;
-      letter-spacing: .08em;
+      font-weight: 950;
+      letter-spacing: .09em;
     }
 
     .entry-input {
       width: 100%;
-      min-height: 52px;
-      padding: 0 16px;
-      border: 1px solid rgba(102,235,255,.24);
-      border-radius: 14px;
+      min-height: 54px;
+      padding: 0 17px;
+      border: 2px solid rgba(212,20,38,.34);
+      border-radius: 15px;
       outline: none;
-      background: rgba(255,255,255,.055);
-      color: #fff;
+      background: #ffffff;
+      color: #a80018;
       font: inherit;
       font-size: 15px;
-      font-weight: 800;
-      letter-spacing: .04em;
-      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+      font-weight: 850;
+      letter-spacing: .035em;
+      box-shadow: inset 0 0 0 1px rgba(212,20,38,.06);
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .entry-input::placeholder {
+      color: rgba(168,0,24,.52);
     }
 
     .entry-input:focus {
-      border-color: var(--cyan);
-      background: rgba(102,235,255,.08);
-      box-shadow: 0 0 0 4px rgba(102,235,255,.10);
+      border-color: #d41426;
+      box-shadow: 0 0 0 5px rgba(212,20,38,.12);
+      transform: translateY(-1px);
     }
 
     .entry-error {
       min-height: 18px;
       margin-top: 7px;
-      color: var(--danger);
+      color: #b00019;
       font-size: 11px;
-      font-weight: 750;
+      font-weight: 850;
       text-align: left;
     }
 
     .entry-button {
       width: 100%;
-      min-height: 52px;
-      margin-top: 4px;
-      border: 0;
-      border-radius: 14px;
-      background: linear-gradient(180deg, #a8fbff, #52def4);
-      color: #06151b;
+      min-height: 54px;
+      margin-top: 5px;
+      border: 2px solid #d41426;
+      border-radius: 15px;
+      background: linear-gradient(180deg, #ee1c32, #c5001e);
+      color: #ffffff;
       cursor: pointer;
       font-weight: 1000;
-      letter-spacing: .05em;
-      box-shadow: 0 15px 34px rgba(82,222,244,.20);
-      transition: transform .18s ease, filter .18s ease;
+      letter-spacing: .065em;
+      box-shadow: 0 15px 30px rgba(212,20,38,.24);
+      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
     }
 
-    .entry-button:hover { transform: translateY(-2px); filter: brightness(1.05); }
+    .entry-button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+      box-shadow: 0 19px 34px rgba(212,20,38,.30);
+    }
+
     .entry-button:active { transform: translateY(0); }
+
+    @media(max-width:620px){
+      .entry-screen { padding: 14px; }
+      .entry-card { width: min(470px, 96vw); border-radius: 24px; }
+      .entry-hero { min-height: 225px; padding: 25px 22px 65px; }
+      .entry-login { padding: 5px 22px 26px; }
+      .entry-card h1 { font-size: clamp(35px, 12vw, 50px); max-width: 320px; }
+      .entry-card p { max-width: 285px; font-size: 12px; }
+      .marble-decor { right: 14px; bottom: 28px; transform: scale(.82); transform-origin: right bottom; }
+      .entry-card::before { font-size: 52px; right: 7px; }
+    }
 
     .character-avatar.image-avatar {
       height: 260px;
@@ -919,6 +1095,13 @@
       gap: 10px;
     }
 
+    .selector-head p,
+    .reference-chip,
+    .vrm-source-note,
+    .character-type {
+      display: none !important;
+    }
+
     @media(max-width:520px){
       .entry-card { padding: 24px 18px; }
       .character-avatar.image-avatar { height: 210px; }
@@ -933,15 +1116,23 @@
 
   <section id="mainMenu" class="entry-screen" aria-label="Menu utama pemain">
     <div class="entry-card">
-      <div class="entry-badge">RUNNER MERDEKA 2026</div>
-      <h1>MASUK <span>ARENA</span></h1>
-      <p>Masukkan ID pemain terlebih dahulu. Setelah itu pilih karakter Kai, Mika, atau Yuna sebelum game dimulai.</p>
-      <div class="entry-field">
-        <label for="playerIdInput">ID PEMAIN</label>
-        <input id="playerIdInput" class="entry-input" type="text" maxlength="30" autocomplete="off" placeholder="Contoh: CERIABET123" />
+      <div class="entry-hero">
+        <div class="entry-badge">HUT KEMERDEKAAN RI • 17 AGUSTUS</div>
+        <h1>BALAP <span>KELERENG</span></h1>
+        <p>Masukkan ID pemain dan mulai perlombaan spesial kemerdekaan.</p>
+        <div class="marble-decor" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
       </div>
-      <div id="loginError" class="entry-error" aria-live="polite"></div>
-      <button id="continueBtn" class="entry-button" type="button">LANJUT PILIH KARAKTER</button>
+      <div class="entry-login">
+        <div class="entry-login-title">MASUK PEMAIN</div>
+        <div class="entry-field">
+          <label for="playerIdInput">ID PEMAIN</label>
+          <input id="playerIdInput" class="entry-input" type="text" maxlength="30" autocomplete="off" placeholder="Contoh: CERIABET123" />
+        </div>
+        <div id="loginError" class="entry-error" aria-live="polite"></div>
+        <button id="continueBtn" class="entry-button" type="button">MASUK & PILIH KARAKTER</button>
+      </div>
     </div>
   </section>
 
@@ -989,9 +1180,7 @@
       <div>KARAKTER: <strong id="selectedCharacterName">KAI</strong></div>
     </div>
     <button id="selectCharacterBtn" type="button" class="control-btn">GANTI KARAKTER</button>
-    <button id="resetBtn" type="button" class="control-btn primary">RESET LOMBA</button>
     <button id="cameraBtn" type="button" class="control-btn">KAMERA: FOLLOW</button>
-    <div class="hint">Kontrol hanya analog • karakter tetap di dalam lintasan • kamera stabil</div>
   </section>
 
 
@@ -1001,7 +1190,7 @@
         <div>
           <h2>PILIH <span>KARAKTER PEMAIN</span></h2>
           <p>Pilih salah satu karakter dari gambar yang tersedia. Karakter terpilih akan menjadi pemain utama di lintasan.</p>
-          <div class="reference-chip">KAI • MIKA • YUNA</div>
+          
         </div>
         <button id="closeSelectorBtn" class="selector-close" type="button" style="display:none">✕</button>
       </div>
@@ -1010,9 +1199,12 @@
   </section>
 
   <section id="finishBanner" class="finish-banner">
-    <h2>FINISH!</h2>
+    <h2 id="finishTitle">MENANG!</h2>
     <p id="finishText">Waktu lomba: 0.00 detik</p>
-    <button id="finishResetBtn" type="button" class="control-btn primary">LARI LAGI</button>
+    <div class="finish-actions">
+      <button id="finishBackBtn" type="button" class="control-btn">KEMBALI</button>
+      <button id="finishResetBtn" type="button" class="control-btn primary">MAIN LAGI</button>
+    </div>
   </section>
 
   <div id="loader" class="loader hidden">
@@ -1201,10 +1393,11 @@ const speedText = document.getElementById('speedText');
 const distanceText = document.getElementById('distanceText');
 const timeText = document.getElementById('timeText');
 const progressBar = document.getElementById('progressBar');
-const resetBtn = document.getElementById('resetBtn');
 const cameraBtn = document.getElementById('cameraBtn');
 const finishBanner = document.getElementById('finishBanner');
+const finishTitle = document.getElementById('finishTitle');
 const finishText = document.getElementById('finishText');
+const finishBackBtn = document.getElementById('finishBackBtn');
 const finishResetBtn = document.getElementById('finishResetBtn');
 const joystickZone = document.getElementById('joystickZone');
 const joystickKnob = document.getElementById('joystickKnob');
@@ -1300,6 +1493,7 @@ let characterSelectionLocked = false;
 
 const fireworkParticles = [];
 const confettiParticles = [];
+const wavingFlags = [];
 let celebrationActive = false;
 let celebrationTime = 0;
 let nextCelebrationBurst = 0;
@@ -1571,74 +1765,25 @@ function createTrack() {
     });
 
   [-1, 1].forEach(side => {
-    const wallX =
-      side *
-      (TRACK.width / 2 + 0.24);
+    const wallX = side * (TRACK.width / 2 + 0.22);
 
-    const wall =
-      new THREE.Mesh(
-        new THREE.BoxGeometry(
-          0.30,
-          0.76,
-          112
-        ),
-        wallMaterial
-      );
-
-    wall.position.set(
-      wallX,
-      0.38,
-      -4
+    const wall = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 0.82, 112),
+      wallMaterial
     );
-
+    wall.position.set(wallX, 0.41, -4);
     wall.castShadow = !IS_MOBILE;
     wall.receiveShadow = true;
     scene.add(wall);
 
-    const wallCap =
-      new THREE.Mesh(
-        new THREE.BoxGeometry(
-          0.40,
-          0.10,
-          112.1
-        ),
-        wallCapMaterial
-      );
-
-    wallCap.position.set(
-      wallX,
-      0.81,
-      -4
+    const wallCap = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.08, 112.1),
+      wallCapMaterial
     );
-
+    wallCap.position.set(wallX, 0.84, -4);
     wallCap.castShadow = !IS_MOBILE;
+    wallCap.receiveShadow = true;
     scene.add(wallCap);
-
-    for (
-      let z = TRACK.startZ + 4;
-      z >= TRACK.finishZ - 4;
-      z -= 8
-    ) {
-      const post =
-        new THREE.Mesh(
-          new THREE.BoxGeometry(
-            0.46,
-            1.02,
-            0.46
-          ),
-          wallPostMaterial
-        );
-
-      post.position.set(
-        wallX,
-        0.51,
-        z
-      );
-
-      post.castShadow = !IS_MOBILE;
-      post.receiveShadow = true;
-      scene.add(post);
-    }
   });
 
   const gateMaterial =
@@ -1759,6 +1904,7 @@ function createScriptFlag(x, z, height = 3.25) {
   );
   pole.position.y = height / 2;
   pole.castShadow = !IS_MOBILE;
+  pole.receiveShadow = true;
   group.add(pole);
 
   const finial = new THREE.Mesh(
@@ -1772,25 +1918,24 @@ function createScriptFlag(x, z, height = 3.25) {
   finial.position.y = height + 0.04;
   group.add(finial);
 
-  const red = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.05, 0.31),
-    new THREE.MeshBasicMaterial({
-      color: 0xd41426,
-      side: THREE.DoubleSide
-    })
-  );
-  red.position.set(0.53, height - 0.19, 0);
-  group.add(red);
+  function makeWavingFlag(color, y) {
+    const geometry = new THREE.PlaneGeometry(1.08, 0.31, 14, 5);
+    const material = new THREE.MeshStandardMaterial({
+      color,
+      side: THREE.DoubleSide,
+      roughness: 0.92,
+      metalness: 0.0
+    });
+    const flag = new THREE.Mesh(geometry, material);
+    flag.position.set(0.54, y, 0);
+    flag.castShadow = !IS_MOBILE;
+    flag.receiveShadow = true;
+    group.add(flag);
+    wavingFlags.push({ mesh: flag, phase: Math.random() * Math.PI * 2, amplitude: 0.07 + Math.random() * 0.025 });
+  }
 
-  const white = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.05, 0.31),
-    new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      side: THREE.DoubleSide
-    })
-  );
-  white.position.set(0.53, height - 0.50, 0);
-  group.add(white);
+  makeWavingFlag(0xd41426, height - 0.19);
+  makeWavingFlag(0xffffff, height - 0.50);
 
   group.position.set(x, 0, z);
   if (x > 0) group.rotation.y = Math.PI;
@@ -2033,7 +2178,7 @@ function createSkyTexture() {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 1024, 1024);
 
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 28; i++) {
     const x = 60 + Math.random() * 900;
     const y = 80 + Math.random() * 340;
     const w = 120 + Math.random() * 180;
@@ -2054,24 +2199,43 @@ function createSkyTexture() {
 }
 
 function createTree(x, z, scale = 1) {
-  scale *= 2.05;
+  scale *= 2.45;
   const group = new THREE.Group();
 
   const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.08 * scale, 0.11 * scale, 0.9 * scale, 8),
-    new THREE.MeshStandardMaterial({ color: 0x7c5535, roughness: 0.96 })
+    new THREE.CylinderGeometry(0.09 * scale, 0.16 * scale, 1.24 * scale, 10),
+    new THREE.MeshStandardMaterial({ color: 0x765032, roughness: 0.98 })
   );
-  trunk.position.y = 0.46 * scale;
+  trunk.position.y = 0.62 * scale;
+  trunk.castShadow = !IS_MOBILE;
+  trunk.receiveShadow = true;
   group.add(trunk);
 
-  const leavesMat = new THREE.MeshStandardMaterial({ color: 0x36a95d, roughness: 0.92 });
-  const top1 = new THREE.Mesh(new THREE.SphereGeometry(0.38 * scale, 10, 9), leavesMat);
-  const top2 = new THREE.Mesh(new THREE.SphereGeometry(0.30 * scale, 10, 9), leavesMat);
-  const top3 = new THREE.Mesh(new THREE.SphereGeometry(0.28 * scale, 10, 9), leavesMat);
-  top1.position.set(0, 1.05 * scale, 0);
-  top2.position.set(-0.20 * scale, 0.95 * scale, 0.10 * scale);
-  top3.position.set(0.18 * scale, 0.92 * scale, -0.08 * scale);
-  group.add(top1, top2, top3);
+  const trunkTop = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05 * scale, 0.08 * scale, 0.38 * scale, 8),
+    new THREE.MeshStandardMaterial({ color: 0x7b5738, roughness: 0.98 })
+  );
+  trunkTop.position.y = 1.22 * scale;
+  trunkTop.rotation.z = 0.12;
+  trunkTop.castShadow = !IS_MOBILE;
+  group.add(trunkTop);
+
+  const leavesMat = new THREE.MeshStandardMaterial({ color: 0x2f8f4e, roughness: 0.96 });
+  const leafParts = [
+    [0, 1.65, 0, 0.58],
+    [-0.34, 1.48, 0.12, 0.46],
+    [0.36, 1.50, -0.08, 0.48],
+    [-0.12, 1.92, -0.04, 0.42],
+    [0.16, 1.84, 0.11, 0.38]
+  ];
+
+  leafParts.forEach(([px, py, pz, s]) => {
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(s * scale, 14, 12), leavesMat);
+    crown.position.set(px * scale, py * scale, pz * scale);
+    crown.castShadow = !IS_MOBILE;
+    crown.receiveShadow = true;
+    group.add(crown);
+  });
 
   group.position.set(x, 0, z);
   scene.add(group);
@@ -2211,21 +2375,19 @@ function createWorldEnvironment() {
   createCloudCluster(12, 23, -68, 3.8);
   createCloudCluster(32, 18, -44, 2.6);
   createCloudCluster(-36, 17, -38, 2.4);
-
-
-  createFarStand(-25, TRACK.finishZ + 16, 1.15, -1);
-  createFarStand(25, TRACK.finishZ + 16, 1.15, 1);
+  createCloudCluster(-58, 21, -74, 3.0);
+  createCloudCluster(-6, 24, -84, 3.4);
+  createCloudCluster(54, 19, -72, 2.8);
+  createCloudCluster(68, 23, -48, 3.2);
+  createCloudCluster(-68, 18, -42, 2.7);
+  createCloudCluster(0, 18, -28, 2.3);
+  createCloudCluster(26, 25, -92, 3.6);
+  createCloudCluster(-28, 23, -102, 3.8);
 }
 
 function createIndependenceDecorations() {
   // Cukup satu poster besar di area start agar terbaca jelas dan tidak menutup pandangan ke lintasan.
   createDecorArch(TRACK.startZ + 4.8, 'START');
-
-  const startPoster = makeIndependenceBoard('HUT ke-81 KEMERDEKAAN RI • 17 AGUSTUS 2026', 1720, 230);
-  startPoster.position.set(0, 6.05, TRACK.startZ + 4.95);
-  startPoster.scale.set(0.66, 0.66, 0.66);
-  startPoster.rotation.x = -0.02;
-  scene.add(startPoster);
 
   for (let z = TRACK.startZ + 1; z >= TRACK.finishZ - 1; z -= 8.5) {
     createScriptFlag(-6.15, z, 3.35);
@@ -2289,10 +2451,23 @@ function createIndependenceDecorations() {
     });
   });
 
-  createCheerCrowd(-7.2, TRACK.startZ - 8, -1);
-  createCheerCrowd(7.2, TRACK.startZ - 8, 1);
-  createCheerCrowd(-7.2, TRACK.finishZ + 10, -1);
-  createCheerCrowd(7.2, TRACK.finishZ + 10, 1);
+}
+
+function updateWavingFlags(elapsed) {
+  wavingFlags.forEach(flag => {
+    const geometry = flag.mesh.geometry;
+    const pos = geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      const edgeFactor = (x + 0.54) / 1.08;
+      const wave = Math.sin(elapsed * 3.1 + x * 5.2 + flag.phase) * flag.amplitude * edgeFactor;
+      const flutter = Math.cos(elapsed * 5.4 + y * 8.0 + flag.phase) * 0.018 * edgeFactor;
+      pos.setZ(i, wave + flutter);
+    }
+    pos.needsUpdate = true;
+    geometry.computeVertexNormals();
+  });
 }
 
 function resizeCelebrationCanvas() {
@@ -4890,6 +5065,7 @@ function finishPlayerRace() {
   const position =
     getPlayerPosition();
 
+  finishTitle.textContent = position === 1 ? 'MENANG!' : 'SELESAI!';
   finishText.textContent =
     `${player.preset.name} • ${raceTime.toFixed(2)} detik • Posisi ${position} dari ${racers.length}`;
 
@@ -5186,6 +5362,7 @@ function animate() {
   });
 
   updateCamera(dt);
+  updateWavingFlags(elapsed);
 
   // HUD tidak perlu ditulis ke DOM 60 kali per detik.
   hudAccumulator += dt;
@@ -5401,6 +5578,21 @@ async function chooseCharacter(index) {
   }
 }
 
+function backToMainMenu() {
+  clearFinishCelebration();
+  finishBanner.classList.remove('show');
+  characterSelector.classList.add('hidden');
+  mainMenu.classList.remove('hidden');
+  raceStarted = false;
+  raceFinished = false;
+  currentSpeed = 0;
+  targetSpeed = 0;
+  setJoystick(0, 0);
+  if (playerId) {
+    playerIdInput.value = playerId;
+  }
+}
+
 function submitPlayerId() {
   const value = playerIdInput.value.trim();
 
@@ -5466,14 +5658,14 @@ retryLoadBtn.addEventListener(
   }
 );
 
-resetBtn.addEventListener(
+finishResetBtn.addEventListener(
   'click',
   resetRace
 );
 
-finishResetBtn.addEventListener(
+finishBackBtn.addEventListener(
   'click',
-  resetRace
+  backToMainMenu
 );
 
 cameraBtn.addEventListener(
