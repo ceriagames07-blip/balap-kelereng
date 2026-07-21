@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V14.3 - Arah Tangan dan Kaki Diperbaiki</title>
+  <title>Anime Runner VRM V14.4 - Kamera Samping Tinggi</title>
   <style>
     :root{
       --bg:#080b14;
@@ -1031,14 +1031,18 @@ scene.background = new THREE.Color(0x87cbff);
 scene.fog = new THREE.FogExp2(0x9fd7ff, 0.0038);
 
 const IS_MOBILE = matchMedia('(max-width: 720px)').matches || ('ontouchstart' in window);
-const CAMERA_FOV = IS_MOBILE ? 56 : 50;
+const CAMERA_FOV = IS_MOBILE ? 60 : 54;
 const camera = new THREE.PerspectiveCamera(
   CAMERA_FOV,
   innerWidth / innerHeight,
   0.1,
   400
 );
-camera.position.set(0, IS_MOBILE ? 4.6 : 4.0, 55);
+camera.position.set(
+  IS_MOBILE ? 4.2 : 3.6,
+  IS_MOBILE ? 6.4 : 5.6,
+  57
+);
 
 const renderer = new THREE.WebGLRenderer({
   antialias: !IS_MOBILE,
@@ -4051,7 +4055,7 @@ function animateRun(
 
   // Langkah dibuat lebih panjang supaya dua kaki terbaca jelas dari kamera.
   const legAmplitude = 0.58 + speedRatio * 0.24;
-  const legSpread = -0.030 + speedRatio * -0.050;
+  const legSpread = 0.085 + speedRatio * 0.030;
   const smoothing = 1 - Math.exp(-14 * Math.max(dt, 0.001));
 
   const bounceWave = (1 - Math.cos(phase * 2)) * 0.5;
@@ -4721,22 +4725,21 @@ function updateCamera(dt) {
   if (!player) return;
 
   if (cameraFollow) {
-    const forward =
-      currentDirection.clone();
+    const forward = currentDirection.clone();
 
-    if (
-      forward.lengthSq() <
-      0.001
-    ) {
-      forward.set(
-        0,
-        0,
-        -1
-      );
+    if (forward.lengthSq() < 0.001) {
+      forward.set(0, 0, -1);
     }
 
-    let desiredPosition;
-    let desiredTarget;
+    forward.normalize();
+
+    // Vektor samping lintasan. Untuk arah lari -Z, nilainya mengarah ke sisi kanan +X.
+    // Offset ini membuat kamera menjadi sudut 3/4 samping-belakang, bukan tepat di belakang.
+    const side = new THREE.Vector3(
+      -forward.z,
+      0,
+      forward.x
+    ).normalize();
 
     const groundPosition = new THREE.Vector3(
       player.root.position.x,
@@ -4744,23 +4747,45 @@ function updateCamera(dt) {
       player.root.position.z
     );
 
+    // Titik tengah seluruh peserta digunakan agar lawan di jalur kiri dan kanan
+    // tetap terlihat ketika posisi mereka sedikit lebih maju atau tertinggal.
+    const packCenter = new THREE.Vector3();
+
+    if (racers.length > 0) {
+      racers.forEach(racer => {
+        packCenter.add(racer.root.position);
+      });
+
+      packCenter.divideScalar(racers.length);
+      packCenter.y = 0;
+    } else {
+      packCenter.copy(groundPosition);
+    }
+
+    let desiredPosition;
+    let desiredTarget;
+
     if (
       !characterSelector
         .classList
         .contains('hidden')
     ) {
-      // Saat memilih karakter: kamera center dari belakang, sedikit tinggi dan lebih lebar.
+      // Saat memilih karakter: tetap sedikit dari samping dan cukup tinggi.
       desiredPosition =
         groundPosition
           .clone()
           .addScaledVector(
             forward,
-            IS_MOBILE ? -9.2 : -8.2
+            IS_MOBILE ? -11.4 : -9.8
+          )
+          .addScaledVector(
+            side,
+            IS_MOBILE ? 4.1 : 3.4
           )
           .add(
             new THREE.Vector3(
               0,
-              IS_MOBILE ? 4.8 : 4.2,
+              IS_MOBILE ? 6.1 : 5.3,
               0
             )
           );
@@ -4768,62 +4793,72 @@ function updateCamera(dt) {
       desiredTarget =
         groundPosition
           .clone()
+          .addScaledVector(
+            forward,
+            IS_MOBILE ? 2.2 : 1.8
+          )
           .add(
             new THREE.Vector3(
               0,
-              IS_MOBILE ? 1.6 : 1.5,
+              IS_MOBILE ? 1.35 : 1.3,
               0
             )
           );
     } else {
-      // Kamera follow center: tepat di tengah belakang pemain, sedikit lebih tinggi,
-      // dan cukup jauh agar dua lawan tetap masuk frame, terutama di mobile.
+      // Kamera lomba:
+      // - sedikit dari sisi kanan lintasan
+      // - lebih tinggi agar jalur dan lawan terlihat
+      // - lebih jauh agar ketiga peserta tidak terpotong
       desiredPosition =
         groundPosition
           .clone()
           .addScaledVector(
             forward,
-            IS_MOBILE ? -10.4 : -8.8
+            IS_MOBILE ? -13.4 : -11.2
+          )
+          .addScaledVector(
+            side,
+            IS_MOBILE ? 4.7 : 3.9
           )
           .add(
             new THREE.Vector3(
               0,
-              IS_MOBILE ? 4.9 : 4.0,
+              IS_MOBILE ? 6.7 : 5.8,
               0
             )
           );
 
-      desiredTarget =
-        groundPosition
-          .clone()
-          .add(
-            new THREE.Vector3(
-              0,
-              IS_MOBILE ? 1.7 : 1.5,
-              0
-            )
-          )
-          .addScaledVector(
-            forward,
-            IS_MOBILE ? 1.0 : 1.2
-          );
+      // Fokus ditarik sedikit ke tengah kelompok dan ke depan lintasan.
+      // Posisi target dibuat lebih rendah daripada kamera supaya permukaan lapangan terlihat luas.
+      desiredTarget = new THREE.Vector3(
+        THREE.MathUtils.lerp(
+          groundPosition.x,
+          packCenter.x,
+          0.58
+        ),
+        IS_MOBILE ? 1.15 : 1.1,
+        THREE.MathUtils.lerp(
+          groundPosition.z,
+          packCenter.z,
+          0.32
+        )
+      ).addScaledVector(
+        forward,
+        IS_MOBILE ? 4.8 : 4.2
+      );
     }
 
     camera.position.lerp(
       desiredPosition,
-      1 -
-      Math.exp(
-        -(IS_MOBILE ? 4.6 : 5.8) *
-        dt
+      1 - Math.exp(
+        -(IS_MOBILE ? 4.2 : 5.2) * dt
       )
     );
 
     orbit.target.lerp(
       desiredTarget,
-      1 -
-      Math.exp(
-        -(IS_MOBILE ? 5.8 : 7.8) *
-        dt
+      1 - Math.exp(
+        -(IS_MOBILE ? 5.2 : 6.8) * dt
       )
     );
   }
