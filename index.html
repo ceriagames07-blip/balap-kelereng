@@ -1197,8 +1197,15 @@
     }
 
     .controls-card{
-      width:202px;
+      width:218px;
       background:#091322;
+    }
+
+    .api-note{
+      color:#ffd3d9;
+      font-size:9px;
+      line-height:1.35;
+      text-align:center;
     }
 
     .control-btn:disabled{
@@ -1353,6 +1360,8 @@
     <div class="selected-player player-lines">
       <div>ID: <strong id="playerIdText">-</strong></div>
       <div>KARAKTER: <strong id="selectedCharacterName">KAI</strong></div>
+      <div>KESEMPATAN: <strong id="remainingAttemptsText">-</strong></div>
+      <div>HADIAH: <strong id="plannedRewardText">-</strong></div>
     </div>
     <button id="startGameBtn" type="button" class="control-btn primary" disabled>MULAI GAME</button>
     <button id="selectCharacterBtn" type="button" class="control-btn">GANTI KARAKTER</button>
@@ -1431,6 +1440,56 @@ import {
   VRMLoaderPlugin,
   VRMUtils
 } from '@pixiv/three-vrm';
+
+// GANTI dengan URL deployment Apps Script yang berakhiran /exec.
+const API_URL = 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+function ensureApiUrl() {
+  if (
+    !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(API_URL)
+  ) {
+    throw new Error(
+      'API_URL belum diisi. Masukkan URL Web App Apps Script berakhiran /exec.'
+    );
+  }
+}
+
+async function apiPost(action, data = {}) {
+  ensureApiUrl();
+
+  const response = await fetch(
+    API_URL,
+    {
+      method: 'POST',
+      body: new URLSearchParams({
+        action,
+        ...data
+      }),
+      redirect: 'follow'
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Koneksi server gagal (${response.status}).`
+    );
+  }
+
+  const result = await response.json();
+
+  if (!result.success) {
+    throw new Error(
+      result.message ||
+      'Permintaan server gagal.'
+    );
+  }
+
+  return result;
+}
+
+function formatRupiah(value) {
+  return `Rp${Number(value || 0).toLocaleString('id-ID')}`;
+}
 
 const TRACK = {
   width: 9.6,
@@ -1595,6 +1654,8 @@ const playerIdInput = document.getElementById('playerIdInput');
 const loginError = document.getElementById('loginError');
 const continueBtn = document.getElementById('continueBtn');
 const playerIdText = document.getElementById('playerIdText');
+const remainingAttemptsText = document.getElementById('remainingAttemptsText');
+const plannedRewardText = document.getElementById('plannedRewardText');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87cbff);
@@ -1676,8 +1737,27 @@ let smoothInputY = 0;
 let modelsReady = false;
 let hudAccumulator = 0;
 let playerId = '';
+let memberData = null;
+let gameSessionToken = '';
+let plannedReward = 0;
+let desiredPosition = 3;
+let resultSubmitted = false;
 let selectorMode = 'onboarding';
 let characterSelectionLocked = false;
+
+const movementMetrics = {
+  activeTime: 0,
+  forwardDistance: 0,
+  backwardDistance: 0,
+  lateralDistance: 0,
+  lateralTime: 0,
+  wrongWayTime: 0,
+  turnRadians: 0,
+  directionChanges: 0,
+  lastStrongXSign: 0,
+  invalid: false,
+  quality: 'valid'
+};
 
 const fireworkParticles = [];
 const confettiParticles = [];
@@ -4800,6 +4880,301 @@ function animateRun(
   }
 }
 
+
+function resetMovementMetrics() {
+  movementMetrics.activeTime = 0;
+  movementMetrics.forwardDistance = 0;
+  movementMetrics.backwardDistance = 0;
+  movementMetrics.lateralDistance = 0;
+  movementMetrics.lateralTime = 0;
+  movementMetrics.wrongWayTime = 0;
+  movementMetrics.turnRadians = 0;
+  movementMetrics.directionChanges = 0;
+  movementMetrics.lastStrongXSign = 0;
+  movementMetrics.invalid = false;
+  movementMetrics.quality = 'valid';
+}
+
+function classifyMovementQuality() {
+  if (
+    raceTime >= 3.2 &&
+    (
+      movementMetrics.activeTime < 0.55 ||
+      movementMetrics.forwardDistance < 0.75
+    )
+  ) {
+    movementMetrics.quality = 'idle';
+    return 'idle';
+  }
+
+  const forwardBase =
+    Math.max(
+      1,
+      movementMetrics.forwardDistance
+    );
+
+  if (
+    movementMetrics.invalid ||
+    movementMetrics.wrongWayTime > 1.1 ||
+    movementMetrics.backwardDistance > 2.2 ||
+    movementMetrics.turnRadians > Math.PI * 2.35 ||
+    movementMetrics.directionChanges > 10 ||
+    (
+      movementMetrics.activeTime > 2.2 &&
+      movementMetrics.lateralDistance / forwardBase > 0.70
+    ) ||
+    (
+      movementMetrics.activeTime > 2.2 &&
+      movementMetrics.lateralTime / movementMetrics.activeTime > 0.58
+    )
+  ) {
+    movementMetrics.invalid = true;
+    movementMetrics.quality = 'erratic';
+    return 'erratic';
+  }
+
+  movementMetrics.quality = 'valid';
+  return 'valid';
+}
+
+function trackPlayerMovement(
+  dt,
+  moving,
+  input,
+  beforeX,
+  beforeZ,
+  beforeYaw
+) {
+  if (!raceStarted || !moving || !player) return;
+
+  const dx =
+    player.root.position.x -
+    beforeX;
+
+  const dz =
+    player.root.position.z -
+    beforeZ;
+
+  movementMetrics.activeTime += dt;
+  movementMetrics.lateralDistance +=
+    Math.abs(dx);
+
+  if (dz < 0) {
+    movementMetrics.forwardDistance +=
+      Math.abs(dz);
+  } else {
+    movementMetrics.backwardDistance +=
+      dz;
+  }
+
+  if (Math.abs(input.x) > 0.58) {
+    movementMetrics.lateralTime += dt;
+  }
+
+  if (input.y > -0.08) {
+    movementMetrics.wrongWayTime += dt;
+  }
+
+  let yawDelta =
+    (
+      player.root.rotation.y -
+      beforeYaw +
+      Math.PI
+    ) %
+    (
+      Math.PI * 2
+    ) -
+    Math.PI;
+
+  movementMetrics.turnRadians +=
+    Math.abs(yawDelta);
+
+  const strongSign =
+    Math.abs(input.x) > 0.52
+      ? Math.sign(input.x)
+      : 0;
+
+  if (
+    strongSign &&
+    movementMetrics.lastStrongXSign &&
+    strongSign !==
+    movementMetrics.lastStrongXSign
+  ) {
+    movementMetrics.directionChanges++;
+  }
+
+  if (strongSign) {
+    movementMetrics.lastStrongXSign =
+      strongSign;
+  }
+
+  classifyMovementQuality();
+}
+
+function refreshOpponentTargets() {
+  if (!player || !racers.length) return;
+
+  const opponents =
+    racers.filter(
+      racer => !racer.isPlayer
+    );
+
+  const quality =
+    classifyMovementQuality();
+
+  let multipliers;
+
+  if (desiredPosition === 3) {
+    multipliers = [1.13, 1.08];
+  } else if (quality === 'idle') {
+    multipliers = [1.08, 1.03];
+  } else if (quality === 'erratic') {
+    multipliers = [1.02, 0.99];
+  } else if (desiredPosition === 2) {
+    multipliers = [1.12, 0.76];
+  } else {
+    multipliers = [0.74, 0.79];
+  }
+
+  opponents.forEach(
+    (racer, index) => {
+      racer.targetSpeed =
+        player.preset.speed *
+        multipliers[index];
+
+      racer.reactionTime =
+        0.14 +
+        index * 0.08;
+    }
+  );
+}
+
+async function reserveGameAttempt() {
+  if (gameSessionToken) return true;
+
+  const result =
+    await apiPost(
+      'reserveAttempt',
+      {
+        username: playerId
+      }
+    );
+
+  gameSessionToken =
+    result.token;
+
+  plannedReward =
+    Number(
+      result.plannedReward
+    ) || 5000;
+
+  desiredPosition =
+    Number(
+      result.targetPosition
+    ) || 3;
+
+  if (!memberData) {
+    memberData = {};
+  }
+
+  memberData.remainingAttempts =
+    Number(
+      result.remainingAttempts
+    ) || 0;
+
+  memberData.plannedReward =
+    plannedReward;
+
+  remainingAttemptsText.textContent =
+    String(
+      memberData.remainingAttempts
+    );
+
+  plannedRewardText.textContent =
+    formatRupiah(
+      plannedReward
+    );
+
+  resetMovementMetrics();
+  resultSubmitted = false;
+  refreshOpponentTargets();
+
+  return true;
+}
+
+async function submitRaceResult() {
+  if (
+    resultSubmitted ||
+    !gameSessionToken
+  ) {
+    return null;
+  }
+
+  resultSubmitted = true;
+
+  const clientPosition =
+    Math.max(
+      1,
+      Math.min(
+        3,
+        playerFinishPosition
+      )
+    );
+
+  const movementQuality =
+    classifyMovementQuality();
+
+  try {
+    return await apiPost(
+      'submitGameResult',
+      {
+        token: gameSessionToken,
+        position: clientPosition,
+        movementQuality,
+        elapsedSeconds:
+          playerFinishTime.toFixed(3)
+      }
+    );
+  } catch (error) {
+    resultSubmitted = false;
+    throw error;
+  }
+}
+
+function forcePlayerThirdFinish() {
+  if (
+    !player ||
+    player.finished ||
+    raceFinished
+  ) return;
+
+  currentSpeed = 0;
+  targetSpeed = 0;
+  currentDirection.set(0, 0, -1);
+
+  player.root.position.z =
+    TRACK.finishZ;
+
+  player.finished = true;
+  playerFinishTime =
+    raceTime;
+
+  playerFinishPosition = 3;
+
+  setIdlePose(
+    player,
+    clock.elapsedTime,
+    1
+  );
+
+  updateGroundShadow(
+    player,
+    0
+  );
+
+  completeRaceAfterAllFinish();
+}
+
 function cancelRaceCountdown() {
   countdownRunId++;
   countdownActive = false;
@@ -4821,12 +5196,27 @@ async function startRaceCountdown() {
     raceFinished
   ) return;
 
+  startGameBtn.disabled = true;
+  startGameBtn.textContent = 'MEMERIKSA DATA...';
+  statusText.textContent = 'Memeriksa kesempatan bermain';
+
+  try {
+    await reserveGameAttempt();
+  } catch (error) {
+    startGameBtn.disabled = false;
+    startGameBtn.textContent = 'MULAI GAME';
+    statusText.textContent = error.message;
+    loginError.textContent = error.message;
+    return;
+  }
+
   const runId = ++countdownRunId;
   countdownActive = true;
   raceTime = 0;
   currentSpeed = 0;
   targetSpeed = 0;
-  startGameBtn.disabled = true;
+  resetMovementMetrics();
+  refreshOpponentTargets();
   startGameBtn.textContent = 'BERSIAP...';
   countdownOverlay.classList.add('show');
   countdownNumber.classList.remove('go');
@@ -4869,38 +5259,27 @@ function resetRace() {
   raceTime = 0;
   playerFinishTime = 0;
   playerFinishPosition = 1;
+  gameSessionToken = '';
+  resultSubmitted = false;
   clearFinishCelebration();
   currentSpeed = 0;
   targetSpeed = 0;
-  currentDirection.set(
-    0,
-    0,
-    -1
-  );
+  currentDirection.set(0, 0, -1);
   smoothInputX = 0;
   smoothInputY = 0;
+  resetMovementMetrics();
 
   racers.forEach(
     racer => {
       racer.root.position.set(
-        getLaneX(
-          racer.laneIndex
-        ),
+        getLaneX(racer.laneIndex),
         0,
         TRACK.startZ + 1.4
       );
 
-      racer.root.rotation.set(
-        0,
-        0,
-        0
-      );
-
+      racer.root.rotation.set(0, 0, 0);
       racer.currentSpeed = 0;
-      racer.runPhase =
-        racer.laneIndex *
-        1.10;
-
+      racer.runPhase = racer.laneIndex * 1.10;
       racer.finished = false;
 
       setIdlePose(
@@ -4916,17 +5295,27 @@ function resetRace() {
       PLAYER_LANE_INDEX
     );
 
-  finishBanner.classList.remove(
-    'show'
-  );
-
+  finishBanner.classList.remove('show');
   setJoystick(0, 0);
-  startGameBtn.disabled = false;
-  startGameBtn.textContent = 'MULAI GAME';
+  delete startGameBtn.dataset.retryResult;
+
+  const canPlay =
+    Number(
+      memberData?.remainingAttempts || 0
+    ) > 0;
+
+  startGameBtn.disabled = !canPlay;
+  startGameBtn.textContent =
+    canPlay
+      ? 'MULAI GAME'
+      : 'KESEMPATAN HABIS';
+
   updateHud();
 
   statusText.textContent =
-    `${playerId} • ${player.preset.name} siap di garis start`;
+    canPlay
+      ? `${playerId} • ${player.preset.name} siap di garis start`
+      : 'Kesempatan bermain sudah habis';
 }
 
 function getInputVector() {
@@ -4971,9 +5360,7 @@ function updatePlayer(
     player.finished
   ) return;
 
-  const deadZone =
-    0.08;
-
+  const deadZone = 0.08;
   const moving =
     input.magnitude >
     deadZone;
@@ -4995,6 +5382,15 @@ function updatePlayer(
 
     return;
   }
+
+  const beforeX =
+    player.root.position.x;
+
+  const beforeZ =
+    player.root.position.z;
+
+  const beforeYaw =
+    player.root.rotation.y;
 
   const maxSpeed =
     player.preset.speed;
@@ -5032,8 +5428,6 @@ function updatePlayer(
 
     direction.normalize();
 
-    // Sama seperti script referensi:
-    // arah gerak dibuat lembut sebelum posisi dan rotasi diperbarui.
     currentDirection
       .lerp(
         direction,
@@ -5044,11 +5438,9 @@ function updatePlayer(
     player.root.position
       .addScaledVector(
         currentDirection,
-        currentSpeed *
-        dt
+        currentSpeed * dt
       );
 
-    // Kunci karakter agar tidak dapat keluar dari area lintasan.
     const playerTrackMargin = 0.56;
     const minTrackX =
       -TRACK.width / 2 +
@@ -5070,24 +5462,18 @@ function updatePlayer(
       player.root.position.x !==
       unclampedX
     ) {
-      // Saat menyentuh pagar, hilangkan arah keluar agar gerakan meluncur mengikuti lintasan.
       currentDirection.x = 0;
 
       if (
         currentDirection.lengthSq() <
         0.001
       ) {
-        currentDirection.set(
-          0,
-          0,
-          -1
-        );
+        currentDirection.set(0, 0, -1);
       } else {
         currentDirection.normalize();
       }
     }
 
-    // Rumus arah dari script referensi.
     const targetYaw =
       Math.atan2(
         -currentDirection.x,
@@ -5132,15 +5518,11 @@ function updatePlayer(
       elapsed,
       1 -
       Math.exp(
-        -10 *
-        dt
+        -10 * dt
       )
     );
   }
 
-
-  // Pengaman tambahan: posisi X selalu dikunci di dalam lintasan,
-  // termasuk setelah reset, perubahan frame, atau tab kembali aktif.
   player.root.position.x =
     THREE.MathUtils.clamp(
       player.root.position.x,
@@ -5151,11 +5533,18 @@ function updatePlayer(
   player.root.position.z =
     THREE.MathUtils.clamp(
       player.root.position.z,
-      TRACK.finishZ -
-      4,
-      TRACK.startZ +
-      5
+      TRACK.finishZ - 4,
+      TRACK.startZ + 5
     );
+
+  trackPlayerMovement(
+    dt,
+    moving,
+    input,
+    beforeX,
+    beforeZ,
+    beforeYaw
+  );
 
   if (
     player.root.position.z <=
@@ -5171,6 +5560,13 @@ function updateOpponents(
   elapsed
 ) {
   if (!modelsReady) return;
+
+  if (
+    raceStarted &&
+    !raceFinished
+  ) {
+    refreshOpponentTargets();
+  }
 
   racers.forEach(racer => {
     if (
@@ -5244,7 +5640,7 @@ function updateOpponents(
         effectiveSpeed /
         racer.preset.speed,
         0,
-        1
+        1.35
       ),
       dt
     );
@@ -5272,8 +5668,33 @@ function updateOpponents(
     }
   });
 
-  // Setelah pemain mencapai garis finis, lawan tetap berlari sampai
-  // seluruh peserta benar-benar menyentuh garis finis.
+  const opponents =
+    racers.filter(
+      racer => !racer.isPlayer
+    );
+
+  const allOpponentsFinished =
+    opponents.length === 2 &&
+    opponents.every(
+      racer => racer.finished
+    );
+
+  if (
+    !player?.finished &&
+    allOpponentsFinished
+  ) {
+    const quality =
+      classifyMovementQuality();
+
+    if (
+      quality !== 'valid' ||
+      raceTime >= 45
+    ) {
+      forcePlayerThirdFinish();
+      return;
+    }
+  }
+
   if (
     player?.finished &&
     !raceFinished &&
@@ -5350,7 +5771,7 @@ function finishPlayerRace() {
   }
 }
 
-function completeRaceAfterAllFinish() {
+async function completeRaceAfterAllFinish() {
   if (raceFinished) return;
 
   raceFinished = true;
@@ -5358,24 +5779,66 @@ function completeRaceAfterAllFinish() {
   currentSpeed = 0;
   targetSpeed = 0;
   startGameBtn.disabled = true;
+  startGameBtn.textContent = 'MENYIMPAN HASIL';
+  statusText.textContent = 'Menyimpan hasil permainan...';
+
+  let approvedPosition =
+    playerFinishPosition;
+
+  let actualReward =
+    approvedPosition === 1
+      ? plannedReward
+      : approvedPosition === 2
+        ? 10000
+        : 5000;
+
+  try {
+    const result =
+      await submitRaceResult();
+
+    if (result) {
+      approvedPosition =
+        Number(
+          result.approvedPosition
+        ) || approvedPosition;
+
+      actualReward =
+        Number(
+          result.actualReward
+        ) || actualReward;
+    }
+  } catch (error) {
+    raceFinished = true;
+    startGameBtn.disabled = false;
+    startGameBtn.dataset.retryResult = '1';
+    startGameBtn.textContent = 'COBA SIMPAN HASIL';
+    statusText.textContent =
+      `Hasil belum tersimpan: ${error.message}`;
+    return;
+  }
+
+  playerFinishPosition =
+    approvedPosition;
+
+  delete startGameBtn.dataset.retryResult;
+  startGameBtn.disabled = true;
   startGameBtn.textContent = 'LOMBA SELESAI';
 
   finishTitle.textContent =
-    playerFinishPosition === 1
-      ? 'MENANG!'
-      : 'SELESAI!';
+    approvedPosition === 1
+      ? 'JUARA 1!'
+      : approvedPosition === 2
+        ? 'JUARA 2!'
+        : 'JUARA 3!';
 
   finishText.textContent =
-    `${player.preset.name} • ${playerFinishTime.toFixed(2)} detik • Posisi ${playerFinishPosition} dari ${racers.length}`;
+    `${player.preset.name} • ${playerFinishTime.toFixed(2)} detik • Hadiah ${formatRupiah(actualReward)}`;
 
-  finishBanner.classList.add(
-    'show'
-  );
-
+  finishBanner.classList.add('show');
   startFinishCelebration();
 
   statusText.textContent =
-    `Semua peserta finish • Posisi Anda ${playerFinishPosition}/${racers.length}`;
+    `Hasil tersimpan • Posisi ${approvedPosition}/3 • ${formatRupiah(actualReward)}`;
 }
 
 function dampAngle(
@@ -5908,38 +6371,125 @@ function backToMainMenu() {
   raceFinished = false;
   playerFinishTime = 0;
   playerFinishPosition = 1;
+  gameSessionToken = '';
+  resultSubmitted = false;
   currentSpeed = 0;
   targetSpeed = 0;
+  resetMovementMetrics();
+  delete startGameBtn.dataset.retryResult;
   startGameBtn.disabled = true;
   startGameBtn.textContent = 'MULAI GAME';
   setJoystick(0, 0);
+
   if (playerId) {
     playerIdInput.value = playerId;
   }
 }
 
-function submitPlayerId() {
-  const value = playerIdInput.value.trim();
+async function submitPlayerId() {
+  const value =
+    playerIdInput.value
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '');
 
   if (!value) {
-    loginError.textContent = 'ID pemain wajib diisi sebelum masuk ke game.';
+    loginError.textContent =
+      'Username wajib diisi sebelum masuk ke game.';
     playerIdInput.focus();
     return;
   }
 
-  playerId = value.slice(0, 30);
-  playerIdText.textContent = playerId;
-  sessionStorage.setItem('runner_player_id', playerId);
+  continueBtn.disabled = true;
+  continueBtn.textContent = 'MEMERIKSA USERNAME...';
   loginError.textContent = '';
-  mainMenu.classList.add('hidden');
-  selectorMode = 'onboarding';
-  closeSelectorBtn.style.display = 'none';
-  renderCharacterSelector();
-  characterSelector.classList.remove('hidden');
+
+  try {
+    const result =
+      await apiPost(
+        'getMemberStatus',
+        {
+          username: value
+        }
+      );
+
+    if (!result.canPlay) {
+      throw new Error(
+        result.message ||
+        'Kesempatan bermain sudah habis.'
+      );
+    }
+
+    playerId =
+      result.member.username;
+
+    memberData =
+      result.member;
+
+    plannedReward =
+      Number(
+        memberData.plannedReward
+      ) || 5000;
+
+    desiredPosition =
+      Number(
+        memberData.targetPosition
+      ) || 3;
+
+    gameSessionToken = '';
+    resultSubmitted = false;
+    resetMovementMetrics();
+
+    playerIdText.textContent =
+      playerId;
+
+    remainingAttemptsText.textContent =
+      String(
+        memberData.remainingAttempts
+      );
+
+    plannedRewardText.textContent =
+      formatRupiah(
+        plannedReward
+      );
+
+    sessionStorage.setItem(
+      'runner_player_id',
+      playerId
+    );
+
+    mainMenu.classList.add('hidden');
+    selectorMode = 'onboarding';
+    closeSelectorBtn.style.display = 'none';
+    renderCharacterSelector();
+    characterSelector.classList.remove('hidden');
+  } catch (error) {
+    loginError.textContent =
+      error.message;
+  } finally {
+    continueBtn.disabled = false;
+    continueBtn.textContent =
+      'MULAI BERMAIN';
+  }
 }
 
 continueBtn.addEventListener('click', submitPlayerId);
-startGameBtn.addEventListener('click', startRaceCountdown);
+startGameBtn.addEventListener(
+  'click',
+  () => {
+    if (
+      startGameBtn.dataset.retryResult ===
+      '1'
+    ) {
+      delete startGameBtn.dataset.retryResult;
+      raceFinished = false;
+      completeRaceAfterAllFinish();
+      return;
+    }
+
+    startRaceCountdown();
+  }
+);
 backMenuBtn.addEventListener('click', backToMainMenu);
 
 playerIdInput.addEventListener('keydown', event => {
