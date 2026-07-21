@@ -1591,23 +1591,203 @@ function createScriptCannon(x, z, direction) {
   scene.add(group);
 }
 
-function createIndependenceDecorations() {
-  // Semua dekorasi ini murni geometri Three.js, tidak mengambil model VRM tambahan.
-  const startBoard = makeIndependenceBoard('LOMBA 17 AGUSTUS');
-  startBoard.position.set(0, 4.95, TRACK.startZ + 4.3);
-  scene.add(startBoard);
 
-  const finishBoard = makeIndependenceBoard('DIRGAHAYU INDONESIA');
-  finishBoard.position.set(0, 6.15, TRACK.finishZ - 3.2);
-  scene.add(finishBoard);
+function createBalloonCluster(x, z, side = 1) {
+  const group = new THREE.Group();
+  const colors = [0xd41426, 0xffffff, 0xffd45a, 0x5ce0ff];
 
-  for (let z = TRACK.startZ + 2; z >= TRACK.finishZ - 1; z -= 11) {
-    createScriptFlag(-6.15, z);
-    createScriptFlag(6.15, z);
+  for (let index = 0; index < 6; index++) {
+    const balloon = new THREE.Mesh(
+      new THREE.SphereGeometry(0.17 + (index % 2) * 0.02, 12, 10),
+      new THREE.MeshStandardMaterial({
+        color: colors[index % colors.length],
+        roughness: 0.55,
+        metalness: 0.02
+      })
+    );
+    balloon.position.set(
+      (index % 2 === 0 ? -0.18 : 0.18) + (Math.random() - 0.5) * 0.08,
+      1.9 + index * 0.12,
+      (Math.floor(index / 2) - 1) * 0.08
+    );
+    balloon.castShadow = !IS_MOBILE;
+    group.add(balloon);
+
+    const string = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.006, 0.006, 1.7 + index * 0.05, 5),
+      new THREE.MeshBasicMaterial({ color: 0xf5f0df })
+    );
+    string.position.set(balloon.position.x * 0.7, 0.95 + index * 0.06, balloon.position.z * 0.5);
+    group.add(string);
   }
 
-  [TRACK.startZ + 8, 18, -13, TRACK.finishZ + 7].forEach(z => {
-    createPennantLine(z);
+  const weight = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.14, 0.16, 0.20, 10),
+    new THREE.MeshStandardMaterial({ color: 0x6b707a, roughness: 0.8 })
+  );
+  weight.position.y = 0.12;
+  group.add(weight);
+
+  group.position.set(x, 0, z);
+  group.rotation.y = side < 0 ? Math.PI : 0;
+  scene.add(group);
+}
+
+function createCheerCrowd(x, z, side = 1) {
+  const group = new THREE.Group();
+  const shirtColors = [0xd41426, 0xffffff, 0x3157ff, 0xffd45a, 0x1ecb8c];
+
+  for (let row = 0; row < 2; row++) {
+    for (let i = 0; i < 9; i++) {
+      const person = new THREE.Group();
+
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.10, 0.11, 0.36, 8),
+        new THREE.MeshStandardMaterial({
+          color: shirtColors[(i + row) % shirtColors.length],
+          roughness: 0.9
+        })
+      );
+      body.position.y = 0.48 + row * 0.06;
+      person.add(body);
+
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.09, 10, 8),
+        new THREE.MeshStandardMaterial({ color: 0xf0c39b, roughness: 0.8 })
+      );
+      head.position.y = 0.74 + row * 0.06;
+      person.add(head);
+
+      const armMat = new THREE.MeshBasicMaterial({ color: 0xf0c39b });
+      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.26, 0.04), armMat);
+      const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.26, 0.04), armMat);
+      leftArm.position.set(-0.12, 0.56 + row * 0.06, 0);
+      rightArm.position.set(0.12, 0.56 + row * 0.06, 0);
+      leftArm.rotation.z = -0.6 + (i % 3) * 0.15;
+      rightArm.rotation.z = 0.6 - (i % 3) * 0.15;
+      person.add(leftArm, rightArm);
+
+      person.position.set(-1.8 + i * 0.45, 0.0, row * 0.3);
+      group.add(person);
+    }
+  }
+
+  group.position.set(x, 0.55, z);
+  group.rotation.y = side > 0 ? Math.PI * 0.5 : -Math.PI * 0.5;
+  scene.add(group);
+}
+
+function createLanternPole(x, z) {
+  const group = new THREE.Group();
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.06, 3.8, 10),
+    new THREE.MeshStandardMaterial({ color: 0x5f6670, roughness: 0.72, metalness: 0.22 })
+  );
+  pole.position.y = 1.9;
+  group.add(pole);
+
+  const lamp = new THREE.Mesh(
+    new THREE.SphereGeometry(0.17, 12, 10),
+    new THREE.MeshStandardMaterial({
+      color: 0xfff4d5,
+      emissive: 0xffd97d,
+      emissiveIntensity: 0.75,
+      roughness: 0.42
+    })
+  );
+  lamp.position.y = 3.65;
+  group.add(lamp);
+
+  const topBar = new THREE.Mesh(
+    new THREE.BoxGeometry(0.58, 0.04, 0.04),
+    new THREE.MeshStandardMaterial({ color: 0x5f6670, roughness: 0.72, metalness: 0.22 })
+  );
+  topBar.position.set(0.18, 3.35, 0);
+  group.add(topBar);
+
+  group.position.set(x, 0, z);
+  scene.add(group);
+}
+
+function createDecorArch(z, text) {
+  const sideXs = [-TRACK.width / 2 - 1.2, TRACK.width / 2 + 1.2];
+  sideXs.forEach(x => {
+    const pole = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 4.2, 0.18),
+      new THREE.MeshStandardMaterial({ color: 0x8d8f97, roughness: 0.74, metalness: 0.18 })
+    );
+    pole.position.set(x, 2.1, z);
+    pole.castShadow = !IS_MOBILE;
+    scene.add(pole);
+  });
+
+  const beam = new THREE.Mesh(
+    new THREE.BoxGeometry(TRACK.width + 2.5, 0.22, 0.18),
+    new THREE.MeshStandardMaterial({ color: 0xc91b29, roughness: 0.58, metalness: 0.05 })
+  );
+  beam.position.set(0, 4.18, z);
+  scene.add(beam);
+
+  const board = makeIndependenceBoard(text, 1320, 230);
+  board.position.set(0, 4.2, z + 0.12);
+  board.scale.set(0.82, 0.82, 0.82);
+  scene.add(board);
+}
+
+function createGrassOrnament(x, z) {
+  const group = new THREE.Group();
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.30, 0.34, 0.18, 12),
+    new THREE.MeshStandardMaterial({ color: 0x8f5d3d, roughness: 0.95 })
+  );
+  base.position.y = 0.09;
+  group.add(base);
+
+  for (let i = 0; i < 5; i++) {
+    const leaf = new THREE.Mesh(
+      new THREE.ConeGeometry(0.13, 0.42 + (i % 2) * 0.08, 7),
+      new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0x2ba34c : 0x36bf62, roughness: 0.92 })
+    );
+    leaf.position.set((i - 2) * 0.06, 0.30 + (i % 2) * 0.06, (Math.abs(i - 2) - 1) * 0.03);
+    group.add(leaf);
+  }
+
+  group.position.set(x, 0, z);
+  scene.add(group);
+}
+
+function createIndependenceDecorations() {
+  // Semua dekorasi ini murni geometri Three.js, tidak mengambil model VRM tambahan.
+  const mainBoard = makeIndependenceBoard('HUT ke-81 KEMERDEKAAN RI', 1480, 250);
+  mainBoard.position.set(0, 6.55, TRACK.finishZ - 4.2);
+  mainBoard.scale.set(1.02, 1.02, 1.02);
+  scene.add(mainBoard);
+
+  const dateBoard = makeIndependenceBoard('17 AGUSTUS 2026', 980, 220);
+  dateBoard.position.set(0, 5.05, TRACK.finishZ - 4.0);
+  dateBoard.scale.set(0.74, 0.74, 0.74);
+  scene.add(dateBoard);
+
+  const startBoard = makeIndependenceBoard('LOMBA MERDEKA 2026', 1180, 220);
+  startBoard.position.set(0, 4.95, TRACK.startZ + 4.3);
+  startBoard.scale.set(0.88, 0.88, 0.88);
+  scene.add(startBoard);
+
+  const finishBoard = makeIndependenceBoard('DIRGAHAYU INDONESIA', 1200, 220);
+  finishBoard.position.set(0, 5.85, TRACK.finishZ - 1.5);
+  finishBoard.scale.set(0.76, 0.76, 0.76);
+  scene.add(finishBoard);
+
+  createDecorArch(TRACK.startZ + 8.2, 'START');
+  createDecorArch(TRACK.finishZ - 0.8, 'FINISH');
+
+  for (let z = TRACK.startZ + 2; z >= TRACK.finishZ - 1; z -= 8.5) {
+    createScriptFlag(-6.15, z, 3.35);
+    createScriptFlag(6.15, z, 3.35);
+  }
+
+  [TRACK.startZ + 8, 28, 12, -6, -18, TRACK.finishZ + 7].forEach(z => {
+    createPennantLine(z, 4.65 + ((z % 2) * 0.1));
   });
 
   createScriptCannon(-TRACK.width / 2 - 1.45, TRACK.finishZ + 1.0, 1);
@@ -1620,7 +1800,7 @@ function createIndependenceDecorations() {
   });
 
   const podium = new THREE.Mesh(
-    new THREE.BoxGeometry(3.8, 0.34, 1.2),
+    new THREE.BoxGeometry(4.4, 0.34, 1.6),
     podiumMaterial
   );
   podium.position.set(0, 0.17, TRACK.finishZ - 5.2);
@@ -1628,11 +1808,45 @@ function createIndependenceDecorations() {
   scene.add(podium);
 
   const redRunner = new THREE.Mesh(
-    new THREE.BoxGeometry(3.82, 0.035, 0.42),
+    new THREE.BoxGeometry(4.42, 0.035, 0.52),
     new THREE.MeshBasicMaterial({ color: 0xd41426 })
   );
   redRunner.position.set(0, 0.36, TRACK.finishZ - 5.2);
   scene.add(redRunner);
+
+  const goldStep = new THREE.Mesh(
+    new THREE.BoxGeometry(1.0, 0.55, 0.74),
+    new THREE.MeshStandardMaterial({ color: 0xf0c04b, roughness: 0.5, metalness: 0.15 })
+  );
+  goldStep.position.set(0, 0.61, TRACK.finishZ - 5.1);
+  scene.add(goldStep);
+
+  const silverStep = new THREE.Mesh(
+    new THREE.BoxGeometry(0.92, 0.38, 0.70),
+    new THREE.MeshStandardMaterial({ color: 0xcfd7e0, roughness: 0.55, metalness: 0.10 })
+  );
+  silverStep.position.set(-1.05, 0.44, TRACK.finishZ - 5.05);
+  scene.add(silverStep);
+
+  const bronzeStep = new THREE.Mesh(
+    new THREE.BoxGeometry(0.92, 0.28, 0.70),
+    new THREE.MeshStandardMaterial({ color: 0xb57b50, roughness: 0.58, metalness: 0.08 })
+  );
+  bronzeStep.position.set(1.05, 0.39, TRACK.finishZ - 5.05);
+  scene.add(bronzeStep);
+
+  [-7.8, 7.8].forEach(x => {
+    [TRACK.startZ + 3, 18, 2, -12, TRACK.finishZ + 2].forEach((z, index) => {
+      createLanternPole(x, z);
+      if (index % 2 === 0) createBalloonCluster(x * 0.92, z + 1.1, x > 0 ? 1 : -1);
+      createGrassOrnament(x * 0.87, z - 1.35);
+    });
+  });
+
+  createCheerCrowd(-7.2, TRACK.startZ - 8, -1);
+  createCheerCrowd(7.2, TRACK.startZ - 8, 1);
+  createCheerCrowd(-7.2, TRACK.finishZ + 10, -1);
+  createCheerCrowd(7.2, TRACK.finishZ + 10, 1);
 }
 
 function resizeCelebrationCanvas() {
@@ -3279,61 +3493,60 @@ function poseRunningArm(
     ? 'leftHand'
     : 'rightHand';
 
-  // Bahu dibuat benar-benar maju-mundur (protraksi/retraksi),
-  // bukan naik-turun atau membuka ke samping.
-  const shoulderForwardBack =
-    swing * (0.105 + speedRatio * 0.035);
+  // Fokus penuh pada ayunan maju-mundur.
+  // Tidak ada rotasi samping agar tidak terlihat mengepak.
+  const forwardSwing = Math.max(0, swing);
+  const backwardSwing = Math.max(0, -swing);
 
-  const armForwardBack =
-    swing * (0.56 + speedRatio * 0.14);
+  const shoulderPitch =
+    -0.010 +
+    forwardSwing * (0.20 + speedRatio * 0.05) -
+    backwardSwing * (0.16 + speedRatio * 0.04);
 
-  // Rotasi utama bahu ada pada sumbu Y lokal.
-  // Tanda mirror membuat bahu kiri dan kanan sama-sama bergerak
-  // ke arah depan ketika lengannya maju.
+  const upperArmPitch =
+    -0.018 +
+    forwardSwing * (0.64 + speedRatio * 0.18) -
+    backwardSwing * (0.48 + speedRatio * 0.12);
+
   poseBone(
     racer,
     shoulderName,
-    -0.012,
-    -mirror * shoulderForwardBack,
-    mirror * 0.002,
-    smoothing * 0.94,
+    shoulderPitch,
+    0,
+    0,
+    smoothing * 0.95,
     'XYZ'
   );
 
-  // Lengan atas tetap turun di sisi badan dan mengayun maju-mundur.
-  // Nilai Z dibuat konstan supaya tidak terlihat mengepak.
   poseBone(
     racer,
     upperName,
-    -0.020 + armForwardBack,
+    upperArmPitch,
     0,
-    mirror * 1.18,
+    mirror * 1.20,
     smoothing,
     'ZXY'
   );
 
-  const forwardSwing = Math.max(0, swing);
-  const backwardSwing = Math.max(0, -swing);
-
   const elbowBend =
-    0.48 +
-    forwardSwing * (0.12 + speedRatio * 0.035) +
-    backwardSwing * 0.08;
+    0.54 +
+    forwardSwing * (0.11 + speedRatio * 0.03) +
+    backwardSwing * 0.07;
 
   poseBentElbow(
     racer,
     side,
     elbowBend,
-    swing * 0.12,
+    swing * 0.10,
     smoothing * 0.90
   );
 
   poseBone(
     racer,
     handName,
-    0.002 - swing * 0.035,
+    0.004 - swing * 0.038,
     0,
-    mirror * -0.002,
+    0,
     smoothing * 0.84,
     'XYZ'
   );
@@ -3341,8 +3554,8 @@ function poseRunningArm(
   setHandGrip(
     racer,
     side,
-    0.58,
-    smoothing * 0.90
+    0.92,
+    smoothing * 0.92
   );
 }
 
@@ -3360,7 +3573,6 @@ function setIdlePose(
 
   const soft = THREE.MathUtils.clamp(smoothing, 0, 1);
 
-  // Pose berdiri rileks: pinggul dan dada tidak tegak seperti papan.
   poseBone(
     racer,
     'hips',
@@ -3415,112 +3627,110 @@ function setIdlePose(
     soft
   );
 
-  // Tangan lurus turun di samping badan, dengan napas halus agar tidak seperti robot.
-  const leftArm = armSway * 0.020 + breath * 0.010;
-  const rightArm = -armSway * 0.020 + breath * 0.010;
+  const leftArm = armSway * 0.015 + breath * 0.008;
+  const rightArm = -armSway * 0.015 + breath * 0.008;
 
   poseBone(
     racer,
     'leftShoulder',
-    -0.030 + breath * 0.006,
-    0.010,
-    0.010,
-    soft * 0.90,
+    -0.020 + breath * 0.004,
+    0,
+    0,
+    soft * 0.92,
     'XYZ'
   );
 
   poseBone(
     racer,
     'rightShoulder',
-    -0.030 + breath * 0.006,
-    -0.010,
-    -0.010,
-    soft * 0.90,
+    -0.020 + breath * 0.004,
+    0,
+    0,
+    soft * 0.92,
     'XYZ'
   );
 
   poseBone(
     racer,
     'leftUpperArm',
-    0.010 + leftArm,
-    0.000,
-    1.28,
-    soft * 0.92,
+    -0.005 + leftArm,
+    0,
+    1.20,
+    soft * 0.94,
     'ZXY'
   );
 
   poseBone(
     racer,
     'rightUpperArm',
-    0.010 + rightArm,
-    0.000,
-    -1.28,
-    soft * 0.92,
+    -0.005 + rightArm,
+    0,
+    -1.20,
+    soft * 0.94,
     'ZXY'
   );
 
   poseBentElbow(
     racer,
     'left',
-    0.22 + Math.max(0, leftArm) * 0.08,
-    leftArm * 0.35,
-    soft * 0.84
+    0.42 + Math.max(0, leftArm) * 0.06,
+    leftArm * 0.18,
+    soft * 0.86
   );
 
   poseBentElbow(
     racer,
     'right',
-    0.22 + Math.max(0, rightArm) * 0.08,
-    rightArm * 0.35,
-    soft * 0.84
+    0.42 + Math.max(0, rightArm) * 0.06,
+    rightArm * 0.18,
+    soft * 0.86
   );
 
   poseBone(
     racer,
     'leftHand',
-    -0.015 + leftArm * 0.02,
+    -0.010 + leftArm * 0.015,
     0,
-    -0.008,
-    soft * 0.74,
+    0,
+    soft * 0.78,
     'XYZ'
   );
 
   poseBone(
     racer,
     'rightHand',
-    -0.015 + rightArm * 0.02,
+    -0.010 + rightArm * 0.015,
     0,
-    0.008,
-    soft * 0.74,
+    0,
+    soft * 0.78,
     'XYZ'
   );
 
-  setHandGrip(racer, 'left', 0.88, soft * 0.82);
-  setHandGrip(racer, 'right', 0.88, soft * 0.82);
+  setHandGrip(racer, 'left', 0.95, soft * 0.88);
+  setHandGrip(racer, 'right', 0.95, soft * 0.88);
 
-  // Lutut sedikit lentur agar pose tidak kaku.
   poseBone(
     racer,
     'leftUpperLeg',
-    -0.018,
+    -0.020,
     0,
-    0.010 + weightShift * 0.005,
+    0.012 + weightShift * 0.006,
     soft
   );
 
   poseBone(
     racer,
     'rightUpperLeg',
-    -0.018,
+    -0.020,
     0,
-    -0.010 + weightShift * 0.005,
+    -0.012 + weightShift * 0.006,
     soft
   );
 
   poseBone(
     racer,
     'leftLowerLeg',
-    -0.040 - Math.max(0, weightShift) * 0.012,
+    -0.052 - Math.max(0, weightShift) * 0.016,
     0,
     0,
     soft
@@ -3529,16 +3739,15 @@ function setIdlePose(
   poseBone(
     racer,
     'rightLowerLeg',
-    -0.040 - Math.max(0, -weightShift) * 0.012,
+    -0.052 - Math.max(0, -weightShift) * 0.016,
     0,
     0,
     soft
   );
 
-  poseBone(racer, 'leftFoot', 0.025, 0, 0, soft);
-  poseBone(racer, 'rightFoot', 0.025, 0, 0, soft);
+  poseBone(racer, 'leftFoot', 0.030, 0, 0, soft);
+  poseBone(racer, 'rightFoot', 0.030, 0, 0, soft);
 
-  // Gerakan napas vertikal dibuat sangat kecil dan dihaluskan.
   const targetY = 0.0035 + breath * 0.0018;
   racer.root.position.y = THREE.MathUtils.lerp(
     racer.root.position.y,
@@ -3561,13 +3770,11 @@ function animateRun(
 ) {
   const phase = racer.runPhase;
 
-  // Jogging realistis: langkah pendek, ritme lembut, dan lengan tidak bergerak terlalu sinkron kaku.
   const leftLegSwing = -Math.sin(phase);
   const rightLegSwing = -leftLegSwing;
   const doubleStep = Math.sin(phase * 2);
 
-  // Lengan sedikit terlambat terhadap kaki agar terlihat lebih natural.
-  const armPhase = phase - 0.22;
+  const armPhase = phase - 0.18;
   const leftArmSwing = Math.sin(armPhase);
   const rightArmSwing = -leftArmSwing;
 
@@ -3576,12 +3783,12 @@ function animateRun(
   const leftContact = Math.max(0, leftLegSwing);
   const rightContact = Math.max(0, rightLegSwing);
 
-  const legAmplitude = 0.29 + speedRatio * 0.19;
-  const smoothing = 1 - Math.exp(-11 * Math.max(dt, 0.001));
+  const legAmplitude = 0.34 + speedRatio * 0.22;
+  const smoothing = 1 - Math.exp(-11.5 * Math.max(dt, 0.001));
 
   const bounceWave = (1 - Math.cos(phase * 2)) * 0.5;
   const desiredBounce =
-    0.002 + bounceWave * (0.004 + speedRatio * 0.005);
+    0.002 + bounceWave * (0.0045 + speedRatio * 0.0065);
 
   racer.root.position.y = THREE.MathUtils.damp(
     racer.root.position.y,
@@ -3593,15 +3800,15 @@ function animateRun(
   updateGroundShadow(racer, racer.root.position.y);
 
   const lateralWeight =
-    leftLegSwing * (0.003 + speedRatio * 0.004);
+    leftLegSwing * (0.004 + speedRatio * 0.005);
 
   const torsoCounter = leftArmSwing * (0.010 + speedRatio * 0.004);
 
   poseBone(
     racer,
     'hips',
-    -0.020 + doubleStep * 0.004,
-    -leftLegSwing * 0.010,
+    -0.022 + doubleStep * 0.006,
+    -leftLegSwing * 0.012,
     lateralWeight,
     smoothing
   );
@@ -3609,18 +3816,18 @@ function animateRun(
   poseBone(
     racer,
     'spine',
-    -0.030 - speedRatio * 0.012,
+    -0.032 - speedRatio * 0.014,
     torsoCounter,
-    -lateralWeight * 0.40,
+    -lateralWeight * 0.42,
     smoothing
   );
 
   poseBone(
     racer,
     'chest',
-    -0.003,
+    -0.004,
     torsoCounter * 0.85,
-    lateralWeight * 0.22,
+    lateralWeight * 0.24,
     smoothing
   );
 
@@ -3629,7 +3836,7 @@ function animateRun(
     'upperChest',
     0.004,
     torsoCounter * 0.60,
-    lateralWeight * 0.14,
+    lateralWeight * 0.16,
     smoothing
   );
 
@@ -3672,7 +3879,7 @@ function animateRun(
     'leftUpperLeg',
     leftLegSwing * legAmplitude,
     0,
-    0.008,
+    0.010,
     smoothing
   );
 
@@ -3681,14 +3888,14 @@ function animateRun(
     'rightUpperLeg',
     rightLegSwing * legAmplitude,
     0,
-    -0.008,
+    -0.010,
     smoothing
   );
 
   poseBone(
     racer,
     'leftLowerLeg',
-    -0.05 - leftRecovery * (0.48 + speedRatio * 0.12),
+    -0.08 - leftRecovery * (0.62 + speedRatio * 0.18),
     0,
     0,
     smoothing
@@ -3697,7 +3904,7 @@ function animateRun(
   poseBone(
     racer,
     'rightLowerLeg',
-    -0.05 - rightRecovery * (0.48 + speedRatio * 0.12),
+    -0.08 - rightRecovery * (0.62 + speedRatio * 0.18),
     0,
     0,
     smoothing
@@ -3706,7 +3913,7 @@ function animateRun(
   poseBone(
     racer,
     'leftFoot',
-    0.035 - leftContact * 0.08 + leftRecovery * 0.07,
+    0.05 - leftContact * 0.11 + leftRecovery * 0.10,
     0,
     0,
     smoothing
@@ -3715,14 +3922,14 @@ function animateRun(
   poseBone(
     racer,
     'rightFoot',
-    0.035 - rightContact * 0.08 + rightRecovery * 0.07,
+    0.05 - rightContact * 0.11 + rightRecovery * 0.10,
     0,
     0,
     smoothing
   );
 
-  poseBone(racer, 'leftToes', -leftContact * 0.04, 0, 0, smoothing);
-  poseBone(racer, 'rightToes', -rightContact * 0.04, 0, 0, smoothing);
+  poseBone(racer, 'leftToes', -leftContact * 0.06, 0, 0, smoothing);
+  poseBone(racer, 'rightToes', -rightContact * 0.06, 0, 0, smoothing);
 
   if (racer.spoon) {
     racer.spoon.rotation.x = doubleStep * 0.0015 * speedRatio;
