@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#090b18" />
-  <title>Anime Runner VRM V14.2 - Gerakan Lari Natural</title>
+  <title>Anime Runner VRM V14.3 - Arah Tangan dan Kaki Diperbaiki</title>
   <style>
     :root{
       --bg:#080b14;
@@ -3743,18 +3743,13 @@ function poseRunningArm(
    * mengikuti arah hadap pelari dan tetap sejajar dengan lintasan.
    */
   if (shoulder && shoulderRest) {
-    const shoulderTarget = shoulderRest
-      .clone()
-      .multiply(
-        new THREE.Quaternion().setFromAxisAngle(
-          new THREE.Vector3(1, 0, 0),
-          armSwing * (0.055 + speedRatio * 0.018)
-        )
-      );
+    // Bahu dijaga stabil. Ayunan utama tidak diberikan pada bahu karena
+    // rotasi bahu pada beberapa rig VRM dapat terbaca sebagai gerak menyamping.
+    const shoulderTarget = shoulderRest.clone();
 
     shoulder.quaternion.slerp(
       shoulderTarget,
-      soft * 0.88
+      soft * 0.92
     );
   }
 
@@ -3764,21 +3759,29 @@ function poseRunningArm(
       mirror * 1.34
     );
 
+    /*
+     * Arah lintasan berada pada sumbu Z karakter. Supaya telapak/lengan bergerak
+     * ke depan dan belakang lintasan, paha/lengan harus berputar pada sumbu X
+     * milik PARENT setelah lengan diturunkan dari T-pose.
+     *
+     * Urutan quaternion sangat penting:
+     *   sagittalSwing * armDown
+     * artinya lengan diturunkan dahulu, lalu seluruh lengan diayun dalam bidang
+     * depan-belakang. Urutan lama armDown * sagittalSwing membuat sumbu X menjadi
+     * puntiran lokal dan hasil visualnya tampak bergerak ke samping.
+     */
     const sagittalSwing = new THREE.Quaternion().setFromAxisAngle(
       new THREE.Vector3(1, 0, 0),
-      -0.10 + armSwing * (0.76 + speedRatio * 0.20)
+      -0.08 + armSwing * (0.72 + speedRatio * 0.18)
     );
 
-    const tinyInward = new THREE.Quaternion().setFromAxisAngle(
-      new THREE.Vector3(0, 1, 0),
-      -mirror * 0.025
-    );
+    const upperOffset = sagittalSwing
+      .clone()
+      .multiply(armDown);
 
     const upperTarget = upperRest
       .clone()
-      .multiply(armDown)
-      .multiply(sagittalSwing)
-      .multiply(tinyInward);
+      .multiply(upperOffset);
 
     upperArm.quaternion.slerp(
       upperTarget,
@@ -4030,11 +4033,13 @@ function animateRun(
 ) {
   const phase = racer.runPhase;
 
-  // Kedua kaki selalu berlawanan 180 derajat.
-  const leftLegSwing = -Math.sin(phase);
+  // Fase kaki dibalik dari versi sebelumnya sesuai arah langkah yang diminta.
+  // Kedua kaki tetap berlawanan tepat 180 derajat.
+  const leftLegSwing = Math.sin(phase);
   const rightLegSwing = -leftLegSwing;
 
-  // Tangan bergerak silang dengan kaki seperti lari manusia normal.
+  // Ayunan tangan selalu silang dan bergantian dengan kaki:
+  // kaki kiri maju -> tangan kanan maju, dan sebaliknya.
   const leftArmSwing = -leftLegSwing;
   const rightArmSwing = -rightLegSwing;
 
