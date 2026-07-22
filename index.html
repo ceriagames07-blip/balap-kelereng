@@ -1294,6 +1294,153 @@
       .countdown-number.go{min-width:220px;min-height:105px;}
     }
 
+
+    .history-overlay{
+      position:absolute;
+      inset:0;
+      z-index:31;
+      display:grid;
+      place-items:center;
+      padding:18px;
+      background:rgba(3,7,14,.78);
+      backdrop-filter:blur(10px);
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transition:opacity .2s ease,visibility .2s ease;
+    }
+
+    .history-overlay.show{
+      opacity:1;
+      visibility:visible;
+      pointer-events:auto;
+    }
+
+    .history-panel{
+      width:min(720px,96vw);
+      max-height:min(82vh,720px);
+      overflow:auto;
+      padding:18px;
+      border:1px solid rgba(102,235,255,.28);
+      border-radius:22px;
+      background:#08111f;
+      box-shadow:0 30px 100px rgba(0,0,0,.55);
+    }
+
+    .history-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      padding-bottom:14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+
+    .history-kicker{
+      color:var(--cyan);
+      font-size:10px;
+      font-weight:950;
+      letter-spacing:.12em;
+    }
+
+    .history-head h2{
+      margin:5px 0 0;
+      font-size:22px;
+      font-weight:1000;
+    }
+
+    .history-head p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:11px;
+    }
+
+    .history-close{
+      flex:0 0 auto;
+      width:40px;
+      height:40px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:12px;
+      background:rgba(255,255,255,.06);
+      color:#fff;
+      cursor:pointer;
+      font-weight:950;
+    }
+
+    .history-loading,
+    .history-empty{
+      padding:28px 10px;
+      color:var(--muted);
+      text-align:center;
+      font-size:12px;
+    }
+
+    .history-list{
+      display:grid;
+      gap:9px;
+      padding-top:13px;
+    }
+
+    .history-item{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:12px;
+      align-items:center;
+      padding:12px 13px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      background:rgba(255,255,255,.045);
+    }
+
+    .history-item-title{
+      color:#fff;
+      font-size:13px;
+      font-weight:950;
+    }
+
+    .history-item-meta{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:10px;
+      line-height:1.45;
+    }
+
+    .history-result{
+      min-width:110px;
+      text-align:right;
+    }
+
+    .history-position{
+      color:var(--cyan);
+      font-size:13px;
+      font-weight:1000;
+    }
+
+    .history-reward{
+      margin-top:4px;
+      color:#ffe16b;
+      font-size:12px;
+      font-weight:950;
+    }
+
+    .history-status{
+      display:inline-flex;
+      margin-top:4px;
+      padding:4px 8px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+      color:var(--muted);
+      font-size:9px;
+      font-weight:900;
+    }
+
+    @media(max-width:520px){
+      .history-overlay{padding:10px;}
+      .history-panel{padding:14px;max-height:88vh;}
+      .history-item{grid-template-columns:1fr;}
+      .history-result{text-align:left;}
+    }
+
 </style>
 </head>
 <body>
@@ -1361,9 +1508,9 @@
       <div>ID: <strong id="playerIdText">-</strong></div>
       <div>KARAKTER: <strong id="selectedCharacterName">KAI</strong></div>
       <div>KESEMPATAN: <strong id="remainingAttemptsText">-</strong></div>
-      <div>HADIAH: <strong id="plannedRewardText">-</strong></div>
     </div>
     <button id="startGameBtn" type="button" class="control-btn primary" disabled>MULAI GAME</button>
+    <button id="historyBtn" type="button" class="control-btn">HISTORY PERMAINAN</button>
     <button id="selectCharacterBtn" type="button" class="control-btn">GANTI KARAKTER</button>
     <button id="cameraBtn" type="button" class="control-btn">KAMERA: FOLLOW</button>
     <button id="backMenuBtn" type="button" class="control-btn menu-back">KEMBALI KE MENU UTAMA</button>
@@ -1385,6 +1532,22 @@
         <button id="closeSelectorBtn" class="selector-close" type="button" style="display:none">✕</button>
       </div>
       <div id="characterGrid" class="character-grid"></div>
+    </div>
+  </section>
+
+
+  <section id="historyOverlay" class="history-overlay" aria-label="History permainan member">
+    <div class="history-panel">
+      <div class="history-head">
+        <div>
+          <div class="history-kicker">RIWAYAT KHUSUS MEMBER</div>
+          <h2 id="historyTitle">HISTORY PERMAINAN</h2>
+          <p>Data yang tampil hanya milik username yang sedang login.</p>
+        </div>
+        <button id="historyCloseBtn" class="history-close" type="button" aria-label="Tutup history">✕</button>
+      </div>
+      <div id="historyLoading" class="history-loading">Memuat history permainan...</div>
+      <div id="historyList" class="history-list"></div>
     </div>
   </section>
 
@@ -1655,7 +1818,12 @@ const loginError = document.getElementById('loginError');
 const continueBtn = document.getElementById('continueBtn');
 const playerIdText = document.getElementById('playerIdText');
 const remainingAttemptsText = document.getElementById('remainingAttemptsText');
-const plannedRewardText = document.getElementById('plannedRewardText');
+const historyBtn = document.getElementById('historyBtn');
+const historyOverlay = document.getElementById('historyOverlay');
+const historyCloseBtn = document.getElementById('historyCloseBtn');
+const historyTitle = document.getElementById('historyTitle');
+const historyLoading = document.getElementById('historyLoading');
+const historyList = document.getElementById('historyList');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87cbff);
@@ -1738,8 +1906,8 @@ let modelsReady = false;
 let hudAccumulator = 0;
 let playerId = '';
 let memberData = null;
+let memberHistory = [];
 let gameSessionToken = '';
-let plannedReward = 0;
 let desiredPosition = 3;
 let resultSubmitted = false;
 let selectorMode = 'onboarding';
@@ -5049,6 +5217,112 @@ function refreshOpponentTargets() {
   );
 }
 
+
+function formatHistoryMovement(value) {
+  const labels = {
+    valid: 'Gerakan valid',
+    idle: 'Tidak bergerak',
+    erratic: 'Gerakan tidak stabil'
+  };
+  return labels[String(value || '').toLowerCase()] || 'Belum dinilai';
+}
+
+function renderMemberHistory(history) {
+  historyList.textContent = '';
+  historyLoading.style.display = 'none';
+
+  const rows = Array.isArray(history) ? history : [];
+
+  if (!rows.length) {
+    const empty = document.createElement('div');
+    empty.className = 'history-empty';
+    empty.textContent = 'Belum ada history permainan untuk username ini.';
+    historyList.appendChild(empty);
+    return;
+  }
+
+  rows.forEach((item, index) => {
+    const row = document.createElement('article');
+    row.className = 'history-item';
+
+    const info = document.createElement('div');
+
+    const title = document.createElement('div');
+    title.className = 'history-item-title';
+    title.textContent = `Permainan #${rows.length - index}`;
+
+    const meta = document.createElement('div');
+    meta.className = 'history-item-meta';
+
+    const timeText = item.completedAt || item.startedAt || '-';
+    const movementText = item.status === 'SELESAI'
+      ? formatHistoryMovement(item.movementQuality)
+      : 'Permainan telah dimulai';
+
+    meta.textContent =
+      `${timeText} • ${movementText}` +
+      (Number(item.elapsedSeconds) > 0
+        ? ` • ${Number(item.elapsedSeconds).toFixed(2)} detik`
+        : '');
+
+    info.append(title, meta);
+
+    const result = document.createElement('div');
+    result.className = 'history-result';
+
+    if (item.status === 'SELESAI') {
+      const position = document.createElement('div');
+      position.className = 'history-position';
+      position.textContent = `JUARA ${Number(item.position) || 3}`;
+
+      const reward = document.createElement('div');
+      reward.className = 'history-reward';
+      reward.textContent = formatRupiah(item.reward);
+
+      result.append(position, reward);
+    } else {
+      const status = document.createElement('div');
+      status.className = 'history-status';
+      status.textContent = 'SEDANG BERLANGSUNG';
+      result.appendChild(status);
+    }
+
+    row.append(info, result);
+    historyList.appendChild(row);
+  });
+}
+
+async function loadMemberHistory(showPanel = false) {
+  if (!playerId) return;
+
+  if (showPanel) {
+    historyTitle.textContent = `HISTORY • ${playerId}`;
+    historyOverlay.classList.add('show');
+  }
+
+  historyLoading.style.display = '';
+  historyList.textContent = '';
+
+  try {
+    const result = await apiPost(
+      'getMemberHistory',
+      { username: playerId }
+    );
+
+    memberHistory = Array.isArray(result.history)
+      ? result.history
+      : [];
+
+    renderMemberHistory(memberHistory);
+  } catch (error) {
+    historyLoading.style.display = 'none';
+    const empty = document.createElement('div');
+    empty.className = 'history-empty';
+    empty.textContent = `History gagal dimuat: ${error.message}`;
+    historyList.appendChild(empty);
+  }
+}
+
 async function reserveGameAttempt() {
   if (gameSessionToken) return true;
 
@@ -5062,11 +5336,6 @@ async function reserveGameAttempt() {
 
   gameSessionToken =
     result.token;
-
-  plannedReward =
-    Number(
-      result.plannedReward
-    ) || 5000;
 
   desiredPosition =
     Number(
@@ -5082,22 +5351,15 @@ async function reserveGameAttempt() {
       result.remainingAttempts
     ) || 0;
 
-  memberData.plannedReward =
-    plannedReward;
-
   remainingAttemptsText.textContent =
     String(
       memberData.remainingAttempts
     );
 
-  plannedRewardText.textContent =
-    formatRupiah(
-      plannedReward
-    );
-
   resetMovementMetrics();
   resultSubmitted = false;
   refreshOpponentTargets();
+  loadMemberHistory(false);
 
   return true;
 }
@@ -5785,12 +6047,7 @@ async function completeRaceAfterAllFinish() {
   let approvedPosition =
     playerFinishPosition;
 
-  let actualReward =
-    approvedPosition === 1
-      ? plannedReward
-      : approvedPosition === 2
-        ? 10000
-        : 5000;
+  let actualReward = 0;
 
   try {
     const result =
@@ -5806,6 +6063,11 @@ async function completeRaceAfterAllFinish() {
         Number(
           result.actualReward
         ) || actualReward;
+
+      if (Array.isArray(result.history)) {
+        memberHistory = result.history;
+        renderMemberHistory(memberHistory);
+      }
     }
   } catch (error) {
     raceFinished = true;
@@ -6366,6 +6628,7 @@ function backToMainMenu() {
   clearFinishCelebration();
   finishBanner.classList.remove('show');
   characterSelector.classList.add('hidden');
+  historyOverlay.classList.remove('show');
   mainMenu.classList.remove('hidden');
   raceStarted = false;
   raceFinished = false;
@@ -6413,28 +6676,16 @@ async function submitPlayerId() {
         }
       );
 
-    if (!result.canPlay) {
-      throw new Error(
-        result.message ||
-        'Kesempatan bermain sudah habis.'
-      );
-    }
-
     playerId =
       result.member.username;
 
     memberData =
       result.member;
 
-    plannedReward =
-      Number(
-        memberData.plannedReward
-      ) || 5000;
-
-    desiredPosition =
-      Number(
-        memberData.targetPosition
-      ) || 3;
+    desiredPosition = 3;
+    memberHistory = Array.isArray(result.history)
+      ? result.history
+      : [];
 
     gameSessionToken = '';
     resultSubmitted = false;
@@ -6448,10 +6699,12 @@ async function submitPlayerId() {
         memberData.remainingAttempts
       );
 
-    plannedRewardText.textContent =
-      formatRupiah(
-        plannedReward
-      );
+    historyTitle.textContent = `HISTORY • ${playerId}`;
+    renderMemberHistory(memberHistory);
+
+    if (!result.canPlay) {
+      statusText.textContent = 'Kesempatan bermain sudah habis • History tetap dapat dilihat';
+    }
 
     sessionStorage.setItem(
       'runner_player_id',
@@ -6495,6 +6748,25 @@ backMenuBtn.addEventListener('click', backToMainMenu);
 playerIdInput.addEventListener('keydown', event => {
   if (event.key === 'Enter') submitPlayerId();
 });
+
+historyBtn.addEventListener(
+  'click',
+  () => loadMemberHistory(true)
+);
+
+historyCloseBtn.addEventListener(
+  'click',
+  () => historyOverlay.classList.remove('show')
+);
+
+historyOverlay.addEventListener(
+  'click',
+  event => {
+    if (event.target === historyOverlay) {
+      historyOverlay.classList.remove('show');
+    }
+  }
+);
 
 selectCharacterBtn.addEventListener(
   'click',
