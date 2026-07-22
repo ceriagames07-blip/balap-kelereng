@@ -2200,6 +2200,19 @@ function createTrack() {
       metalness: 0.04
     });
 
+  // Logo sponsor diulang sepanjang sisi dinding yang menghadap lintasan.
+  const wallLogoTexture = new THREE.TextureLoader().load(
+    'https://plcl.me/images/d47nZ.png'
+  );
+  wallLogoTexture.colorSpace = THREE.SRGBColorSpace;
+  wallLogoTexture.wrapS = THREE.RepeatWrapping;
+  wallLogoTexture.wrapT = THREE.ClampToEdgeWrapping;
+  wallLogoTexture.repeat.set(28, 1);
+  wallLogoTexture.anisotropy = Math.min(
+    8,
+    renderer.capabilities.getMaxAnisotropy()
+  );
+
   [-1, 1].forEach(side => {
     const wallX = side * (TRACK.width / 2 + 0.22);
 
@@ -2211,6 +2224,27 @@ function createTrack() {
     wall.castShadow = !IS_MOBILE;
     wall.receiveShadow = true;
     scene.add(wall);
+
+    const sideLogoTexture = wallLogoTexture.clone();
+    sideLogoTexture.needsUpdate = true;
+
+    const wallLogo = new THREE.Mesh(
+      new THREE.PlaneGeometry(112, 0.68),
+      new THREE.MeshBasicMaterial({
+        map: sideLogoTexture,
+        transparent: true,
+        alphaTest: 0.02,
+        toneMapped: false
+      })
+    );
+    wallLogo.rotation.y = -side * Math.PI / 2;
+    wallLogo.position.set(
+      wallX - side * 0.096,
+      0.43,
+      -4
+    );
+    wallLogo.renderOrder = 2;
+    scene.add(wallLogo);
 
     const wallCap = new THREE.Mesh(
       new THREE.BoxGeometry(0.24, 0.08, 112.1),
@@ -4647,8 +4681,9 @@ function setIdlePose(
   smoothing
 ) {
   const phaseOffset = racer.laneIndex * 0.71;
-  const breath = Math.sin(elapsed * 1.18 + phaseOffset);
-  const breathSoft = Math.sin(elapsed * 2.36 + phaseOffset) * 0.18;
+  // Napas dibuat pelan dan terlihat dari naik-turun dada serta tubuh.
+  const breath = Math.sin(elapsed * 0.92 + phaseOffset);
+  const breathSoft = Math.sin(elapsed * 1.84 + phaseOffset) * 0.16;
   const weightShift = Math.sin(elapsed * 0.52 + phaseOffset);
   const bodySway = Math.sin(elapsed * 0.34 + phaseOffset * 0.6);
   const armSway = Math.sin(elapsed * 0.72 + phaseOffset);
@@ -4667,7 +4702,7 @@ function setIdlePose(
   poseBone(
     racer,
     'spine',
-    -0.025 + breath * 0.012 + breathSoft * 0.004,
+    -0.025 + breath * 0.020 + breathSoft * 0.005,
     -bodySway * 0.006,
     -weightShift * 0.007,
     soft
@@ -4676,7 +4711,7 @@ function setIdlePose(
   poseBone(
     racer,
     'chest',
-    0.008 + breath * 0.022,
+    0.008 + breath * 0.034,
     bodySway * 0.006,
     weightShift * 0.006,
     soft
@@ -4685,7 +4720,7 @@ function setIdlePose(
   poseBone(
     racer,
     'upperChest',
-    0.004 + breath * 0.016,
+    0.004 + breath * 0.026,
     -bodySway * 0.004,
     weightShift * 0.004,
     soft
@@ -4737,7 +4772,7 @@ function setIdlePose(
     'leftUpperArm',
     -0.005 + leftArm,
     0,
-    1.20,
+    1.43,
     soft * 0.94,
     'ZXY'
   );
@@ -4747,7 +4782,7 @@ function setIdlePose(
     'rightUpperArm',
     -0.005 + rightArm,
     0,
-    -1.20,
+    -1.43,
     soft * 0.94,
     'ZXY'
   );
@@ -4755,16 +4790,16 @@ function setIdlePose(
   poseBentElbow(
     racer,
     'left',
-    0.42 + Math.max(0, leftArm) * 0.06,
-    leftArm * 0.18,
+    0.18 + Math.max(0, leftArm) * 0.04,
+    leftArm * 0.08,
     soft * 0.86
   );
 
   poseBentElbow(
     racer,
     'right',
-    0.42 + Math.max(0, rightArm) * 0.06,
-    rightArm * 0.18,
+    0.18 + Math.max(0, rightArm) * 0.04,
+    rightArm * 0.08,
     soft * 0.86
   );
 
@@ -4830,7 +4865,7 @@ function setIdlePose(
   poseBone(racer, 'leftFoot', 0.030, 0, 0, soft);
   poseBone(racer, 'rightFoot', 0.030, 0, 0, soft);
 
-  const targetY = 0.0035 + breath * 0.0018;
+  const targetY = 0.0045 + breath * 0.0038;
   racer.root.position.y = THREE.MathUtils.lerp(
     racer.root.position.y,
     targetY,
